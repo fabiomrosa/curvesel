@@ -45,6 +45,8 @@ test("the Slides follow a Drag one to one, and a held release Snaps", async ({ p
   expect((during[3] ?? 0) - (before[3] ?? 0)).toBeCloseTo(-60, 0);
   await page.waitForTimeout(300);
   await page.mouse.up();
+  // Held still, the release has no speed: straight to Snap, no Inertia.
+  expect(await page.locator("#track-phase").textContent()).toBe("snap");
   expect(Number.isInteger(await rest(page))).toBe(true);
 });
 
@@ -58,8 +60,10 @@ test("the Rubber band resists past the first Slide, then Snaps back", async ({ p
   await page.mouse.down();
   await page.mouse.move(box.x + box.width / 2 + 200, box.y + box.height / 2, { steps: 5 });
   const stretched = await slideXs(page, "top");
+  expect(Number(await page.locator("#at").textContent())).toBeLessThan(0);
   await page.mouse.up();
   expect((stretched[3] ?? 0) - (before[3] ?? 0)).toBeCloseTo(20, 0);
+  expect(await rest(page)).toBe(0);
 });
 
 test("no frame is requested at rest", async ({ page }) => {

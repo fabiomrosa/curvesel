@@ -70,12 +70,16 @@ test("keeps the last layout while the Stage is hidden, and catches up when shown
   page,
 }) => {
   await mount(page, `<div class="stage" id="s">${cards(3)}</div>`, ["s"]);
+  const transform = () =>
+    page.evaluate(() => document.querySelectorAll<HTMLElement>("#s .card")[1]?.style.transform);
+  const before = await transform();
   await page.evaluate(() => {
     const stage = document.getElementById("s") as HTMLElement;
     stage.style.display = "none";
     for (const card of stage.querySelectorAll<HTMLElement>(".card")) card.style.width = "250px";
   });
   await frames(page);
+  expect(await transform()).toBe(before);
   await page.evaluate(() => {
     (document.getElementById("s") as HTMLElement).style.display = "";
   });
@@ -89,7 +93,7 @@ test("moves without a ResizeObserver loop when the user's CSS sizes the Active s
   await page.addStyleTag({ content: ".card[data-cs-active] { height: 150px; }" });
   await mount(page, `<div class="stage" id="s">${cards(4)}</div>`, ["s"]);
   await page.evaluate(() => window.carousels[0]?.goTo(2));
-  await page.waitForTimeout(1500);
+  await page.waitForFunction(() => window.carousels[0]?.position === 2);
   expect(await centres(page, "s")).toEqual([-440, -220, 0, 220]);
 });
 

@@ -20,6 +20,8 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - The e2e server is Vite at the repository root; `e2e/engine.html` imports the engine's source,
   which resolves `@curvesel/core` to its built `dist/`, so `npm run e2e` runs after the build (as
   `verify` does). A stale `core/dist` shows old `core` behaviour in the browser tests.
+- Chrome reports a `ResizeObserver` loop only as a window `error` event: Playwright's `pageerror`
+  and console listeners miss it, so `e2e/engine.html` forwards window errors to `console.error`.
 - Chrome keeps an emptied `style=""` attribute; `happy-dom` drops it. `happy-dom` also runs
   `MutationObserver` callbacks in another order than Chrome (creation order), so a Slide moved
   between two Carousels only shows a mix-up in the browser.

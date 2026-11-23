@@ -16,6 +16,8 @@
       import { createCarousel } from "/packages/vanilla/src/index.ts";
 
       window.createCarousel = createCarousel;
+      // Chrome reports a ResizeObserver loop only as a window error event, which Playwright misses.
+      addEventListener("error", (event) => console.error(event.message));
     </script>
   </body>
 </html>
