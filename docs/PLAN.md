@@ -166,7 +166,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08.
 
 ### C1.7 · Wave across the Plane
-- **Status:** waiting (C1.6)
+- **Status:** done (2026-11-23)
 - **Goal:** a ribbon or a ring can undulate across its Plane (a horizontal ribbon waving up and
   down, a crown).
 - **Depends on:** C1.6.

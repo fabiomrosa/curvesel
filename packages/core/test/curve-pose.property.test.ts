@@ -137,6 +137,7 @@ describe("curvePose invariants", () => {
       wavelength: fc.integer({ min: 100, max: 2000 }).map((n) => n / 100),
       phase: fc.integer({ min: -3142, max: 3142 }).map((n) => n / 1000),
       anchor: fc.constantFrom("space" as const, "ribbon" as const),
+      plane: fc.constantFrom("z" as const, "y" as const),
     });
     // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
     const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
@@ -157,6 +158,23 @@ describe("curvePose invariants", () => {
           let length = 0;
           for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));
           expect(Math.abs(length - step)).toBeLessThan(1e-3 * step);
+          // Every rotation is proper: orthonormal columns, determinant 1 (no mirror).
+          const [a0, a1, a2, b0, b1, b2, c0, c1, c2] = at(o).rotation;
+          const columns = [
+            [a0, b0, c0],
+            [a1, b1, c1],
+            [a2, b2, c2],
+          ];
+          for (const [i, u] of columns.entries()) {
+            for (const [j, v] of columns.entries()) {
+              const dot =
+                (u[0] ?? 0) * (v[0] ?? 0) + (u[1] ?? 0) * (v[1] ?? 0) + (u[2] ?? 0) * (v[2] ?? 0);
+              expect(Math.abs(dot - (i === j ? 1 : 0))).toBeLessThan(1e-9);
+            }
+          }
+          const det =
+            a0 * (b1 * c2 - b2 * c1) - a1 * (b0 * c2 - b2 * c0) + a2 * (b0 * c1 - b1 * c0);
+          expect(Math.abs(det - 1)).toBeLessThan(1e-9);
           // The Curve's direction at the Slide is the Slide's own axis along it.
           const [before, here, after] = [at(o - 0.01), at(o), at(o + 0.01)];
           const j = p === "yz" ? 1 : 0;

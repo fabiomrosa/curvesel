@@ -10,14 +10,14 @@ Every slice's pull request updates it (SESSION §3).
 - `curvePose(offset, { curvature, gap, plane, wave, visibleRange }, { size, position })`: the
   Pose of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
   (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder
-  (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`, `phase`) makes it undulate
-  in its Plane, fixed relative to the centre (`anchor: 'space'`) or travelling with the Slides
+  (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`, `phase`, `plane`) makes it
+  undulate in its Plane (`z`) or across it (`y`, pitching the Slides), fixed relative to the centre (`anchor: 'space'`) or travelling with the Slides
   (`'ribbon'`, the phase shifted by `2π·position / wavelength`; the ribbon rocks as it moves, since
   the Active slide keeps facing the viewer). Each Pose says whether it is `visible` and its `zIndex`
   (nearer the viewer above; at equal depth, nearer the centre above). Invalid options throw
   `curvesel:` errors.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
-  sliders for count, Curvature, gap, size, the Wave and its anchor, the Position (Slides at
+  sliders for count, Curvature, gap, size, the Wave with its plane and anchor, the Position (Slides at
   `index − position`) and visible range (hidden Slides dashed, painted in
   `zIndex` order), and a button that closes the ring; errors show on
   the page.
@@ -51,4 +51,6 @@ None.
 - **2026-11-23, C1.4:** `visible` and `zIndex` in every Pose, with a depth-order property.
 - **2026-11-23, C1.5:** the Wave in the Curve's Plane (anchor `space`), default phase π/2.
 - **2026-11-23, C1.6:** the Wave's `ribbon` anchor and `position` in the Layout context.
-- **Next:** C1.7 (Wave across the Plane).
+- **2026-11-23, C1.7:** the Wave across the Plane (yaw and pitch, one integration path); the
+  property checks every rotation is proper.
+- **Next:** C1.8 (Twist).
