@@ -23,6 +23,10 @@ Every slice's pull request updates it (SESSION §3).
 - The Track: `createTrack({ count, rubberBand })` at rest on Position 0; `dragStart` and
   `dragMove(state, delta)` (delta in Positions) move it, and past the first or last Slide only
   `rubberBand` (0.1 by default) of a move counts, so a move and its reverse cancel out.
+  `release(state, velocity)` starts Inertia and `step(state, dt)` advances it: the velocity keeps
+  `friction` of itself per second (2012's 0.84 per 30 fps frame by default), decaying `rubberBand`
+  times faster past an end, solved exactly so any frame rate ends at the same Position; `dt` counts
+  at most 0.1 s, and below 0.01 Positions per second the Track rests where it is.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
@@ -32,7 +36,8 @@ Every slice's pull request updates it (SESSION §3).
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
-  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `TrackState`, `TrackOptions`).
+  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `step`, `TrackState`,
+  `TrackOptions`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -68,4 +73,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.10:** the Presets, the `Layout` type and `rotationFromAngles`; the property runs
   over every Preset.
 - **2026-11-23, C1.11:** the Track and Drag with the Rubber band, a pure state in and out.
-- **Next:** C1.12 (Inertia).
+- **2026-11-23, C1.12:** Inertia, exact between the ends; a property runs the same release at
+  30, 60 and 120 fps and with jittery `dt`.
+- **Next:** C1.13 (Snap).

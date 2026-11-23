@@ -1,9 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { createTrack, dragMove, dragStart, type TrackState } from "../src/index.ts";
+import { createTrack, dragMove, dragStart, release, step, type TrackState } from "../src/index.ts";
 
 function drag(state: TrackState, ...deltas: number[]): TrackState {
   return deltas.reduce(dragMove, dragStart(state));
 }
+
+/** Steps at 60 fps until the Track rests, or a minute passes. */
+function settle(state: TrackState): TrackState {
+  let track = state;
+  for (let i = 0; i < 3600 && track.phase !== "rest"; i++) track = step(track, 1 / 60);
+  return track;
+}
+
+/** Half the velocity kept per second: a decay rate of ln 2. */
+const HALF = { friction: 0.5 };
 
 describe("createTrack", () => {
   it("starts at rest on Position 0 with no velocity", () => {
@@ -31,6 +41,18 @@ describe("createTrack", () => {
     expect(() => createTrack({ count: 3, rubberBand: Number.NaN })).toThrow("curvesel: rubberBand");
     expect(createTrack({ count: 3, rubberBand: 1 }).rubberBand).toBeCloseTo(1, 12);
   });
+
+  it("keeps 0.84 of the velocity per 30 fps frame by default, as in the 2012 version", () => {
+    expect(createTrack({ count: 3 }).friction).toBeCloseTo(0.84 ** 30, 12);
+  });
+
+  it("throws a message naming the friction when it is not in (0, 1)", () => {
+    expect(() => createTrack({ count: 3, friction: 1 })).toThrow(
+      "curvesel: friction must be a number in (0, 1), got 1",
+    );
+    expect(() => createTrack({ count: 3, friction: 0 })).toThrow("curvesel: friction");
+    expect(() => createTrack({ count: 3, friction: Number.NaN })).toThrow("curvesel: friction");
+  });
 });
 
 describe("dragStart", () => {
@@ -38,6 +60,11 @@ describe("dragStart", () => {
     const track = dragStart(createTrack({ count: 3 }));
     expect(track.phase).toBe("drag");
     expect(track.position).toBeCloseTo(0, 12);
+  });
+
+  it("stops a Track in Inertia", () => {
+    const moving = release(createTrack({ count: 9 }), 5);
+    expect(dragStart(moving).velocity).toBeCloseTo(0, 12);
   });
 });
 
@@ -89,5 +116,78 @@ describe("dragMove", () => {
     const start = dragStart(createTrack({ count: 3 }));
     dragMove(start, 1);
     expect(start.position).toBeCloseTo(0, 12);
+  });
+});
+
+describe("release", () => {
+  it("starts Inertia at the release velocity", () => {
+    const track = release(drag(createTrack({ count: 5 }), 1), 3);
+    expect(track.phase).toBe("inertia");
+    expect(track.velocity).toBeCloseTo(3, 12);
+    expect(track.position).toBeCloseTo(1, 12);
+  });
+
+  it("comes to rest where it is when the release has almost no speed", () => {
+    const track = release(drag(createTrack({ count: 5 }), 1), 0.001);
+    expect(track.phase).toBe("rest");
+    expect(track.velocity).toBeCloseTo(0, 12);
+  });
+
+  it("throws a message naming the velocity when it is not a finite number", () => {
+    expect(() => release(createTrack({ count: 3 }), Number.NaN)).toThrow(
+      "curvesel: velocity must be a finite number, got NaN",
+    );
+  });
+});
+
+describe("step", () => {
+  it("decays the velocity by the friction per second, moving by its integral", () => {
+    let track = release(drag(createTrack({ count: 9, ...HALF }), 1), 2);
+    for (let i = 0; i < 10; i++) track = step(track, 0.1);
+    expect(track.velocity).toBeCloseTo(1, 12);
+    expect(track.position).toBeCloseTo(1 + 1 / Math.LN2, 12);
+    expect(track.phase).toBe("inertia");
+  });
+
+  it("comes to rest in finite time, about velocity / decay rate farther on", () => {
+    // Checked against a fine Euler simulation: 6.756353 after 8.64 s.
+    const track = settle(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
+    expect(track.phase).toBe("rest");
+    expect(track.velocity).toBeCloseTo(0, 12);
+    expect(track.position).toBeCloseTo(6.756353, 5);
+  });
+
+  it("slows rubberBand times faster past an end", () => {
+    // Without the band it would reach 7.756; checked against a fine Euler simulation.
+    const track = settle(release(drag(createTrack({ count: 3, ...HALF }), 2), 4));
+    expect(track.position).toBeCloseTo(2.575635, 5);
+  });
+
+  it("crosses back into bounds and out past the other end, changing the decay at each", () => {
+    // From 2.05 (past the last Slide) towards the first; checked against a fine Euler simulation.
+    const track = settle(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2));
+    expect(track.position).toBeCloseTo(-0.037095, 5);
+  });
+
+  it("moves no farther than a tenth of a second allows, however long the step", () => {
+    const moving = release(createTrack({ count: 99 }), 10);
+    const late = step(moving, 10);
+    expect(late.position).toBeLessThanOrEqual(10 * 0.1);
+    expect(late.position).toBeCloseTo(step(moving, 0.1).position, 12);
+  });
+
+  it("leaves a Track at rest or in a Drag where it is", () => {
+    const resting = createTrack({ count: 3 });
+    expect(step(resting, 1 / 60)).toEqual(resting);
+    const dragging = drag(resting, 1);
+    expect(step(dragging, 1 / 60)).toEqual(dragging);
+  });
+
+  it("throws a message naming dt when it is negative or not a finite number", () => {
+    const moving = release(createTrack({ count: 3 }), 1);
+    expect(() => step(moving, -1)).toThrow(
+      "curvesel: dt must be a finite number of at least 0, got -1",
+    );
+    expect(() => step(moving, Number.NaN)).toThrow("curvesel: dt");
   });
 });

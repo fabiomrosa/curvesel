@@ -9,4 +9,12 @@ export {
 export { type Layout, rotationFromAngles } from "./layout.ts";
 export type { Pose, Rotation } from "./pose.ts";
 export { type PresetName, presets } from "./presets.ts";
-export { createTrack, dragMove, dragStart, type TrackOptions, type TrackState } from "./track.ts";
+export {
+  createTrack,
+  dragMove,
+  dragStart,
+  release,
+  step,
+  type TrackOptions,
+  type TrackState,
+} from "./track.ts";

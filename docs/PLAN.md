@@ -260,7 +260,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-06, DEC-09, ARCHITECTURE "The physics".
 
 ### C1.12 · Inertia
-- **Status:** waiting (C1.11)
+- **Status:** done (2026-11-23)
 - **Goal:** a release carries the Track on and slows it down, the same at any frame rate.
 - **Depends on:** C1.11.
 - **In scope:** `release(state, velocity)` (Positions per second); `step(state, dt)` decays the
