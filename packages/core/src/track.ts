@@ -4,7 +4,9 @@ export interface TrackState {
   readonly position: number;
   /** Positions per second. */
   readonly velocity: number;
-  readonly phase: "rest" | "drag" | "inertia";
+  readonly phase: "rest" | "drag" | "inertia" | "snap";
+  /** The whole Position a Snap settles on. */
+  readonly target: number;
   readonly count: number;
   /** The fraction of a move that counts past the first or last Slide. */
   readonly rubberBand: number;
@@ -24,6 +26,10 @@ const DEFAULT_RUBBER_BAND = 0.1;
 const DEFAULT_FRICTION = 0.84 ** 30;
 /** Positions per second: slower than this, Inertia ends. */
 const REST_SPEED = 0.01;
+/** Positions: this close to its target, and slower than `REST_SPEED`, a Snap ends. */
+const REST_DISTANCE = 0.001;
+/** Per second: the angular frequency of Snap's critically damped spring. */
+const SNAP_RATE = 12;
 /** Seconds: a longer step (a backgrounded tab) counts as this long. */
 const MAX_DT = 0.1;
 /** Past one end, across the bounds, past the other: the velocity never changes sign. */
@@ -44,7 +50,7 @@ export function createTrack({
   if (!(friction > 0 && friction < 1)) {
     throw new Error(`curvesel: friction must be a number in (0, 1), got ${friction}`);
   }
-  return { position: 0, velocity: 0, phase: "rest", count, rubberBand, friction };
+  return { position: 0, velocity: 0, phase: "rest", target: 0, count, rubberBand, friction };
 }
 
 /** The pointer goes down on the Stage: the Track stops and follows the Drag. */
@@ -64,27 +70,39 @@ export function dragMove(state: TrackState, delta: number): TrackState {
   return { ...state, position: fromPointer(state, pointer) };
 }
 
-/** The pointer is released at `velocity` Positions per second: Inertia carries the Track on. */
+/**
+ * The pointer is released at `velocity` Positions per second: Inertia carries the Track on, or with
+ * almost no speed it Snaps to the nearest Slide.
+ */
 export function release(state: TrackState, velocity: number): TrackState {
   if (!Number.isFinite(velocity)) {
     throw new Error(`curvesel: velocity must be a finite number, got ${velocity}`);
   }
-  if (Math.abs(velocity) < REST_SPEED) return { ...state, velocity: 0, phase: "rest" };
+  if (Math.abs(velocity) < REST_SPEED) return snapFrom(state, state.position, velocity);
   return { ...state, velocity, phase: "inertia" };
 }
 
 /**
- * Advances Inertia by `dt` seconds. The velocity decays exponentially (`rubberBand` times faster
- * past an end), solved exactly piece by piece between the ends, so any split of the same time
- * ends at the same Position. Below `REST_SPEED` the Track rests where it is.
+ * Advances the motion by `dt` seconds, solved exactly so any split of the same time ends at the
+ * same Position: Inertia, then Snap, then rest. A Track at rest or in a Drag stays where it is.
  */
 export function step(state: TrackState, dt: number): TrackState {
   if (!(Number.isFinite(dt) && dt >= 0)) {
     throw new Error(`curvesel: dt must be a finite number of at least 0, got ${dt}`);
   }
-  if (state.phase !== "inertia") return state;
+  const time = Math.min(dt, MAX_DT);
+  if (state.phase === "inertia") return coast(state, time);
+  if (state.phase === "snap") return spring(state, time);
+  return state;
+}
+
+/**
+ * Inertia: the velocity decays exponentially (`rubberBand` times faster past an end), piece by piece
+ * between the ends. Below `REST_SPEED` the rest of the time goes to Snap.
+ */
+function coast(state: TrackState, time: number): TrackState {
   let { position, velocity } = state;
-  let left = Math.min(dt, MAX_DT);
+  let left = time;
   for (let piece = 0; piece < MAX_PIECES && left > 0; piece++) {
     const edge = nextEdge(state.count, position, velocity);
     const outside = edge === undefined || position < 0 || position > state.count - 1;
@@ -92,16 +110,39 @@ export function step(state: TrackState, dt: number): TrackState {
     const toRest = Math.log(Math.abs(velocity) / REST_SPEED) / decay;
     const kept = edge === undefined ? 0 : 1 - (decay * (edge - position)) / velocity;
     const toEdge = kept > 0 ? -Math.log(kept) / decay : Number.POSITIVE_INFINITY;
-    const time = Math.min(left, toRest, toEdge);
-    const factor = Math.exp(-decay * time);
+    const span = Math.max(0, Math.min(left, toRest, toEdge));
+    const factor = Math.exp(-decay * span);
     position += (velocity * (1 - factor)) / decay;
     velocity *= factor;
-    if (time === toRest) return { ...state, position, velocity: 0, phase: "rest" };
+    left -= span;
+    if (span === Math.max(0, toRest)) return spring(snapFrom(state, position, velocity), left);
     // Landing exactly on the end moves `nextEdge` on to the next one: each piece makes progress.
-    if (time === toEdge) position = edge as number;
-    left -= time;
+    if (span === toEdge) position = edge as number;
   }
   return { ...state, position, velocity };
+}
+
+/** Starts a Snap to the nearest whole Position within bounds. */
+function snapFrom(state: TrackState, position: number, velocity: number): TrackState {
+  const target = Math.min(Math.max(Math.round(position), 0), state.count - 1);
+  return { ...state, position, velocity, target, phase: "snap" };
+}
+
+/**
+ * Snap: a critically damped spring, `x(t) = (x₀ + (v₀ + ωx₀) t) e^(−ωt)` from the target. Close
+ * enough and slow enough, the Track rests exactly on the target.
+ */
+function spring(state: TrackState, time: number): TrackState {
+  const { target } = state;
+  const x0 = state.position - target;
+  const v0 = state.velocity;
+  const decay = Math.exp(-SNAP_RATE * time);
+  const drift = v0 + SNAP_RATE * x0;
+  const x = (x0 + drift * time) * decay;
+  const v = (v0 - SNAP_RATE * drift * time) * decay;
+  if (Math.abs(x) < REST_DISTANCE && Math.abs(v) < REST_SPEED)
+    return { ...state, position: target, velocity: 0, phase: "rest" };
+  return { ...state, position: target + x, velocity: v };
 }
 
 /** The next end the Track reaches moving at `velocity`, or none once it is past it. */
