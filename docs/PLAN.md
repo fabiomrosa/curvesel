@@ -241,7 +241,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08, ARCHITECTURE "Design references".
 
 ### C1.11 · Track and Drag
-- **Status:** waiting (C1.10)
+- **Status:** done (2026-11-23)
 - **Goal:** a drag moves the Position, and the ends resist.
 - **Depends on:** C1.10, DEC-09.
 - **In scope:** `TrackState` `{ position, velocity, phase }` with `count`; `createTrack({ count })`

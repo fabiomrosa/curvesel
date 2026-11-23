@@ -20,6 +20,9 @@ Every slice's pull request updates it (SESSION §3).
   Invalid options throw `curvesel:` errors.
 - `presets` (`cylinder`, `ribbon`, `wheel`, `arc`), the `Layout` type for custom Layouts, and
   `rotationFromAngles(rx, ry, rz)` (CSS `rotateX rotateY rotateZ`).
+- The Track: `createTrack({ count, rubberBand })` at rest on Position 0; `dragStart` and
+  `dragMove(state, delta)` (delta in Positions) move it, and past the first or last Slide only
+  `rubberBand` (0.1 by default) of a move counts, so a move and its reverse cancel out.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
@@ -28,7 +31,8 @@ Every slice's pull request updates it (SESSION §3).
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
-  `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`).
+  `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
+  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `TrackState`, `TrackOptions`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -63,5 +67,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.9:** Tilt; the Wave property draws a Tilt too.
 - **2026-11-23, C1.10:** the Presets, the `Layout` type and `rotationFromAngles`; the property runs
   over every Preset.
-- **Next:** the owner checks the Curve in the playground (C1.10's criterion 3), then C1.11 (Track
-  and Drag).
+- **2026-11-23, C1.11:** the Track and Drag with the Rubber band, a pure state in and out.
+- **Next:** C1.12 (Inertia).
