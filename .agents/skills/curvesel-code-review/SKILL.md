@@ -9,6 +9,11 @@ Review as a reader who did not write the change. If your agent can start a subag
 fresh context (not a fork of this conversation) and give it this skill, the slice entry and the diff,
 without your summary of the change. Otherwise reread the slice entry before the diff.
 
+The review is read-only: the working tree and the branch end as they began (`git status` unchanged).
+To break the code once, back the file up outside the repository, edit it, run the tests, and restore
+the backup byte for byte (`cmp`); probes and scratch scripts live in `$TMPDIR`. Uncommitted work
+under review exists nowhere else, so `checkout`, `restore` and `stash` stay out of the review.
+
 Run `git diff main...HEAD --stat` and read every changed file. Answer each item with yes/no + file
 reference. Any "no" is fixed before the pull request (or explicitly listed as a deviation in it).
 
