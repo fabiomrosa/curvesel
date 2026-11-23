@@ -77,6 +77,9 @@ class FakeResizeObserver {
     this.watched.add(target);
     this.boxes.add(options?.box);
   }
+  unobserve(target: Element): void {
+    this.watched.delete(target);
+  }
   disconnect(): void {
     this.watched.clear();
   }
@@ -224,6 +227,76 @@ describe("follow the size", () => {
     expect([...(FakeResizeObserver.last?.boxes ?? [])]).toEqual(["border-box"]);
     carousel.destroy();
     expect(FakeResizeObserver.last?.watched.size).toBe(0);
+  });
+});
+
+describe("follow the children", () => {
+  /** MutationObserver callbacks run as a microtask after the change. */
+  const mutated = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  it("adopts an added child and gives a removed one back as it was", async () => {
+    const root = stage(3);
+    const leaving = slides(root)[1] as HTMLElement;
+    const before = snapshot(leaving);
+    createCarousel(root, { layout: "ribbon", size: 100 });
+    const arriving = document.createElement("div");
+    root.append(arriving);
+    leaving.remove();
+    await mutated();
+    expectPose(arriving.style.transform, curvePose(2, presets.ribbon, { size: 100 }));
+    expect(snapshot(leaving)).toEqual(before);
+    expect(FakeResizeObserver.last?.watched.has(arriving)).toBe(true);
+    expect(FakeResizeObserver.last?.watched.has(leaving)).toBe(false);
+  });
+
+  it("takes the new count when looping, so the Offsets wrap around it", async () => {
+    const root = stage(3);
+    createCarousel(root, { loop: true, size: 100 });
+    root.append(document.createElement("div"));
+    await mutated();
+    const offsets = slides(root).map((slide) =>
+      Number(slide.style.getPropertyValue("--cs-offset")),
+    );
+    expect(offsets).toEqual([0, 1, -2, -1]);
+  });
+
+  it("mounts an empty Stage, and draws when a child arrives", async () => {
+    const root = stage(0);
+    createCarousel(root);
+    const first = document.createElement("div");
+    stub(first, { offsetWidth: 100 });
+    root.append(first);
+    await mutated();
+    expect(first.hasAttribute("data-cs-active")).toBe(true);
+  });
+
+  it("hands a Slide over cleanly when it moves to another Carousel", async () => {
+    // Whichever Carousel's observer runs first, the Slide ends up laid out by its new one.
+    for (const order of [
+      ["b", "a"],
+      ["a", "b"],
+    ]) {
+      document.body.innerHTML = `<div id="a"><div></div><div></div></div><div id="b"><div></div></div>`;
+      const byId = (id: string) => document.getElementById(id) as HTMLElement;
+      const moving = slides(byId("a"))[0] as HTMLElement;
+      const before = snapshot(moving);
+      const carousels = order.map((id) => createCarousel(byId(id), { size: 100 }));
+      byId("b").append(moving);
+      await mutated();
+      expect(moving.style.position).toBe("absolute");
+      expect(Number(moving.style.getPropertyValue("--cs-offset"))).toBeCloseTo(1, 12);
+      for (const carousel of carousels) carousel.destroy();
+      expect(snapshot(moving)).toEqual(before);
+    }
+  });
+
+  it("stops following on destroy", async () => {
+    const root = stage(2);
+    createCarousel(root, { size: 100 }).destroy();
+    const late = document.createElement("div");
+    root.append(late);
+    await mutated();
+    expect(late.getAttribute("style")).toBeNull();
   });
 });
 

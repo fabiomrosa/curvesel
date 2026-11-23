@@ -404,25 +404,25 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07.
 
 ### C2.3 · Follow the children
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the user adds and removes Slides freely, and the Carousel follows.
 - **Depends on:** C2.2.
 - **In scope:** a `MutationObserver` on the Stage's child list: an added child is adopted, a
-  removed one gets back everything the library wrote, the Track takes the new count (the Position
-  clamped unless looping); an empty Stage draws nothing.
+  removed one gets back everything the library wrote, the Track takes the new count; an empty Stage
+  draws nothing. (Clamping the Position moved to C2.4, where it can move.)
 - **Out of scope:** reordering animations.
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
   1. An appended child is laid out at its Offset; a removed child carries none of the library's
      properties or attributes.
-  2. Removing the last Slides while the Position is past them clamps it to the new last Slide.
+  2. Looping, the Offsets wrap around the new count.
   3. An empty Stage mounts, draws nothing, and starts drawing when a child arrives.
   4. `destroy()` disconnects the observer.
 - **Files:** ~5: `src/carousel.ts`, its test, PLAN, STATE.
 - **References:** DEC-07, PRODUCT invariants.
 
 ### C2.4 · Animation loop and goTo
-- **Status:** waiting (C2.3)
+- **Status:** next
 - **Goal:** code moves the Carousel, and it animates only while it moves.
 - **Depends on:** C2.3, DEC-09.
 - **In scope:** one `requestAnimationFrame` loop over the Track (`dt` from the frame timestamps,
@@ -437,6 +437,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
      returns.
   3. `next` and `previous` stop at the ends, or wrap when looping.
   4. `destroy()` cancels a pending frame.
+  5. Removing the last Slides while the Position is past them clamps it (from C2.3).
 - **Files:** ~5: `src/carousel.ts`, its test, `src/index.ts`, PLAN, STATE.
 - **References:** DEC-09, ARCHITECTURE "Request flow".
 
@@ -463,7 +464,9 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **In scope:** Playwright, configured as in `../list-picker` (the installed Chrome, no download),
   `npm run e2e` in `verify` and in CI; a smoke test of the playground (the M1 close's proposal 4:
   drag the ribbon, Rubber band, Snap, no frame at rest); the engine's resize in the browser (C2.2
-  review: a Slide's padding change, a hidden then shown Stage, no `ResizeObserver` loop error).
+  review: a Slide's padding change, a hidden then shown Stage, no `ResizeObserver` loop error); a
+  restored or removed Slide that had no `style` attribute has none, and a Slide moved to a Carousel
+  created earlier is laid out by it and fully restored (C2.3; `happy-dom` hides both).
 - **Out of scope:** the demo (C2.7).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
