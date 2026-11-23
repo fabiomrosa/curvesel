@@ -6,7 +6,8 @@ adapters only bind it to a UI layer (DEC-11, DEC-12).
 
 ## Stack
 Exact versions are pinned in the root `package.json` (the same toolchain as `../list-picker`):
-TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, Biome 2.6.8.
+TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, `fast-check` 4.11.0, Biome 2.6.8,
+Vite 8.3.8.
 - **Language:** TypeScript 7, `strict` plus `noUncheckedIndexedAccess` and
   `exactOptionalPropertyTypes`, ES modules (`nodenext`), target ES2024. Node 26 (npm 11).
 - **Workspace:** npm workspaces, packages under `packages/`. The root `tsconfig.json` type-checks
@@ -16,7 +17,7 @@ TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, Biome 2.6.8.
   real-browser tests (M2).
 - **Format and lint:** Biome 2.
 - **Build:** `tsc` per package, to ESM plus type declarations in `dist/`.
-- **Playground:** Vite (dev server only), from C1.1.
+- **Playground:** Vite (dev server only, `npm run dev`), no config file: `vite playground`.
 
 ## Modules
 
@@ -24,7 +25,7 @@ TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, Biome 2.6.8.
 |---|---|---|
 | `packages/core` | The Curve layout and its integration, the Presets, the Pose, the Track and its physics step (Drag, Inertia, Snap, Rubber band, loop). No DOM. | nothing |
 | `packages/vanilla` (M2) | `createCarousel(stage, options)`: adopts the Stage's children, measures them, runs the loop, handles input, writes Poses and CSS state | `core` |
-| `playground/` (C1.1) | A local page that draws the Curve and exercises it by hand; not a package, never published | `core` (source) |
+| `playground/` (C1.2) | A local page that draws the Curve and exercises it by hand; not a package, never published | `core` (source) |
 | `packages/react` (M4) | `<Carousel>` and a hook over the engine | `core`, `vanilla` |
 | `packages/angular` (M5) | A component with `<ng-content>` and a slide directive over the engine | `core`, `vanilla` |
 

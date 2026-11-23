@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>curvesel playground</title>
+    <style>
+      body { font: 15px/1.4 system-ui, sans-serif; margin: 2rem; color: #1f2933; background: #f5f7fa; }
+      h1 { font-size: 1.25rem; }
+      h1 small, figcaption { font-size: 0.8rem; font-weight: normal; color: #616e7c; }
+      form { display: grid; grid-template-columns: 6rem 16rem 5rem; gap: 0.4rem 0.75rem; align-items: center; }
+      output { font: 0.85rem ui-monospace, monospace; }
+      button { font: inherit; padding: 0.2rem 0.5rem; }
+      .error { color: #b42318; min-height: 1.4em; }
+      figure { margin: 1rem 0 0; }
+      svg { width: 32rem; max-width: 100%; aspect-ratio: 1; background: #fff; border: 1px solid #cbd2d9; border-radius: 8px; }
+      .slide { stroke: #3e4c59; stroke-width: 3; stroke-linecap: round; }
+      .slide.centre { stroke: #c2410c; }
+      .facing { stroke: #9aa5b1; stroke-width: 1.5; }
+    </style>
+  </head>
+  <body>
+    <h1>curvesel playground <small>@curvesel/core, by hand</small></h1>
+    <form id="options">
+      <label for="count">Slides</label>
+      <input id="count" type="range" min="1" max="24" step="1" value="12" />
+      <output for="count"></output>
+      <label for="curvature">Curvature</label>
+      <input id="curvature" type="range" min="-6.284" max="6.284" step="any" value="0" />
+      <output for="curvature"></output>
+      <label for="gap">Gap (px)</label>
+      <input id="gap" type="range" min="0" max="200" step="1" value="20" />
+      <output for="gap"></output>
+      <label for="size">Size (px)</label>
+      <input id="size" type="range" min="0" max="400" step="1" value="200" />
+      <output for="size"></output>
+      <span></span>
+      <button id="close-ring" type="button">Curvature = 2π / N</button>
+    </form>
+    <p class="error" id="error"></p>
+    <figure>
+      <svg id="top" role="img" aria-label="Top view of the Curve"></svg>
+      <figcaption>Top view (x right, z towards the viewer at the bottom). Orange: Offset 0. Ticks: where each Slide faces.</figcaption>
+    </figure>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

@@ -31,13 +31,14 @@ Agents: start with `AGENTS.md`.
 
 ## Running locally
 
-The workspace builds and tests; `packages/core` is still empty (M1 adds the Curve and the Track).
+`packages/core` lays Slides on a Curve; the playground draws it in the browser.
 
 ```sh
 git clone git@github.com:fabiomrosa/curvesel.git
 cd curvesel
 npm ci
 npm test            # the tests once
+npm run dev         # the playground at http://localhost:5173
 npm run format      # format and apply safe lint fixes
 ```
 

@@ -10,10 +10,13 @@ Every slice's pull request updates it (SESSION §3).
 - `curvePose(offset, { curvature, gap }, { size })`: the Pose of a Slide on a Curve of constant
   Curvature in the `xz` Plane, from a flat ribbon (0) to a closed cylinder (`2π / N`), exact
   through `κ = 0`. Invalid options throw `curvesel:` errors.
+- The playground (`npm run dev`): a top view of N Slides with sliders for count, Curvature, gap
+  and size, and a button that closes the ring; errors show on the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
+- `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
 None.
@@ -33,4 +36,6 @@ None.
 - **2026-11-23, C1.1:** `curvePose` with constant Curvature and the shared property test
   (`test/curve-pose.property.test.ts`: equal spacing, continuity through `κ = 0` against an
   independent formula of the circle).
-- **Next:** C1.2 (playground).
+- **2026-11-23, C1.2:** the playground, Vite with no config file, importing `core` from source.
+  Checked in Chrome with a scratch Playwright script (flat, half bend, closed ring, error).
+- **Next:** C1.3 (Planes).

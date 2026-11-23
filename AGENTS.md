@@ -69,5 +69,5 @@ Follow YAGNI and KISS strictly, in code and in communication.
 - **Pull requests:** push the slice branch, open the pull request with `gh`, and squash-merge it
   yourself once every check is green (SESSION §4). Nothing reaches `main` any other way (DEC-04).
 - **Install:** `npm ci`. **Test:** `npm test`. **Format and fix lint:** `npm run format`.
-- **Playground:** `npm run dev` (Vite, `playground/`, from C1.1).
+- **Playground:** `npm run dev` (Vite, `playground/`).
 - Packages live in `packages/<name>`; root scripts run over all of them.
