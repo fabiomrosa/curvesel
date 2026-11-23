@@ -53,8 +53,8 @@ Every slice's pull request updates it (SESSION §3).
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.
-- The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a Preset selector, a Plane
-  selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
+- The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a
+  Preset selector, a Plane selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
   button that closes the ring; errors show on the page. It runs a Track: dragging any view moves it
   (pixels divided by the step on screen), a release carries the velocity of the last 100 ms into
