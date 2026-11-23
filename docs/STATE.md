@@ -36,8 +36,14 @@ Every slice's pull request updates it (SESSION §3).
   passes it; it is ignored during a Drag.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
-  Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
-  in `zIndex` order), and a button that closes the ring; errors show on the page.
+  Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
+  button that closes the ring; errors show on the page. It runs a Track: dragging any view moves it
+  (pixels divided by the step on screen), a release carries the velocity of the last 100 ms into
+  Inertia and Snap, one `requestAnimationFrame` loop runs only while the Track moves, Previous and
+  Next call `goTo`, a checkbox loops it, and the page shows the Position, the phase and the frames
+  requested. Slides sit at `slideOffset(index, position, count, loop)`; each view is fitted to the
+  Curve at Position 0, so the Slides move under the pointer. The Position slider drags the Track
+  and Snaps it when let go.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
@@ -86,4 +92,7 @@ Every slice's pull request updates it (SESSION §3).
   the frame-rate property now ends on the same Slide.
 - **2026-11-23, C1.14:** Loop and `slideOffset`; the gestures property runs looping too.
 - **2026-11-23, C1.15:** `goTo`, with a property over any start, looping or not, at any frame rate.
-- **Next:** C1.16 (playground with motion); the owner checks M1 there.
+- **2026-11-23, C1.16:** the playground drives a Track (Drag, Inertia, Snap, Rubber band, loop,
+  `goTo`). Checked in Chrome with a scratch Playwright script: flings, past both ends, Previous and
+  Next, loop, a Preset; no frame requested at rest.
+- **Next:** the owner checks M1 in the playground (C1.16's criterion 1), then "close M1".
