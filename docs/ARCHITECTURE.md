@@ -75,9 +75,8 @@ Each package is created by the first slice that needs it.
   damped spring never passes.
 
 ## Writing a Pose (`vanilla`)
-A Slide's `transform` is `translate(W/2, H/2) translate(-50%, -50%) matrix3d(…)` (the Stage's
-half size, the Slide's centre, the Pose column-major): DEC-07 writes no `left` or `top`, so the
-transform alone centres it. A Stage not positioned already becomes `position: relative`.
+`transform: translate(W/2 − left, H/2 − top) translate(-50%, -50%) matrix3d(…)`: DEC-07 writes no
+`left`/`top`, so it starts from where the absolute Slide sits (`offsetLeft`, `offsetTop`).
 
 ## Request flow
 One gesture through the engine (M2):
