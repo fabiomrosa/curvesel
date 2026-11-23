@@ -41,7 +41,9 @@ Every slice's pull request updates it (SESSION §3).
   (pixels divided by the step on screen), a release carries the velocity of the last 100 ms into
   Inertia and Snap, one `requestAnimationFrame` loop runs only while the Track moves, Previous and
   Next call `goTo`, a checkbox loops it, and the page shows the Position, the phase and the frames
-  requested. Slides sit at `slideOffset(index, position, count, loop)`.
+  requested. Slides sit at `slideOffset(index, position, count, loop)`; each view is fitted to the
+  Curve at Position 0, so the Slides move under the pointer. The Position slider drags the Track
+  and Snaps it when let go.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
