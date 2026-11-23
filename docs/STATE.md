@@ -44,7 +44,10 @@ Every slice's pull request updates it (SESSION §3).
   `requestAnimationFrame` loop that runs only in Inertia or Snap (`friction`, `rubberBand`
   options); geometry is measured on mount, resize and child changes, a frame only writes, and a
   culled Slide is written once until it comes back. Removing the Slides past the Position Snaps it
-  back to the new last one.
+  back to the new last one. `on('change' | 'select', handler)` returns an unsubscribe function:
+  `change` hands the Position once per frame that moved it, `select` the Active slide's index when
+  it changes (also after a child change); a handler's error is reported (`reportError`), not
+  thrown; `destroy()` drops every handler.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -62,7 +65,8 @@ Every slice's pull request updates it (SESSION §3).
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
   `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `goBy`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
-- `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`).
+- `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`,
+  `CarouselEvents`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -117,4 +121,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.2:** the Carousel follows the size of the Stage and the Slides.
 - **2026-11-23, C2.3:** the Carousel follows the Stage's children; an empty Stage mounts.
 - **2026-11-23, C2.4:** the animation loop, `goTo`, `next`, `previous`, `position` and culling.
-- **Next:** C2.5 (events).
+- **2026-11-23, C2.5:** `carousel.on('change' | 'select')`.
+- **Next:** C2.6 (browser tests).

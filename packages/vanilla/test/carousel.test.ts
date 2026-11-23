@@ -410,6 +410,121 @@ describe("motion", () => {
   });
 });
 
+describe("events", () => {
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("emits change once per frame that moved, and select when the Active slide changes", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    const changes: number[] = [];
+    const selects: number[] = [];
+    carousel.on("change", (position) => changes.push(position));
+    carousel.on("select", (index) => selects.push(index));
+    carousel.goTo(2);
+    vi.advanceTimersByTime(5000);
+    expect(changes.length).toBeGreaterThan(10);
+    expect(changes.at(-1)).toBeCloseTo(2, 9);
+    expect(new Set(changes).size).toBe(changes.length);
+    // The first frame is still (dt 0): nothing to report until the Position moves.
+    expect(changes[0]).toBeGreaterThan(0);
+    expect(selects).toEqual([1, 2]);
+    const settled = changes.length;
+    vi.advanceTimersByTime(5000);
+    expect(changes.length).toBe(settled);
+  });
+
+  it("wraps the selected index when looping, also when the count changes", async () => {
+    const root = stage(4);
+    const carousel = createCarousel(root, { size: 100, loop: true });
+    const selects: number[] = [];
+    carousel.on("select", (index) => selects.push(index));
+    carousel.previous();
+    vi.advanceTimersByTime(5000);
+    expect(selects).toEqual([3]);
+    // At Position −1, three Slides make the Active one index 2.
+    slides(root)[0]?.remove();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(selects).toEqual([3, 2]);
+  });
+
+  it("keeps moving and telling the others when a handler throws, reporting the error", () => {
+    const reported: unknown[] = [];
+    vi.stubGlobal("reportError", (error: unknown) => reported.push(error));
+    const carousel = createCarousel(stage(5), { size: 100 });
+    const heard: number[] = [];
+    carousel.on("change", () => {
+      throw new Error("boom");
+    });
+    carousel.on("change", (position) => heard.push(position));
+    carousel.goTo(2);
+    vi.advanceTimersByTime(5000);
+    expect(carousel.position).toBeCloseTo(2, 9);
+    expect(heard.at(-1)).toBeCloseTo(2, 9);
+    expect(reported.length).toBe(heard.length);
+  });
+
+  it("calls a handler that subscribes again during an event once, not in a loop", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    let calls = 0;
+    let off = () => {};
+    const handler = () => {
+      calls++;
+      off();
+      off = carousel.on("change", handler);
+    };
+    off = carousel.on("change", handler);
+    carousel.goTo(1);
+    vi.advanceTimersByTime(34);
+    expect(calls).toBe(1);
+  });
+
+  it("skips a handler that an earlier one unsubscribed in the same event", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    const heard: string[] = [];
+    carousel.on("change", () => offLater());
+    const offLater = carousel.on("change", () => heard.push("later"));
+    carousel.goTo(1);
+    vi.advanceTimersByTime(5000);
+    expect(heard).toEqual([]);
+  });
+
+  it("drops every handler when destroyed during an event", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    const selects: number[] = [];
+    // Destroyed in the frame that also changes the Active slide (0 to 1).
+    carousel.on("change", (position) => {
+      if (position >= 0.5) carousel.destroy();
+    });
+    carousel.on("select", (index) => selects.push(index));
+    carousel.goTo(4);
+    vi.advanceTimersByTime(5000);
+    expect(selects).toEqual([]);
+  });
+
+  it("stops a handler when unsubscribed", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    const heard: string[] = [];
+    const off = carousel.on("change", () => heard.push("off"));
+    carousel.on("select", () => heard.push("kept"));
+    off();
+    carousel.goTo(1);
+    vi.advanceTimersByTime(5000);
+    expect(heard).toEqual(["kept"]);
+    carousel.on("change", () => heard.push("late"));
+    carousel.destroy();
+    carousel.goTo(3);
+    vi.advanceTimersByTime(5000);
+    expect(heard).toEqual(["kept"]);
+    expect(() => carousel.on("move" as "change", () => {})).toThrow(
+      'curvesel: event must be "change" or "select", got "move"',
+    );
+  });
+});
+
 describe("destroy", () => {
   it("restores a static Stage, and leaves nothing written when mounting throws", () => {
     for (const options of [{ size: 100 }, { size: 100, layout: { curvature: 0, gap: -1 } }, {}]) {

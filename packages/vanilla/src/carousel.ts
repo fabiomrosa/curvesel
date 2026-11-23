@@ -28,6 +28,14 @@ export interface CarouselOptions {
   friction?: number;
 }
 
+/** What each event hands its handlers. */
+export interface CarouselEvents {
+  /** The Position, once per frame that moved it. */
+  change: number;
+  /** The Active slide's index, when it changes. */
+  select: number;
+}
+
 export interface Carousel {
   /** The Track's Position: 2.5 is halfway between Slides 2 and 3. */
   readonly position: number;
@@ -35,6 +43,11 @@ export interface Carousel {
   goTo(index: number): void;
   next(): void;
   previous(): void;
+  /** Calls `handler` on each `name` event; returns what stops it. */
+  on<K extends keyof CarouselEvents>(
+    name: K,
+    handler: (value: CarouselEvents[K]) => void,
+  ): () => void;
   /** Restores every property and attribute the Carousel wrote. */
   destroy(): void;
 }
@@ -94,6 +107,20 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     geometry.hidden.clear();
     paint();
   };
+  const handlers = {
+    change: new Set<(value: number) => void>(),
+    select: new Set<(value: number) => void>(),
+  };
+  let heard = { position: 0, active: 0 };
+  /** Tells the handlers what changed since they last heard. */
+  const notify = () => {
+    const { position, count } = track;
+    const active = ((Math.round(position) % count) + count) % count;
+    const before = heard;
+    heard = { position, active };
+    if (position !== before.position) emit(handlers.change, position);
+    if (active !== before.active) emit(handlers.select, active);
+  };
   let frame = 0;
   let last: number | undefined;
   let destroyed = false;
@@ -108,6 +135,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     paint();
     if (track.phase === "inertia" || track.phase === "snap") request();
     else last = undefined;
+    notify();
   };
   const move = (next: TrackState) => {
     track = next;
@@ -143,9 +171,11 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   const mutations = new MutationObserver(() => {
     adopt();
     draw();
+    notify();
   });
   const destroy = () => {
     destroyed = true;
+    for (const set of Object.values(handlers)) set.clear();
     if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
     resizes.disconnect();
@@ -179,8 +209,33 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     goTo,
     next: () => move(goBy(track, 1)),
     previous: () => move(goBy(track, -1)),
+    on(name, handler) {
+      const set = handlers[name];
+      if (!(set instanceof Set)) {
+        throw new Error(
+          `curvesel: event must be "change" or "select", got ${JSON.stringify(name)}`,
+        );
+      }
+      set.add(handler);
+      return () => set.delete(handler);
+    },
     destroy,
   };
+}
+
+/**
+ * Calls each handler subscribed when the event began (one that subscribes again is not called again
+ * in the same event); a handler's error is reported, not thrown, so the motion and the others go on.
+ */
+function emit(handlers: Set<(value: number) => void>, value: number): void {
+  for (const handler of [...handlers]) {
+    if (!handlers.has(handler)) continue;
+    try {
+      handler(value);
+    } catch (error) {
+      reportError(error);
+    }
+  }
 }
 
 /** The Layout to call, and the Plane it bends in when it is a Curve. */
