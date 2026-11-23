@@ -195,6 +195,15 @@ describe("curvePose", () => {
         }
       });
 
+      it("moves the default phase with the Position when no phase is given", () => {
+        const travelling = { ...wave, anchor: "ribbon" as const };
+        const shifted = { ...wave, phase: Math.PI / 2 + (2 * Math.PI * 1.3) / 4 };
+        const moving = curvePose(2.5, options(travelling), { size: 200, position: 1.3 });
+        const fixed = curvePose(2.5, options(shifted), { size: 200 });
+        expect(Math.hypot(moving.x - fixed.x, moving.z - fixed.z)).toBeLessThan(1e-9);
+        expectRotation(moving.rotation, fixed.rotation);
+      });
+
       it("repeats the Poses one wavelength later", () => {
         const now = curvePose(2.5, options(ribbon), { size: 200, position: 1.3 });
         const later = curvePose(2.5, options(ribbon), { size: 200, position: 5.3 });

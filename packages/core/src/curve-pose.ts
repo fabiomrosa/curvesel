@@ -26,7 +26,7 @@ export interface CurveOptions {
   readonly gap: number;
   /** Where the Curve bends; `xz` by default. */
   readonly plane?: Plane;
-  /** Makes the Curve undulate in its Plane, fixed relative to the centre. */
+  /** Makes the Curve undulate in its Plane (see `Wave.anchor`). */
   readonly wave?: Wave;
   /** How far from the centre, in Offsets, a Slide is still shown; every Slide by default. */
   readonly visibleRange?: number;
