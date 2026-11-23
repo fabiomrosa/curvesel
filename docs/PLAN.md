@@ -221,7 +221,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** PRODUCT "Tilt".
 
 ### C1.10 · Presets and custom Layouts
-- **Status:** waiting (C1.9)
+- **Status:** done (2026-11-23)
 - **Goal:** each variant is one named set of options, and a user can bring their own Layout.
 - **Depends on:** C1.9.
 - **In scope:** `presets`: `cylinder` (a closed ring of 10 with the back half hidden), `ribbon`

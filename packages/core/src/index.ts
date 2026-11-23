@@ -6,4 +6,6 @@ export {
   type Plane,
   type Wave,
 } from "./curve-pose.ts";
+export { type Layout, rotationFromAngles } from "./layout.ts";
 export type { Pose, Rotation } from "./pose.ts";
+export { type PresetName, presets } from "./presets.ts";
