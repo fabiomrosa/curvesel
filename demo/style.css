@@ -1,0 +1,60 @@
+/* The demo's own look: the library writes only DEC-07's properties, and this CSS reads them. */
+body {
+  margin: 0;
+  font:
+    15px / 1.4 system-ui,
+    sans-serif;
+  color: #1f2933;
+  background: #f5f7fa;
+}
+header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem 2rem;
+}
+#stage {
+  width: 900px;
+  max-width: 100%;
+  height: 520px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+#stage:focus-visible {
+  outline: 2px solid #c2410c;
+  outline-offset: -2px;
+  border-radius: 12px;
+}
+/* The card is the Slide, sized for the library; its face carries the look. */
+.card {
+  width: 180px;
+  height: 240px;
+}
+.face {
+  box-sizing: border-box;
+  height: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px #0002;
+  /* Each Offset away from the centre: dimmer and smaller, up to three. On the face, as a `scale`
+     on the card would apply after the library's transform and pull it towards the centre. */
+  --away: min(var(--cs-abs-offset, 0), 3);
+  opacity: calc(1 - var(--away) * 0.22);
+  scale: calc(1 - var(--away) * 0.08);
+}
+.card[data-cs-active] .face {
+  box-shadow:
+    0 0 0 2px #c2410c,
+    0 8px 24px #0003;
+}
+.card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+.card input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 0.5rem;
+}

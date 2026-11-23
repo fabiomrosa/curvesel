@@ -26,6 +26,7 @@ const neighbours: Record<string, (x: number, y: number) => boolean> = {
   cylinder: (x, y) => x > 0 && x < 195 && y === 0,
   wheel: (x, y) => x === 0 && y > 0,
   arc: (x, y) => x > 0 && y > 0,
+  "wavy ribbon": (x, y) => x > 0 && x < 200 && y === 0,
 };
 
 for (const [preset, placed] of Object.entries(neighbours)) {
@@ -73,4 +74,75 @@ test("switching Presets destroys the Carousel it replaces", async ({ page }) => 
   await page.evaluate(() => (window as { old?: { goTo(index: number): void } }).old?.goTo(3));
   await page.waitForTimeout(1500);
   await expect(page.locator("#active")).toHaveText("1");
+});
+
+test("the wavy ribbon undulates: the third card out comes forward again", async ({ page }) => {
+  await page.selectOption("#preset", "wavy ribbon");
+  const depth = await page.evaluate(() =>
+    [...(document.getElementById("stage") as HTMLElement).children].map((card) =>
+      Number((card as HTMLElement).style.zIndex),
+    ),
+  );
+  // A plain bend goes deeper with each card; the Wave turns back after its trough.
+  expect(depth[3]).toBeGreaterThan(depth[2] as number);
+});
+
+test("the side cards are dimmed and smaller, by the demo's own CSS", async ({ page }) => {
+  const look = (index: number) =>
+    page
+      .locator(".card .face")
+      .nth(index)
+      .evaluate((face) => {
+        const style = getComputedStyle(face);
+        return { opacity: Number(style.opacity), scale: style.scale };
+      });
+  expect(await look(0)).toEqual({ opacity: 1, scale: "1" });
+  const side = await look(1);
+  expect(side.opacity).toBeLessThan(1);
+  expect(Number(side.scale)).toBeLessThan(1);
+});
+
+test("the loop goes round from the first card to the last", async ({ page }) => {
+  await page.check("#loop");
+  await page.click("#previous");
+  await expect(page.locator("#active")).toHaveText("10");
+});
+
+test("the library writes on the cards and the Stage only what DEC-07 and DEC-14 list", async ({
+  page,
+}) => {
+  const slide = [
+    "position",
+    "transform",
+    "z-index",
+    "visibility",
+    "--cs-offset",
+    "--cs-abs-offset",
+  ];
+  const stage = ["perspective", "touch-action", "position"];
+  for (const option of Object.keys(neighbours)) {
+    await page.selectOption("#preset", option);
+    await page.click("#next");
+    const written = await page.evaluate(() => {
+      const root = document.getElementById("stage") as HTMLElement;
+      const names = (element: HTMLElement) => [...element.style];
+      const marks = (element: HTMLElement) => element.getAttributeNames();
+      const cards = [...root.children] as HTMLElement[];
+      return {
+        slide: [...new Set(cards.flatMap(names))],
+        marks: [...new Set(cards.flatMap(marks))],
+        stage: names(root),
+        stageMarks: marks(root),
+      };
+    });
+    for (const name of written.slide) expect(slide, option).toContain(name);
+    for (const name of written.stage) expect(stage, option).toContain(name);
+    expect(written.marks.sort(), option).toEqual([
+      "class",
+      "data-cs-active",
+      "data-cs-visible",
+      "style",
+    ]);
+    expect(written.stageMarks.sort(), option).toEqual(["id", "style", "tabindex"]);
+  }
 });

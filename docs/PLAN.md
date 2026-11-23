@@ -549,7 +549,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10, DEC-14.
 
 ### C2.11 · Demo with every Preset
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the demo shows every Preset, the arc of cards included, and the owner checks M2.
 - **Depends on:** C2.10.
 - **In scope:** the demo's styles, driven by `--cs-abs-offset` and `data-cs-active` (side cards
@@ -565,7 +565,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** ARCHITECTURE "Design references", DEC-07.
 
 ### C2.12 · Frame budget
-- **Status:** waiting (C2.11)
+- **Status:** next
 - **Goal:** the cost of a frame is measured, not assumed.
 - **Depends on:** C2.11.
 - **In scope:** a trace of a drag in Chrome with 20 and 200 Slides, with and without a Wave
