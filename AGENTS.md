@@ -73,4 +73,6 @@ Follow YAGNI and KISS strictly, in code and in communication.
   vanilla engine over real cards).
 - **Browser tests:** `npm run e2e` (Playwright in the installed Chrome, `e2e/*.e2e.ts`; part of the
   gate, after the build).
+- **Frame budget:** `npm run bench` (a Chrome trace of a drag, `bench/`; not in the gate). A
+  performance claim cites it or a trace.
 - Packages live in `packages/<name>`; root scripts run over all of them.

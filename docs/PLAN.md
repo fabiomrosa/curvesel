@@ -565,7 +565,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** ARCHITECTURE "Design references", DEC-07.
 
 ### C2.12 · Frame budget
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the cost of a frame is measured, not assumed.
 - **Depends on:** C2.11.
 - **In scope:** a trace of a drag in Chrome with 20 and 200 Slides, with and without a Wave
@@ -586,7 +586,8 @@ Ideas not planned yet; a milestone's planning picks from here.
   that an inner scroller can still take (C2.10 review).
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
-- For M2: with a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: 0.05
-  ms a frame for 20 Slides, 6.7 ms for 200 (C1.5 review, a scratch benchmark). If the demo needs
-  more, integrate once over the sorted Offsets per frame, and skip Slides beyond the visible range.
+- With a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: a frame of
+  a drag over 200 Slides takes 22.7 ms in Chrome, over the 16.7 ms budget (C2.12, ARCHITECTURE
+  "Frame budget"); 20 Slides take 1.2 ms. The fix, a slice of its own: integrate once over the
+  sorted Offsets per frame, and skip Slides beyond the visible range.
 

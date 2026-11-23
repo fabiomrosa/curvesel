@@ -91,6 +91,23 @@ One gesture through the engine (M2):
    threshold, the next `click` is stopped in the capture phase.
 5. `destroy()`: stop the loop, remove the listeners, restore what DEC-07 lists.
 
+## Frame budget
+`npm run bench` (`bench/frame-trace.ts`) drags a Carousel of 200 px Slides on the browser tests' page
+in the installed Chrome, one pointer move per frame for 120 frames, and traces it. A frame's cost
+is the main thread's work in the frames the engine wrote in: its animation frame callback, style,
+layout, pre-paint, paint and layerize (compositing and raster run off the main thread and are not
+counted). Measured 2026-11-23 on an Apple M4 Pro, Chrome 157, three runs (medians of the medians):
+
+| Case | Median ms | Worst ms |
+|---|---|---|
+| 20 Slides, ribbon | 0.56 | 1.41 |
+| 20 Slides, wavy ribbon | 1.22 | 3.03 |
+| 200 Slides, ribbon | 2.08 | 4.73 |
+| 200 Slides, wavy ribbon | 22.7 | 23.7 |
+
+The 60 fps budget is 16.7 ms. Every case fits but 200 Slides with a Wave: each Pose integrates its
+Wave from the centre, O(N²) for N Slides (PLAN "Later").
+
 ## Persistence
 None. The library emits `change` (Position) and `select` (Active slide) through
 `carousel.on(name, handler)`, which returns an unsubscribe function; the user persists.
