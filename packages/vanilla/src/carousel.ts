@@ -167,14 +167,28 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     track = next;
     request();
   };
-  const goTo = (index: number) => move(sendTo(track, index));
+  let wheeling: ReturnType<typeof setTimeout> | undefined;
+  /** Ends a wheel gesture now, so a Drag, a key or a call takes the Track from there. */
+  const endWheel = () => {
+    if (wheeling === undefined) return;
+    clearTimeout(wheeling);
+    wheeling = undefined;
+    track = release(track, 0);
+  };
+  const goTo = (index: number) => {
+    endWheel();
+    move(sendTo(track, index));
+  };
+  const goOn = (delta: number) => {
+    endWheel();
+    move(goBy(track, delta));
+  };
   // A Drag: the pointer's moves are stored, then applied in the next frame along the Curve.
   let dragging: ScreenStep | undefined;
   let pending: Vector = { x: 0, y: 0 };
-  let wheeling: ReturnType<typeof setTimeout> | undefined;
   const stopListening = listenForDrag(stage, dragThreshold, {
     start() {
-      clearTimeout(wheeling);
+      endWheel();
       dragging = screenStep(layout, geometry.size, track.position);
       if (dragging) track = dragStart(track);
       pending = { x: 0, y: 0 };
@@ -195,10 +209,16 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       request();
     },
   });
-  // A wheel moves the Track like a Drag, within the ends, and Snaps after a pause.
+  // A wheel along the Curve moves the Track like a Drag, within the ends, and Snaps after a pause;
+  // one mostly across it, a pinch (`ctrlKey`) or one the page already scrolls with is the page's.
   const wheel = (event: WheelEvent) => {
     const along = dragging ? undefined : screenStep(layout, geometry.size, track.position);
-    if (!along) return;
+    if (!along || event.ctrlKey || !event.cancelable) return;
+    const { x, y } = along.axis;
+    if (
+      Math.abs(event.deltaX * x + event.deltaY * y) <= Math.abs(event.deltaX * y - event.deltaY * x)
+    )
+      return;
     const unit = event.deltaMode === 1 ? WHEEL_LINE : event.deltaMode === 2 ? along.px : 1;
     const by = -toPositions(along, { x: event.deltaX * unit, y: event.deltaY * unit });
     const from = track.position;
@@ -208,7 +228,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     event.preventDefault();
     move(dragMove(dragStart(track), to - from));
     clearTimeout(wheeling);
-    wheeling = setTimeout(() => move(release(track, 0)), WHEEL_PAUSE);
+    wheeling = setTimeout(() => {
+      wheeling = undefined;
+      move(release(track, 0));
+    }, WHEEL_PAUSE);
   };
   // Keys on the focused Stage; a Slide's own keys (an input's arrows) stay the Slide's.
   const key = (event: KeyboardEvent) => {
@@ -218,7 +241,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     if (event.key === "Home") goTo(0);
     else if (event.key === "End") goTo(track.count - 1);
     else if (arrow && along && Math.abs(arrow.x * along.axis.x + arrow.y * along.axis.y) >= 0.5) {
-      move(goBy(track, Math.sign(arrow.x * along.axis.x + arrow.y * along.axis.y)));
+      goOn(Math.sign(arrow.x * along.axis.x + arrow.y * along.axis.y));
     } else return;
     event.preventDefault();
   };
@@ -301,8 +324,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       return track.position;
     },
     goTo,
-    next: () => move(goBy(track, 1)),
-    previous: () => move(goBy(track, -1)),
+    next: () => goOn(1),
+    previous: () => goOn(-1),
     on(name, handler) {
       const set = handlers[name];
       if (!(set instanceof Set)) {

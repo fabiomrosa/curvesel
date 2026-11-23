@@ -54,10 +54,11 @@ Every slice's pull request updates it (SESSION §3).
   applied in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active
   slide is clamped past an end; `touch-action` follows the drag axis. Past the threshold, the next
   pointer `click` is stopped on the Stage in the capture phase (keyboard clicks pass); the next
-  `pointerdown` or `destroy()` lifts the guard. A wheel along the Curve moves it like a Drag
-  within the ends (at an end the page scrolls) and Snaps after 150 ms without one; on the focused
-  Stage the arrows along the Curve step it, Home and End go to the ends (keys from inside a Slide
-  stay the Slide's); a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14).
+  `pointerdown` or `destroy()` lifts the guard. A wheel mostly along the Curve moves it like a
+  Drag within the ends (at an end, across the Curve or a pinch, the page takes it) and Snaps after
+  150 ms without one, or at once for a Drag, a key or a call; on the focused Stage the arrows
+  along the Curve step it, Home and End go to the ends (keys from inside a Slide stay the Slide's);
+  a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14).
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.

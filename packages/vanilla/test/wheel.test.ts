@@ -9,7 +9,7 @@ class InertResizeObserver {
 }
 
 /** A wheel event on the Stage; returns it, to see whether the page scroll was prevented. */
-function wheel(target: Element, deltaX: number, deltaY = 0, deltaMode = 0): WheelEvent {
+function wheel(target: Element, deltaX: number, deltaY = 0, deltaMode = 0, extra = {}): WheelEvent {
   const event = new WheelEvent("wheel", {
     bubbles: true,
     cancelable: true,
@@ -17,6 +17,8 @@ function wheel(target: Element, deltaX: number, deltaY = 0, deltaMode = 0): Whee
     deltaY,
     deltaMode,
   });
+  // `happy-dom` ignores `ctrlKey` in the init: set on the event.
+  for (const [name, value] of Object.entries(extra)) Object.defineProperty(event, name, { value });
   target.dispatchEvent(event);
   return event;
 }
@@ -61,8 +63,11 @@ describe("Wheel", () => {
     expect(wheel(root, 60).defaultPrevented).toBe(true);
     frame();
     expect(carousel.position).toBeCloseTo(0.5, 9);
-    wheel(root, 12);
-    vi.advanceTimersByTime(100);
+    // Each event puts the Snap off: a gesture longer than the pause keeps going.
+    for (let i = 0; i < 4; i++) {
+      wheel(root, 3);
+      vi.advanceTimersByTime(100);
+    }
     expect(carousel.position).toBeCloseTo(0.6, 9);
     vi.advanceTimersByTime(100);
     settle();
@@ -87,17 +92,23 @@ describe("Wheel", () => {
   });
 
   it("counts only the delta along the Curve, in px, lines or pages", () => {
+    // Mostly across the Curve, a pinch (ctrlKey) or past cancelling: the page's.
     expect(wheel(root, 0, 120).defaultPrevented).toBe(false);
+    expect(wheel(root, 1, 40).defaultPrevented).toBe(false);
+    expect(wheel(root, 60, 0, 0, { ctrlKey: true }).defaultPrevented).toBe(false);
+    wheel(root, 60, 0, 0, { cancelable: false });
+    expect(carousel.position).toBe(0);
     wheel(root, 3, 0, 1);
     frame();
     expect(carousel.position).toBeCloseTo(0.4, 9);
     wheel(root, 1, 0, 2);
     frame();
     expect(carousel.position).toBeCloseTo(1.4, 9);
-    const down = createCarousel(root, { layout: "wheel", size: 100 });
+    carousel.destroy();
+    carousel = createCarousel(root, { layout: "wheel", size: 100 });
     wheel(root, 0, 30);
     frame();
-    expect(down.position).toBeGreaterThan(0);
+    expect(carousel.position).toBeGreaterThan(0);
   });
 
   it("gives way to a pointer Drag, which keeps its own release", () => {
@@ -114,6 +125,21 @@ describe("Wheel", () => {
     const passed = carousel.position;
     settle();
     expect(carousel.position).toBeGreaterThan(Math.round(passed));
+  });
+
+  it("hands over to a key or a call that sends the Track on", () => {
+    wheel(root, 30);
+    root.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", cancelable: true }));
+    settle();
+    expect(carousel.position).toBe(1);
+    wheel(root, 30);
+    carousel.next();
+    settle();
+    expect(carousel.position).toBe(2);
+    wheel(root, 30);
+    carousel.goTo(4);
+    settle();
+    expect(carousel.position).toBe(4);
   });
 
   it("stops listening, and drops a pending Snap, on destroy", () => {

@@ -582,6 +582,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 
 ## Later
 Ideas not planned yet; a milestone's planning picks from here.
+- A wheel over a scrollable area inside a Slide moves the Carousel, not the area; skip a wheel
+  that an inner scroller can still take (C2.10 review).
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
 - For M2: with a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: 0.05
