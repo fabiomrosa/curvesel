@@ -1,5 +1,11 @@
 // A hand-test page for @curvesel/core (`npm run dev`). Not published, not covered.
-import { curvePose, type Plane, type Pose } from "../packages/core/src/index.ts";
+import {
+  curvePose,
+  type Plane,
+  type Pose,
+  type PresetName,
+  presets,
+} from "../packages/core/src/index.ts";
 
 const SVG = "http://www.w3.org/2000/svg";
 const byId = <E extends HTMLElement>(id: string) => document.getElementById(id) as E;
@@ -119,6 +125,25 @@ function render(): void {
 byId<HTMLButtonElement>("close-ring").addEventListener("click", () => {
   input("curvature").value = String((2 * Math.PI) / value("count"));
   render();
+});
+// A Preset sets the controls from its options; the Wave, Twist and Tilt go back to none.
+const presetSelect = byId<HTMLSelectElement>("preset");
+presetSelect.addEventListener("change", () => {
+  const preset = presets[presetSelect.value as PresetName];
+  if (!preset) return;
+  byId<HTMLSelectElement>("plane").value = preset.plane ?? "xz";
+  input("curvature").value = String(preset.curvature);
+  input("gap").value = String(preset.gap);
+  input("visible-range").value = String(preset.visibleRange ?? input("visible-range").max);
+  // The ring Presets close in 10 Slides; more would overlap.
+  if (presetSelect.value === "cylinder" || presetSelect.value === "wheel")
+    input("count").value = "10";
+  for (const id of ["amplitude", "twist", "tilt"]) input(id).value = "0";
+  render();
+});
+// Changing a control by hand leaves the Preset.
+form.addEventListener("input", (event) => {
+  if (event.target !== presetSelect) presetSelect.value = "";
 });
 form.addEventListener("input", render);
 render();

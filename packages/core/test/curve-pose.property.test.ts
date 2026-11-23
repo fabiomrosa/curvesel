@@ -6,6 +6,8 @@ import {
   type LayoutContext,
   type Plane,
   type Pose,
+  type PresetName,
+  presets,
 } from "../src/index.ts";
 
 /** Relative tolerance for lengths in px: floating error, far below a visible pixel. */
@@ -238,5 +240,31 @@ describe("curvePose invariants", () => {
         { numRuns: 300 },
       );
     });
+  });
+
+  it("keeps the invariants in every Preset", () => {
+    const names = Object.keys(presets) as PresetName[];
+    const seen = new Set<PresetName>();
+    fc.assert(
+      fc.property(fc.constantFrom(...names), offset, size, (name, o, s) => {
+        const options = presets[name];
+        const at = (u: number) => curvePose(u, options, { size: s });
+        const step = s + options.gap;
+        const centre = at(0);
+        expect(Math.hypot(centre.x, centre.y, centre.z)).toBeLessThanOrEqual(EPS);
+        centre.rotation.forEach((value, i) => {
+          expect(Math.abs(value - (i % 4 === 0 ? 1 : 0))).toBeLessThanOrEqual(EPS);
+        });
+        let length = 0;
+        for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));
+        expect(Math.abs(length - step)).toBeLessThan(1e-3 * step);
+        const [a0, a1, a2, b0, b1, b2, c0, c1, c2] = at(o).rotation;
+        const det = a0 * (b1 * c2 - b2 * c1) - a1 * (b0 * c2 - b2 * c0) + a2 * (b0 * c1 - b1 * c0);
+        expect(Math.abs(det - 1)).toBeLessThan(1e-9);
+        seen.add(name);
+      }),
+      { numRuns: 200 },
+    );
+    expect(seen.size).toBe(names.length);
   });
 });

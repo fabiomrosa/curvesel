@@ -53,8 +53,10 @@ Each package is created by the first slice that needs it.
   own depth, in buckets of 1/100 of a step, each split by `|offset|` in 1/100 of an Offset (up to
   100) so that at equal depth the Slide nearer the centre is above; `visible` is `|offset| ≤
   visibleRange`.
-- Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`, with a
-  helper that builds a rotation from angles.
+- Presets are plain option objects, frozen: `cylinder` (a ring of 10, the back half hidden),
+  `ribbon` (flat), `wheel` (the cylinder in `yz`), `arc` (`xy`, 0.2 per step, the centre below). A
+  custom Layout is any `(offset, context) → Pose`; `rotationFromAngles(rx, ry, rz)` builds the
+  rotation of CSS `rotateX(rx) rotateY(ry) rotateZ(rz)`.
 
 ### The physics (`core`)
 - `TrackState`: `{ position, velocity, phase: 'rest' | 'drag' | 'inertia' | 'snap' }` plus bounds

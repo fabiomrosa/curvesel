@@ -18,14 +18,17 @@ Every slice's pull request updates it (SESSION §3).
   leans the whole Curve around the view axis, the Slides staying upright. Each Pose says whether it
   is `visible` and its `zIndex` (nearer the viewer above; at equal depth, nearer the centre above).
   Invalid options throw `curvesel:` errors.
-- The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
-  sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist, Tilt, the
-  Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted in
-  `zIndex` order), and a button that closes the ring; errors show on the page.
+- `presets` (`cylinder`, `ribbon`, `wheel`, `arc`), the `Layout` type for custom Layouts, and
+  `rotationFromAngles(rx, ry, rz)` (CSS `rotateX rotateY rotateZ`).
+- The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
+  selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
+  Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
+  in `zIndex` order), and a button that closes the ring; errors show on the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
-  `LayoutContext`, `Plane`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
+  `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
+  `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -58,4 +61,7 @@ Every slice's pull request updates it (SESSION §3).
   property checks every rotation is proper.
 - **2026-11-23, C1.8:** Twist; the Wave property draws a Twist too.
 - **2026-11-23, C1.9:** Tilt; the Wave property draws a Tilt too.
-- **Next:** C1.10 (Presets and custom Layouts), then the owner's check of the Curve.
+- **2026-11-23, C1.10:** the Presets, the `Layout` type and `rotationFromAngles`; the property runs
+  over every Preset.
+- **Next:** the owner checks the Curve in the playground (C1.10's criterion 3), then C1.11 (Track
+  and Drag).
