@@ -70,4 +70,6 @@ Follow YAGNI and KISS strictly, in code and in communication.
   yourself once every check is green (SESSION §4). Nothing reaches `main` any other way (DEC-04).
 - **Install:** `npm ci`. **Test:** `npm test`. **Format and fix lint:** `npm run format`.
 - **Playground:** `npm run dev` (Vite, `playground/`).
+- **Browser tests:** `npm run e2e` (Playwright in the installed Chrome, `e2e/*.e2e.ts`; part of the
+  gate, after the build).
 - Packages live in `packages/<name>`; root scripts run over all of them.

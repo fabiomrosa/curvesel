@@ -458,7 +458,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** ARCHITECTURE "Persistence".
 
 ### C2.6 · Browser tests
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** real-browser tests run in the gate.
 - **Depends on:** C2.5.
 - **In scope:** Playwright, configured as in `../list-picker` (the installed Chrome, no download),
@@ -478,7 +478,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** CONVENTIONS §5, GOTCHAS.
 
 ### C2.7 · Demo page
-- **Status:** waiting (C2.6)
+- **Status:** next
 - **Goal:** a page mounts the vanilla engine over real cards.
 - **Depends on:** C2.6.
 - **In scope:** `demo/` (Vite, `npm run demo`): a Stage of cards with their own buttons and inputs,

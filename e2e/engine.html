@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="data:," />
+    <title>curvesel engine, for browser tests</title>
+    <style>
+      body { margin: 0; }
+      .stage { width: 800px; height: 300px; }
+      .card { width: 200px; height: 100px; background: #cbd2d9; }
+    </style>
+  </head>
+  <body>
+    <!-- The tests build their Stages; the engine comes from source (built `core` underneath). -->
+    <script type="module">
+      import { createCarousel } from "/packages/vanilla/src/index.ts";
+
+      window.createCarousel = createCarousel;
+    </script>
+  </body>
+</html>
