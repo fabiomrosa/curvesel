@@ -1,0 +1,89 @@
+# curvesel architecture
+
+A layered library in one npm workspace: pure math and physics at the bottom, a DOM engine on top of
+it, and thin adapters on top of both. Behaviour is written and tested once, in the lower layers;
+adapters only bind it to a UI layer (DEC-11, DEC-12).
+
+## Stack
+Exact versions are pinned in the root `package.json` (the same toolchain as `../list-picker`).
+- **Language:** TypeScript 7, `strict` plus `noUncheckedIndexedAccess` and
+  `exactOptionalPropertyTypes`, ES modules (`nodenext`), target ES2024. Node 26 (npm 11).
+- **Workspace:** npm workspaces, packages under `packages/`. The root `tsconfig.json` type-checks
+  every package's `src` and `test`; each package's `tsconfig.json` extends it to build its `src`.
+- **Tests:** Vitest 5 with V8 coverage; `fast-check` 4 for property tests of the PRODUCT invariants.
+  Added when first needed: `happy-dom` for engine unit tests (M2), Playwright for real-browser tests
+  (M2).
+- **Format and lint:** Biome 2.
+- **Build:** `tsc` per package, to ESM plus type declarations in `dist/`.
+- **Playground:** Vite (dev server only), from C1.1.
+
+## Modules
+
+| Package | Owns | May depend on |
+|---|---|---|
+| `packages/core` | The Curve layout and its integration, the Presets, the Pose, the Track and its physics step (Drag, Inertia, Snap, Rubber band, loop). No DOM. | nothing |
+| `packages/vanilla` (M2) | `createCarousel(stage, options)`: adopts the Stage's children, measures them, runs the loop, handles input, writes Poses and CSS state | `core` |
+| `playground/` (C1.1) | A local page that draws the Curve and exercises it by hand; not a package, never published | `core` (source) |
+| `packages/react` (M4) | `<Carousel>` and a hook over the engine | `core`, `vanilla` |
+| `packages/angular` (M5) | A component with `<ng-content>` and a slide directive over the engine | `core`, `vanilla` |
+
+Each package is created by the first slice that needs it.
+
+### The math (`core`)
+- `curvePose(offset, options) → Pose`: `s = offset · (size + gap)`; the heading `θ(s)` is the
+  integral of `κ(s)`; the position is the integral of `(cos θ, sin θ)` in the chosen Plane. With no
+  Wave it is closed form (`x = sin(κs)/κ`, `z = (cos(κs) − 1)/κ`, a series near `κ = 0`); with a
+  Wave, a fixed number of Simpson steps. Twist rotates around the tangent; Tilt rotates the result.
+- A Pose is `{ x, y, z, rx, ry, rz, zIndex, visible }`; the engine turns it into one `transform`
+  string. The Slide at Offset 0 is at the origin with no rotation.
+- Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`.
+
+### The physics (`core`)
+- `TrackState`: `{ position, velocity, phase: 'rest' | 'drag' | 'inertia' | 'snap' }` plus bounds
+  or loop. `step(state, dt) → state` is pure. Input becomes calls (`dragStart`, `dragMove(delta)`,
+  `release(velocity)`, `goTo(index)`) that return a new state.
+- Drag converts pixels to Position by the slide step; past the ends it is divided (Rubber band).
+- Inertia decays velocity by friction per second; below a threshold, Snap takes over: a critically
+  damped spring to `round(position)` (clamped, or free when looping).
+
+## Request flow
+One gesture through the engine (M2):
+1. `pointerdown` on the Stage: capture the pointer, record it; Track goes to `drag`.
+2. `pointermove`: store the delta; nothing else in the handler.
+3. Each `requestAnimationFrame`: apply the stored delta, `step(state, dt)`, compute each visible
+   Slide's Offset and Pose, write `transform`, `z-index`, `visibility` and the CSS variables, all
+   writes together. The loop stops when the Track is at rest.
+4. `pointerup`: `release` with the measured velocity (Inertia, then Snap). If the drag passed the
+   threshold, the next `click` is stopped in the capture phase.
+5. `destroy()`: stop the loop, remove the listeners, restore what DEC-07 lists.
+
+## Persistence
+None. The library emits `change` (Position) and `select` (Active slide) events; the user persists.
+
+## Configuration
+Options passed to `createCarousel` or the adapter (a Preset name or Curve options, physics options,
+`loop`, `perspective`); no environment. An invalid option (a missing Stage, a negative gap) throws an
+`Error` with a plain message at mount, never fails silently.
+
+## Security
+The library never reads or writes the Slides' content and never uses `innerHTML`. No network access.
+
+## External providers
+None. GitHub for the code and CI; npm for publishing (from M3).
+
+## Design references
+None for the library: it is headless (DEC-07). The demo's arc Preset follows the owner's reference
+image (cards on an arc whose centre is below the screen, side cards tilted and dimmed); the demo's
+look lives in the demo only.
+
+## Lessons from the 2012 carousel (`../3d-carousel/chosen.carousel.js`)
+What it got right and returns here:
+- The cylinder: `rotateY(i · 360/N) translateZ(r)` with `r = (w/2) / tan(π/N)`; here it is the
+  Curve with constant Curvature.
+- A ring of N places with an unbounded rotation, culled at ±60°, works as a window over a longer
+  list: here the Visible range does the same.
+- Rubber band at the ends (movement / 10), Inertia with friction 0.84, Snap with a short tween, and
+  the click blocked only after a real drag.
+What does not return: the global singleton, jQuery, TweenMax and jQuery UI, fixed sizes (235 px, 24
+places), separate desktop and phone code, image loading and panel styling, the A–Z index tied to
+text (the user builds it with `goTo`), mouse-only input, `setInterval` at 30 fps.
