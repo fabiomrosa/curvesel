@@ -52,6 +52,7 @@ function run(state: TrackState, dts: readonly number[]): Run {
 function expectSettled(end: TrackState, count: number): void {
   expect(end.phase).toBe("rest");
   expect(Number.isInteger(end.position)).toBe(true);
+  if (end.loop) return;
   expect(end.position).toBeGreaterThanOrEqual(0);
   expect(end.position).toBeLessThanOrEqual(count - 1);
 }
@@ -65,12 +66,13 @@ describe("Inertia and Snap invariants", () => {
         count,
         rubberBand,
         friction,
+        fc.boolean(),
         start,
         velocity,
         jitter,
-        (n, band, f, from, v, dts) => {
+        (n, band, f, loop, from, v, dts) => {
           const dragged = dragMove(
-            dragStart(createTrack({ count: n, rubberBand: band, friction: f })),
+            dragStart(createTrack({ count: n, rubberBand: band, friction: f, loop })),
             n * from - 0.5,
           );
           const released = release(dragged, v);
@@ -95,7 +97,7 @@ describe("Inertia and Snap invariants", () => {
     expect(between).toBeGreaterThan(50);
   });
 
-  it("settles on a whole Slide within bounds after any sequence of gestures", () => {
+  it("settles on a whole Slide (within bounds unless looping) after any sequence of gestures", () => {
     const gesture = fc.record({
       moves: fc.array(
         start.map((u) => 4 * u - 2),
@@ -105,15 +107,17 @@ describe("Inertia and Snap invariants", () => {
       dts: jitter,
     });
     let interrupted = 0;
+    let outsideLooping = 0;
     fc.assert(
       fc.property(
         count,
         rubberBand,
         friction,
+        fc.boolean(),
         fc.array(gesture, { minLength: 1, maxLength: 5 }),
         jitter,
-        (n, band, f, gestures, dts) => {
-          let track = createTrack({ count: n, rubberBand: band, friction: f });
+        (n, band, f, loop, gestures, dts) => {
+          let track = createTrack({ count: n, rubberBand: band, friction: f, loop });
           for (const { moves, velocity: v, dts: between } of gestures) {
             if (track.phase !== "rest") interrupted++;
             track = release(moves.reduce(dragMove, dragStart(track)), v);
@@ -121,6 +125,7 @@ describe("Inertia and Snap invariants", () => {
           }
           const { end, time, smooth } = run(track, dts);
           expectSettled(end, n);
+          if (loop && (end.position < 0 || end.position > n - 1)) outsideLooping++;
           expect(smooth).toBe(true);
           const bound = Math.max(0, Math.log(10 / SLOW) / -Math.log(f)) + SNAP_TIME;
           expect(time).toBeLessThanOrEqual(bound);
@@ -129,5 +134,6 @@ describe("Inertia and Snap invariants", () => {
       { numRuns: 300 },
     );
     expect(interrupted).toBeGreaterThan(100);
+    expect(outsideLooping).toBeGreaterThan(30);
   });
 });

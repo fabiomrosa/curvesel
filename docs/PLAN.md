@@ -294,7 +294,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, PRODUCT invariants.
 
 ### C1.14 · Loop
-- **Status:** waiting (C1.13)
+- **Status:** done (2026-11-23)
 - **Goal:** the Track can turn forever instead of stopping at the ends.
 - **Depends on:** C1.13.
 - **In scope:** `createTrack({ count, loop: true })`: no bounds and no Rubber band; Snap to any

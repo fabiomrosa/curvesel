@@ -8,6 +8,8 @@ export interface TrackState {
   /** The whole Position a Snap settles on. */
   readonly target: number;
   readonly count: number;
+  /** Turning forever: no ends, no Rubber band, and Snap to any whole Position. */
+  readonly loop: boolean;
   /** The fraction of a move that counts past the first or last Slide. */
   readonly rubberBand: number;
   /** The fraction of the velocity kept after a second of Inertia. */
@@ -16,6 +18,8 @@ export interface TrackState {
 
 export interface TrackOptions {
   count: number;
+  /** `false` by default. */
+  loop?: boolean;
   /** 0.1 by default, as in the 2012 version. */
   rubberBand?: number;
   /** The fraction of the velocity kept per second; 0.84³⁰ (2012's 0.84 per 30 fps frame) by default. */
@@ -38,6 +42,7 @@ const MAX_PIECES = 3;
 /** A Track at rest on the first Slide. */
 export function createTrack({
   count,
+  loop = false,
   rubberBand = DEFAULT_RUBBER_BAND,
   friction = DEFAULT_FRICTION,
 }: TrackOptions): TrackState {
@@ -50,7 +55,7 @@ export function createTrack({
   if (!(friction > 0 && friction < 1)) {
     throw new Error(`curvesel: friction must be a number in (0, 1), got ${friction}`);
   }
-  return { position: 0, velocity: 0, phase: "rest", target: 0, count, rubberBand, friction };
+  return { position: 0, velocity: 0, phase: "rest", target: 0, count, loop, rubberBand, friction };
 }
 
 /** The pointer goes down on the Stage: the Track stops and follows the Drag. */
@@ -105,7 +110,8 @@ function coast(state: TrackState, time: number): TrackState {
   let left = time;
   for (let piece = 0; piece < MAX_PIECES && left > 0; piece++) {
     const edge = nextEdge(state.count, position, velocity);
-    const outside = edge === undefined || position < 0 || position > state.count - 1;
+    const outside =
+      !state.loop && (edge === undefined || position < 0 || position > state.count - 1);
     const decay = -Math.log(state.friction) / (outside ? state.rubberBand : 1);
     const toRest = Math.log(Math.abs(velocity) / REST_SPEED) / decay;
     const kept = edge === undefined ? 0 : 1 - (decay * (edge - position)) / velocity;
@@ -122,9 +128,10 @@ function coast(state: TrackState, time: number): TrackState {
   return { ...state, position, velocity };
 }
 
-/** Starts a Snap to the nearest whole Position within bounds. */
+/** Starts a Snap to the nearest whole Position, within bounds unless looping. */
 function snapFrom(state: TrackState, position: number, velocity: number): TrackState {
-  const target = Math.min(Math.max(Math.round(position), 0), state.count - 1);
+  const nearest = Math.round(position);
+  const target = state.loop ? nearest : Math.min(Math.max(nearest, 0), state.count - 1);
   return { ...state, position, velocity, target, phase: "snap" };
 }
 
@@ -153,15 +160,17 @@ function nextEdge(count: number, position: number, velocity: number): number | u
 }
 
 /** Where the pointer is for a Position: past an end, the excess is stretched back by the band. */
-function toPointer({ count, rubberBand }: TrackState, position: number): number {
+function toPointer({ count, loop, rubberBand }: TrackState, position: number): number {
   const last = count - 1;
+  if (loop) return position;
   if (position < 0) return position / rubberBand;
   if (position > last) return last + (position - last) / rubberBand;
   return position;
 }
 
-function fromPointer({ count, rubberBand }: TrackState, pointer: number): number {
+function fromPointer({ count, loop, rubberBand }: TrackState, pointer: number): number {
   const last = count - 1;
+  if (loop) return pointer;
   if (pointer < 0) return pointer * rubberBand;
   if (pointer > last) return last + (pointer - last) * rubberBand;
   return pointer;
