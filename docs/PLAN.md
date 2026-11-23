@@ -149,7 +149,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08 (Wave, anchor), PRODUCT invariants.
 
 ### C1.6 · Wave anchored to the ribbon
-- **Status:** waiting (C1.5)
+- **Status:** done (2026-11-23)
 - **Goal:** the Wave can travel with the Slides instead of staying fixed on the screen.
 - **Depends on:** C1.5.
 - **In scope:** `wave.anchor: 'space' | 'ribbon'`, `space` by default; `position` in the Layout

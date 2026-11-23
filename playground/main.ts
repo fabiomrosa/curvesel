@@ -18,9 +18,9 @@ function line(x1: number, y1: number, x2: number, y2: number, className: string)
   return element;
 }
 
-/** Offsets of N Slides around the centre: 0 is the centre, the rest split on both sides. */
-function offsets(count: number): number[] {
-  return Array.from({ length: count }, (_, i) => i - Math.floor(count / 2));
+/** Offsets of N Slides at a Position: indexes split on both sides of 0, each `index − position`. */
+function offsets(count: number, position: number): number[] {
+  return Array.from({ length: count }, (_, i) => i - Math.floor(count / 2) - position);
 }
 
 type Vector = readonly [number, number, number];
@@ -62,7 +62,7 @@ function draw(
       p[a] + along[a] * half,
       p[b] + along[b] * half,
     ] as const;
-    const kind = offset === 0 ? "slide centre" : pose.visible ? "slide" : "slide hidden";
+    const kind = Math.abs(offset) < 0.5 ? "slide centre" : pose.visible ? "slide" : "slide hidden";
     shapes.push(line(...ends, kind));
     shapes.push(
       line(p[a], p[b], p[a] + face[a] * half * 0.4, p[b] + face[b] * half * 0.4, "facing"),
@@ -91,11 +91,16 @@ function render(): void {
     gap: value("gap"),
     plane,
     visibleRange: value("visible-range"),
-    wave: { amplitude: value("amplitude"), wavelength: value("wavelength"), phase: value("phase") },
+    wave: {
+      amplitude: value("amplitude"),
+      wavelength: value("wavelength"),
+      phase: value("phase"),
+      anchor: byId<HTMLSelectElement>("anchor").value as "space" | "ribbon",
+    },
   };
-  const context = { size: value("size") };
+  const context = { size: value("size"), position: value("position") };
   try {
-    const poses = offsets(value("count")).map((offset) => ({
+    const poses = offsets(value("count"), context.position).map((offset) => ({
       offset,
       pose: curvePose(offset, options, context),
     }));
