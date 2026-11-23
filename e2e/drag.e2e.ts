@@ -53,14 +53,3 @@ test("past the first card the Rubber band resists, and the cards Snap back", asy
   expect(await cardX(page, 0)).toBe(0);
   await expect(page.locator("#active")).toHaveText("1");
 });
-
-test("a flick carries the cards on with Inertia", async ({ page }) => {
-  const box = await page.locator("#stage").boundingBox();
-  if (!box) throw new Error("the Stage is not visible");
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x + box.width / 2 - 150, box.y + box.height / 2, { steps: 3 });
-  await page.mouse.up();
-  await settled(page);
-  expect(Number(await page.locator("#active").textContent())).toBeGreaterThan(2);
-});

@@ -140,33 +140,26 @@ describe("Drag", () => {
     settle();
     expect(carousel.position).toBeCloseTo(1, 9);
   });
-});
 
-describe("Drag along the Curve on screen", () => {
-  it("drags down the screen in the wheel", () => {
-    const root = stage(5);
-    const carousel = createCarousel(root, { layout: "wheel", size: 100 });
-    expect(root.style.touchAction).toBe("pan-x");
-    pointer(root, "pointerdown", 500, 300, 0);
-    pointer(root, "pointermove", 500, 299, 10);
+  it("drags along the Curve on screen: down the wheel, up a ribbon tilted a quarter turn", () => {
+    const wheel = stage(5);
+    const down = createCarousel(wheel, { layout: "wheel", size: 100 });
+    expect(wheel.style.touchAction).toBe("pan-x");
+    pointer(wheel, "pointerdown", 500, 300, 0);
+    pointer(wheel, "pointermove", 500, 299, 10);
     frame();
-    expect(carousel.position).toBeGreaterThan(0);
-  });
-
-  it("drags along a tilted ribbon", () => {
-    const root = stage(5);
-    const carousel = createCarousel(root, {
+    expect(down.position).toBeGreaterThan(0);
+    const tilted = stage(5);
+    const up = createCarousel(tilted, {
       layout: { curvature: 0, gap: 20, tilt: Math.PI / 2 },
       size: 100,
     });
-    pointer(root, "pointerdown", 500, 300, 0);
-    pointer(root, "pointermove", 500, 180, 10);
+    pointer(tilted, "pointerdown", 500, 300, 0);
+    pointer(tilted, "pointermove", 500, 180, 10);
     frame();
-    expect(carousel.position).toBeCloseTo(1, 9);
+    expect(up.position).toBeCloseTo(1, 9);
   });
-});
 
-describe("removing Slides during Inertia", () => {
   it("lets Inertia run when the Position stays within the new count", async () => {
     const root = stage(5);
     const carousel = createCarousel(root, { layout: "ribbon", size: 100 });
