@@ -4,8 +4,10 @@ What exists in this repository now. The code wins over this file: if they disagr
 Every slice's pull request updates it (SESSION §3).
 
 ## Capabilities
-- The npm workspace builds, formats, lints, type-checks and tests with one command,
-  `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
+- The npm workspace builds, formats, lints, type-checks, tests and runs the browser tests
+  (Playwright in Chrome: the playground's Drag, Rubber band and idle loop, and the engine's resize,
+  hidden Stage, removed and moved Slides) with one command, `npm run verify`, which CI runs in the
+  `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
 - `curvePose(offset, { curvature, gap, plane, wave, twist, tilt, visibleRange }, { size, position
   })`: the Pose of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down
@@ -122,4 +124,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.3:** the Carousel follows the Stage's children; an empty Stage mounts.
 - **2026-11-23, C2.4:** the animation loop, `goTo`, `next`, `previous`, `position` and culling.
 - **2026-11-23, C2.5:** `carousel.on('change' | 'select')`.
-- **Next:** C2.6 (browser tests).
+- **2026-11-23, C2.6:** Playwright in the gate; each browser test went red against the bug it
+  guards (C1.16's re-centring, C2.2's content box, C2.3's `style=""` and hand-over).
+- **Next:** C2.7 (demo page).

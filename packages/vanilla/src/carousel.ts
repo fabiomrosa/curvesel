@@ -97,12 +97,11 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   // Geometry is read on mount, resize and child changes only; a frame computes and writes.
   const geometry = { size: 0, centres: [] as string[], hidden: new Set<HTMLElement>() };
   const paint = () => {
+    // While the Slides measure 0 (a hidden Stage) nothing is written: the last layout stays.
     if (geometry.size > 0) render(slides, track, layout, geometry);
   };
   const draw = () => {
     const size = measure();
-    // While the Slides measure 0 (a hidden Stage) the last layout stays.
-    if (!(size > 0)) return;
     Object.assign(geometry, { size, centres: centres(stage, slides) });
     geometry.hidden.clear();
     paint();

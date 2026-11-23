@@ -13,8 +13,8 @@ Vite 8.3.8.
 - **Workspace:** npm workspaces, packages under `packages/`. The root `tsconfig.json` type-checks
   every package's `src` and `test`; each package's `tsconfig.json` extends it to build its `src`.
 - **Tests:** Vitest 5 with V8 coverage. Added when first needed: `fast-check` 4 for property tests
-  of the PRODUCT invariants (M1), `happy-dom` for engine unit tests (M2), Playwright for
-  real-browser tests (M2).
+  of the PRODUCT invariants (M1), `happy-dom` for engine unit tests (C2.0), Playwright 1.65 for
+  real-browser tests (C2.6: the playground and `e2e/engine.html`, served by Vite from the root).
 - **Format and lint:** Biome 2.
 - **Build:** `tsc` per package, to ESM plus type declarations in `dist/`.
 - **Playground:** Vite (dev server only, `npm run dev`), no config file: `vite playground`.
