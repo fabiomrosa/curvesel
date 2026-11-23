@@ -34,6 +34,9 @@ Every slice's pull request updates it (SESSION §3).
   `[−count/2, count/2)` when looping. `goTo(state, index)` starts Snap's spring towards that Slide
   (the nearest Position showing it when looping), keeping the velocity towards it up to what never
   passes it; it is ignored during a Drag.
+- `createCarousel(stage, { layout, size, perspective, loop })` (`@curvesel/vanilla`) lays the
+  Stage's children on the Curve at Position 0 (size: the largest Slide along the Curve, or given),
+  writing only DEC-07's properties; `destroy()` restores them exactly.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -51,6 +54,7 @@ Every slice's pull request updates it (SESSION §3).
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
   `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
+- `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -101,4 +105,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, plan M2:** twelve slices, C2.1 to C2.12 (`docs/PLAN.md`). Agreed with the owner:
   events through `carousel.on()`, the largest Slide as the size (overridable), and DEC-14 (the
   engine makes the Stage focusable); the arc demo follows ARCHITECTURE's description.
-- **Next:** C2.1 (mount and destroy).
+- **2026-11-23, C2.1:** `packages/vanilla` with `createCarousel` and `destroy()`.
+- **Next:** C2.2 (follow the size).

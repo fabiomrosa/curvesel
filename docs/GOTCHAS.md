@@ -13,6 +13,7 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - `vanilla` imports `core` at runtime, through its exports, to `dist/`, which a clean clone lacks:
   tests alias the source (`vitest.config.ts`), the type check maps it (`paths` in the root
   `tsconfig.json`), and each package's build keeps `paths: {}`, using the built `dist/`.
+- `happy-dom` returns an empty computed `position` for an unstyled element, not `static`.
 - The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
   a command's exit code, run it without a pipe and read `$?`.
 

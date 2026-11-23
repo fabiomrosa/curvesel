@@ -24,7 +24,7 @@ Vite 8.3.8.
 | Package | Owns | May depend on |
 |---|---|---|
 | `packages/core` | The Curve layout and its integration, the Presets, the Pose, the Track and its physics step (Drag, Inertia, Snap, Rubber band, loop). No DOM. | nothing |
-| `packages/vanilla` (M2) | `createCarousel(stage, options)`: adopts the Stage's children, measures them, runs the loop, handles input, writes Poses and CSS state | `core` |
+| `packages/vanilla` (C2.1) | `createCarousel(stage, options)`: adopts the Stage's children, measures them, runs the loop, handles input, writes Poses and CSS state | `core` |
 | `playground/` (C1.2) | A local page that draws the Curve and exercises it by hand; not a package, never published | `core` (source) |
 | `packages/react` (M4) | `<Carousel>` and a hook over the engine | `core`, `vanilla` |
 | `packages/angular` (M5) | A component with `<ng-content>` and a slide directive over the engine | `core`, `vanilla` |
@@ -73,6 +73,10 @@ Each package is created by the first slice that needs it.
   the rest distance could be passed, and the step that would pass it rests on it instead. `goTo`
   keeps only the velocity towards its target, capped at `ω` times the distance, which a critically
   damped spring never passes.
+
+## Writing a Pose (`vanilla`)
+`transform: translate(W/2 − left, H/2 − top) translate(-50%, -50%) matrix3d(…)`: DEC-07 writes no
+`left`/`top`, so it starts from where the absolute Slide sits (`offsetLeft`, `offsetTop`).
 
 ## Request flow
 One gesture through the engine (M2):
