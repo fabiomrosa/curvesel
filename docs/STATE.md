@@ -18,18 +18,17 @@ Every slice's pull request updates it (SESSION §3).
   leans the whole Curve around the view axis, the Slides staying upright. Each Pose says whether it
   is `visible` and its `zIndex` (nearer the viewer above; at equal depth, nearer the centre above).
   Invalid options throw `curvesel:` errors.
-- The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane selector and
-  sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist, Tilt, the
-  Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted in
-  `zIndex` order), and a button that closes the ring; errors show on the page.
-
 - `presets` (`cylinder`, `ribbon`, `wheel`, `arc`), the `Layout` type for custom Layouts, and
   `rotationFromAngles(rx, ry, rz)` (CSS `rotateX rotateY rotateZ`).
+- The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
+  selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
+  Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
+  in `zIndex` order), and a button that closes the ring; errors show on the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
-  `LayoutContext`, `Plane`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
-- `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`).
+  `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
+  `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues

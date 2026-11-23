@@ -135,6 +135,9 @@ presetSelect.addEventListener("change", () => {
   input("curvature").value = String(preset.curvature);
   input("gap").value = String(preset.gap);
   input("visible-range").value = String(preset.visibleRange ?? input("visible-range").max);
+  // The ring Presets close in 10 Slides; more would overlap.
+  if (presetSelect.value === "cylinder" || presetSelect.value === "wheel")
+    input("count").value = "10";
   for (const id of ["amplitude", "twist", "tilt"]) input(id).value = "0";
   render();
 });

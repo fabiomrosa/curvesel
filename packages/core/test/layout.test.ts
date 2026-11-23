@@ -20,6 +20,8 @@ describe("rotationFromAngles", () => {
   it("composes in the order of `rotateX(rx) rotateY(ry) rotateZ(rz)`", () => {
     // rotateX(π/2) · rotateY(π/2), multiplied by hand.
     expectRotation(rotationFromAngles(QUARTER, QUARTER, 0), [0, 0, 1, 1, 0, 0, 0, 1, 0]);
+    // rotateX(π/2) · rotateY(π/2) · rotateZ(π/2), multiplied by hand: pins the order of all three.
+    expectRotation(rotationFromAngles(QUARTER, QUARTER, QUARTER), [0, 0, 1, 0, -1, 0, 1, 0, 0]);
   });
 
   it("throws a message naming the angle when it is not a finite number", () => {
@@ -67,6 +69,6 @@ describe("presets", () => {
 
   it("cannot be changed by accident", () => {
     expect(Object.isFrozen(presets)).toBe(true);
-    expect(Object.isFrozen(presets.cylinder)).toBe(true);
+    for (const preset of Object.values(presets)) expect(Object.isFrozen(preset)).toBe(true);
   });
 });
