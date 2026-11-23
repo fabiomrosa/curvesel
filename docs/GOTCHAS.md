@@ -36,6 +36,11 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 
 ## DOM and motion
 - Without `touch-action` set on the Stage, a touch drag scrolls the page and fires `pointercancel`.
+- A passive `wheel` listener's `preventDefault` is ignored, and the page scrolls with the
+  Carousel. Chrome makes them passive by default on `window`, `document` and `body`: the Stage's
+  says `{ passive: false }` explicitly.
+- A key pressed in a Playwright test goes to the focused element: focus the Stage first, or Home
+  and End scroll the page instead.
 - `setPointerCapture` keeps `pointermove` coming when the pointer leaves the Stage; without it, a
   fast drag is lost. Captured on `pointerdown`, Chrome retargets the following `click` to the
   Stage, so a tap on a Slide's button never reaches it: capture past the drag threshold instead.

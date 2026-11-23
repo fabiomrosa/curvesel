@@ -531,7 +531,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10.
 
 ### C2.10 · Wheel and keyboard
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a trackpad or wheel scrolls the Carousel, and arrow keys step it.
 - **Depends on:** C2.9, DEC-10, DEC-14.
 - **In scope:** `wheel` along the drag axis moves the Track like a Drag and Snaps after a short
@@ -549,7 +549,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10, DEC-14.
 
 ### C2.11 · Demo with every Preset
-- **Status:** waiting (C2.10)
+- **Status:** next
 - **Goal:** the demo shows every Preset, the arc of cards included, and the owner checks M2.
 - **Depends on:** C2.10.
 - **In scope:** the demo's styles, driven by `--cs-abs-offset` and `data-cs-active` (side cards
@@ -582,6 +582,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 
 ## Later
 Ideas not planned yet; a milestone's planning picks from here.
+- A wheel over a scrollable area inside a Slide moves the Carousel, not the area; skip a wheel
+  that an inner scroller can still take (C2.10 review).
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
 - For M2: with a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: 0.05
