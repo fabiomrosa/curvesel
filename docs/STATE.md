@@ -134,5 +134,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.6:** Playwright in the gate; each browser test went red against the bug it
   guards (C1.16's re-centring, C2.2's content box, C2.3's `style=""` and hand-over).
 - **2026-11-23, C2.7:** the demo page, and `vite.config.ts` resolving `core` to its source.
-- **2026-11-23, C2.8:** Drag in the engine; e2e in the demo (follow, Rubber band, flick).
+- **2026-11-23, C2.8:** Drag in the engine; e2e in the demo (follow, Rubber band).
 - **Next:** the owner checks the Drag in the demo (C2.8 criterion 3), then C2.9 (click guard).

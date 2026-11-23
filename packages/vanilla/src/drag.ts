@@ -27,7 +27,7 @@ export function listenForDrag(stage: HTMLElement, handlers: DragHandlers): () =>
   const recent = (now: number) => samples.filter(({ time }) => now - time <= VELOCITY_WINDOW);
 
   const down = (event: PointerEvent) => {
-    if (active !== undefined) return;
+    if (active !== undefined || (event.pointerType === "mouse" && event.button !== 0)) return;
     active = event.pointerId;
     captured = false;
     last = { x: event.clientX, y: event.clientY };
@@ -36,6 +36,8 @@ export function listenForDrag(stage: HTMLElement, handlers: DragHandlers): () =>
   };
   const move = (event: PointerEvent) => {
     if (event.pointerId !== active) return;
+    // No button held: the release happened off the Stage before capture.
+    if (event.buttons === 0) return up(event);
     // Captured once it moves: capturing on `pointerdown` would retarget a still tap's click.
     if (!captured) stage.setPointerCapture?.(event.pointerId);
     captured = true;

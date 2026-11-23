@@ -13,9 +13,19 @@ function stage(count: number): HTMLElement {
   return document.getElementById("stage") as HTMLElement;
 }
 
-/** A pointer event at `t` ms, for pointer `id`. */
-function pointer(target: Element, type: string, x: number, y: number, t: number, id = 1): void {
-  const event = new PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: id });
+/** A pointer event at `t` ms, for pointer `id`; the main button is held until `pointerup`. */
+function pointer(
+  target: Element,
+  type: string,
+  x: number,
+  y: number,
+  t: number,
+  id = 1,
+  extra = {},
+) {
+  const buttons = type === "pointerup" ? 0 : 1;
+  const init = { bubbles: true, clientX: x, clientY: y, pointerId: id, buttons, ...extra };
+  const event = new PointerEvent(type, init);
   Object.defineProperty(event, "timeStamp", { value: t });
   target.dispatchEvent(event);
 }
@@ -99,6 +109,18 @@ describe("Drag", () => {
     frame();
     expect(slides(root)[0]?.hasAttribute("data-cs-active")).toBe(true);
     expect(selects).toEqual([]);
+  });
+
+  it("ignores other mouse buttons, and ends a Drag whose release was lost", () => {
+    pointer(root, "pointerdown", 500, 300, 0, 1, { pointerType: "mouse", button: 2 });
+    pointer(root, "pointermove", 380, 300, 10);
+    frame();
+    expect(carousel.position).toBe(0);
+    pointer(root, "pointerdown", 500, 300, 20);
+    pointer(root, "pointermove", 380, 300, 30, 1, { buttons: 0 });
+    pointer(root, "pointermove", 260, 300, 40, 1, { buttons: 0 });
+    settle();
+    expect(carousel.position).toBe(0);
   });
 
   it("captures the pointer once it moves, so a still tap keeps its own target", () => {
