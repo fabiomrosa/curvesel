@@ -7,9 +7,13 @@ Every slice's pull request updates it (SESSION §3).
 - The npm workspace builds, formats, lints, type-checks and tests with one command,
   `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
+- `curvePose(offset, { curvature, gap }, { size })`: the Pose of a Slide on a Curve of constant
+  Curvature in the `xz` Plane, from a flat ribbon (0) to a closed cylinder (`2π / N`), exact
+  through `κ = 0`. Invalid options throw `curvesel:` errors.
 
 ## Modules
-- `packages/core` (`@curvesel/core`): empty; exports only `packageName` for the smoke test.
+- `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
+  `LayoutContext`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
 
 ## Known issues
 None.
@@ -26,4 +30,7 @@ None.
 - **2026-11-23, plan M1:** sixteen slices, C1.1 to C1.16 (`docs/PLAN.md`). Agreed with the owner:
   Curve options in Slide steps, a Pose's rotation as a 3×3 matrix, and Tilt around the view axis
   with the Slides kept upright (ARCHITECTURE "The math", PRODUCT terms).
-- **Next:** C1.1 (constant Curvature).
+- **2026-11-23, C1.1:** `curvePose` with constant Curvature and the shared property test
+  (`test/curve-pose.property.test.ts`: equal spacing, continuity through `κ = 0` against an
+  independent formula of the circle).
+- **Next:** C1.2 (playground).
