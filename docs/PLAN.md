@@ -278,7 +278,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, PRODUCT "Feels physical".
 
 ### C1.13 · Snap
-- **Status:** waiting (C1.12)
+- **Status:** done (2026-11-23)
 - **Goal:** the Track always settles on a whole Slide.
 - **Depends on:** C1.12.
 - **In scope:** below the Inertia threshold (or on a release with no speed), a critically damped

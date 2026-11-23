@@ -65,8 +65,10 @@ Each package is created by the first slice that needs it.
 - Drag converts pixels to Position by the slide step; past the ends it is divided (Rubber band).
 - Inertia decays velocity by friction per second, `rubberBand` times faster past an end, solved in
   closed form piece by piece between the ends (any split of `dt` ends at the same Position); below
-  a threshold, Snap takes over: a critically damped spring to `round(position)` (clamped, or free
-  when looping).
+  a threshold, Snap takes over in the same step: a critically damped spring to `target`,
+  `round(position)` clamped (or free when looping), also in closed form. It never overshoots: the
+  speed handed over is below the rest threshold, so only a target already within the rest distance
+  could be passed, and the step that would pass it rests on it instead.
 
 ## Request flow
 One gesture through the engine (M2):

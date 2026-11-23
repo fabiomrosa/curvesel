@@ -12,6 +12,13 @@ function settle(state: TrackState): TrackState {
   return track;
 }
 
+/** Steps finely until Inertia ends, so the spring that follows has barely moved. */
+function coast(state: TrackState): TrackState {
+  let track = state;
+  for (let i = 0; i < 1e6 && track.phase === "inertia"; i++) track = step(track, 1e-4);
+  return track;
+}
+
 /** Half the velocity kept per second: a decay rate of ln 2. */
 const HALF = { friction: 0.5 };
 
@@ -23,6 +30,7 @@ describe("createTrack", () => {
     expect(track.phase).toBe("rest");
     expect(track.count).toBe(5);
     expect(track.rubberBand).toBeCloseTo(0.1, 12);
+    expect(track.target).toBe(0);
   });
 
   it("throws a message naming the count when it is not a whole number of at least 1", () => {
@@ -127,10 +135,10 @@ describe("release", () => {
     expect(track.position).toBeCloseTo(1, 12);
   });
 
-  it("comes to rest where it is when the release has almost no speed", () => {
-    const track = release(drag(createTrack({ count: 5 }), 1), 0.001);
-    expect(track.phase).toBe("rest");
-    expect(track.velocity).toBeCloseTo(0, 12);
+  it("snaps to the nearest Slide when the release has almost no speed", () => {
+    const track = release(drag(createTrack({ count: 5 }), 1.3), 0.001);
+    expect(track.phase).toBe("snap");
+    expect(track.target).toBe(1);
   });
 
   it("throws a message naming the velocity when it is not a finite number", () => {
@@ -149,23 +157,22 @@ describe("step", () => {
     expect(track.phase).toBe("inertia");
   });
 
-  it("comes to rest in finite time, about velocity / decay rate farther on", () => {
+  it("ends Inertia in finite time, about velocity / decay rate farther on", () => {
     // Checked against a fine Euler simulation: 6.756353 after 8.64 s.
-    const track = settle(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
-    expect(track.phase).toBe("rest");
-    expect(track.velocity).toBeCloseTo(0, 12);
+    const track = coast(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
+    expect(track.phase).toBe("snap");
     expect(track.position).toBeCloseTo(6.756353, 5);
   });
 
   it("slows rubberBand times faster past an end", () => {
     // Without the band it would reach 7.756; checked against a fine Euler simulation.
-    const track = settle(release(drag(createTrack({ count: 3, ...HALF }), 2), 4));
+    const track = coast(release(drag(createTrack({ count: 3, ...HALF }), 2), 4));
     expect(track.position).toBeCloseTo(2.575635, 5);
   });
 
   it("crosses back into bounds and out past the other end, changing the decay at each", () => {
     // From 2.05 (past the last Slide) towards the first; checked against a fine Euler simulation.
-    const track = settle(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2));
+    const track = coast(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2));
     expect(track.position).toBeCloseTo(-0.037095, 5);
   });
 
@@ -185,6 +192,52 @@ describe("step", () => {
     const late = step(moving, 10);
     expect(late.position).toBeLessThanOrEqual(10 * 0.1);
     expect(late.position).toBeCloseTo(step(moving, 0.1).position, 12);
+  });
+
+  it("snaps to the nearest Slide when Inertia ends, and rests exactly on it", () => {
+    const track = settle(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
+    expect(track.phase).toBe("rest");
+    expect(track.position).toBe(7);
+    expect(track.velocity).toBe(0);
+  });
+
+  it("returns to the end it passed, without overshooting it", () => {
+    let track = release(drag(createTrack({ count: 3, ...HALF }), 2), 4);
+    let lowest = track.position;
+    for (let i = 0; i < 3600 && track.phase !== "rest"; i++) {
+      track = step(track, 1 / 60);
+      lowest = Math.min(lowest, track.position);
+    }
+    expect(track.position).toBe(2);
+    expect(lowest).toBeGreaterThanOrEqual(2);
+    expect(settle(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2)).position).toBe(0);
+  });
+
+  it("pulls with a critically damped spring of 12 per second", () => {
+    // From 1.4 to 1 at rest: x(t) = 0.4 (1 + 12t) e^(−12t).
+    const snapping = release(drag(createTrack({ count: 5 }), 1.4), 0);
+    const later = step(snapping, 0.1);
+    expect(later.phase).toBe("snap");
+    expect(later.position).toBeCloseTo(1 + 0.4 * 2.2 * Math.exp(-1.2), 12);
+    let fine = snapping;
+    for (let i = 0; i < 100; i++) fine = step(fine, 0.001);
+    expect(fine.position).toBeCloseTo(later.position, 12);
+    expect(fine.velocity).toBeCloseTo(later.velocity, 12);
+  });
+
+  it("spends the rest of the step on the spring when Inertia ends within it", () => {
+    const ending = coast(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
+    const before = { ...ending, phase: "inertia" as const, velocity: 0.0100001 };
+    const next = step(before, 0.1);
+    expect(next.phase).toBe("snap");
+    expect(next.position).toBeGreaterThan(ending.position + 0.05);
+  });
+
+  it("stops a Snap when a Drag starts", () => {
+    const snapping = release(drag(createTrack({ count: 5 }), 1.4), 0);
+    const caught = dragStart(step(snapping, 0.05));
+    expect(caught.phase).toBe("drag");
+    expect(caught.velocity).toBe(0);
   });
 
   it("leaves a Track at rest or in a Drag where it is", () => {

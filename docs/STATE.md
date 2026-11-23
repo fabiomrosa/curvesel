@@ -26,7 +26,9 @@ Every slice's pull request updates it (SESSION §3).
   `release(state, velocity)` starts Inertia and `step(state, dt)` advances it: the velocity keeps
   `friction` of itself per second (2012's 0.84 per 30 fps frame by default), decaying `rubberBand`
   times faster past an end, solved exactly so any frame rate ends at the same Position; `dt` counts
-  at most 0.1 s, and below 0.01 Positions per second the Track rests where it is.
+  at most 0.1 s. Below 0.01 Positions per second (or on a release with no speed), Snap pulls the
+  Track to `target`, the nearest whole Position within bounds, with a critically damped spring
+  (ω = 12/s, solved exactly, spending the rest of the step), and it rests exactly on it.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
@@ -75,5 +77,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.11:** the Track and Drag with the Rubber band, a pure state in and out.
 - **2026-11-23, C1.12:** Inertia, exact between the ends; a property runs the same release at
   30, 60 and 120 fps and with jittery `dt`.
-- **Next:** C1.13 (Snap). `step` drops the rest of `dt` when Inertia ends; Snap should spend it
-  on the spring in the same call.
+- **2026-11-23, C1.13:** Snap; a property settles any sequence of gestures on a whole Slide, and
+  the frame-rate property now ends on the same Slide.
+- **Next:** C1.14 (Loop).
