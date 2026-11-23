@@ -16,10 +16,10 @@
       .views { display: flex; flex-wrap: wrap; gap: 1rem; }
       figure { margin: 1rem 0 0; }
       svg { touch-action: none; cursor: grab; width: 22rem; max-width: 100%; aspect-ratio: 1; background: #fff; border: 1px solid #cbd2d9; border-radius: 8px; }
-      .slide { stroke: #3e4c59; stroke-width: 3; stroke-linecap: round; }
-      .slide.centre { stroke: #c2410c; }
+      .slide { stroke: #3e4c59; stroke-width: 2; stroke-linejoin: round; fill: #e4e7eb; fill-opacity: 0.85; }
+      .slide.centre { stroke: #c2410c; fill: #fde3d3; }
       .facing { stroke: #9aa5b1; stroke-width: 1.5; }
-      .hidden { stroke: #cbd2d9; stroke-dasharray: 4 3; }
+      .hidden { stroke: #cbd2d9; stroke-dasharray: 4 3; fill-opacity: 0.2; }
     </style>
   </head>
   <body>
@@ -111,7 +111,7 @@
         <figcaption>Side view: z towards the viewer to the right, y down.</figcaption>
       </figure>
     </div>
-    <p><small>Each Slide is drawn along the Curve at its size; the Position is the Track's (0 is the first Slide). Orange: the Active slide. Dashed: hidden. Ticks: where each Slide faces.</small></p>
+    <p><small>Each Slide is drawn as a square of its size, back to front; the Position is the Track's (0 is the first Slide). Orange: the Active slide. Dashed: hidden. Ticks: where each Slide faces.</small></p>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>
