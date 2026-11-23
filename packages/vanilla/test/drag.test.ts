@@ -232,6 +232,23 @@ describe("Drag", () => {
     expect(carousel.position).toBeCloseTo(1, 9);
   });
 
+  it("removes on destroy every listener it added to the Stage", () => {
+    carousel.destroy();
+    const added = vi.spyOn(root, "addEventListener");
+    const removed = vi.spyOn(root, "removeEventListener");
+    const key = ([type, listener, options]: unknown[]) => [
+      type,
+      listener,
+      options === true || (options as { capture?: boolean })?.capture === true,
+    ];
+    const watched = createCarousel(root, { layout: "ribbon", size: 100 });
+    // Past the threshold, so the click guard is on too.
+    drag(root, [[380, 300]], 300);
+    watched.destroy();
+    expect(added.mock.calls.length).toBeGreaterThan(4);
+    expect(removed.mock.calls.map(key)).toEqual(expect.arrayContaining(added.mock.calls.map(key)));
+  });
+
   it("drags along the Curve on screen: down the wheel, up a ribbon tilted a quarter turn", () => {
     const wheel = stage(5);
     const down = createCarousel(wheel, { layout: "wheel", size: 100 });
