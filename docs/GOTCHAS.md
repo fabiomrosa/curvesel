@@ -17,9 +17,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - `ResizeObserver` watches the content box by default: a padding or border change alone never
   fires it. Observe `{ box: "border-box" }` when measuring `offsetWidth`. It never fires for an
   element that only moves.
-- The e2e server is Vite at the repository root; `e2e/engine.html` imports the engine's source,
-  which resolves `@curvesel/core` to its built `dist/`, so `npm run e2e` runs after the build (as
-  `verify` does). A stale `core/dist` shows old `core` behaviour in the browser tests.
+- Pages served by Vite (the demo, the e2e server at the repository root) resolve `@curvesel/core`
+  to its source through `vite.config.ts`; `vite demo` needs `--config vite.config.ts`, since Vite
+  looks for the config in the page's root. The playground imports `core`'s source directly.
 - Chrome reports a `ResizeObserver` loop only as a window `error` event: Playwright's `pageerror`
   and console listeners miss it, so `e2e/engine.html` forwards window errors to `console.error`.
 - Chrome keeps an emptied `style=""` attribute; `happy-dom` drops it. `happy-dom` also runs

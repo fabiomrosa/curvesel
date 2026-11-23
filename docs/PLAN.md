@@ -478,7 +478,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** CONVENTIONS §5, GOTCHAS.
 
 ### C2.7 · Demo page
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a page mounts the vanilla engine over real cards.
 - **Depends on:** C2.6.
 - **In scope:** `demo/` (Vite, `npm run demo`): a Stage of cards with their own buttons and inputs,
@@ -494,7 +494,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07, PRODUCT "Headless, children keep their behaviour".
 
 ### C2.8 · Drag
-- **Status:** waiting (C2.7)
+- **Status:** next
 - **Goal:** the user drags the Carousel with mouse, touch or pen.
 - **Depends on:** C2.7, DEC-10.
 - **In scope:** `pointerdown` on the Stage with pointer capture (no listener on `window` or

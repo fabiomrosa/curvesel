@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>curvesel demo</title>
+    <style>
+      body { margin: 0; font: 15px/1.4 system-ui, sans-serif; color: #1f2933; background: #f5f7fa; }
+      header { display: flex; gap: 1rem; align-items: center; padding: 1rem 2rem; }
+      #stage { width: 900px; height: 520px; margin: 0 auto; }
+      .card { box-sizing: border-box; width: 180px; height: 240px; padding: 1rem; border-radius: 12px; background: #fff; box-shadow: 0 2px 8px #0002; }
+      .card h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+      .card input { width: 100%; box-sizing: border-box; margin-top: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <label>Preset
+        <select id="preset">
+          <option>cylinder</option>
+          <option>ribbon</option>
+          <option>wheel</option>
+          <option>arc</option>
+        </select>
+      </label>
+      <button id="previous" type="button">Previous</button>
+      <button id="next" type="button">Next</button>
+      <span>Active card: <output id="active">1</output></span>
+    </header>
+    <div id="stage"></div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
