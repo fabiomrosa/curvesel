@@ -35,7 +35,9 @@ Each package is created by the first slice that needs it.
 - **Units:** the Curve's options count length in Slide steps, `step = size + gap` (px): Curvature is
   radians of bend per step (a closed cylinder of N Slides is `2π / N`), the Wave's wavelength is in
   Slides, Twist is radians per step. The radius is `step / curvature`, so a Preset fits any slide
-  size. `gap` is in px; `size` is measured by the engine and passed in the Layout context.
+  size. `gap` is in px; `size` is measured by the engine (the largest Slide along the Curve: its
+  height in `yz`, its width otherwise; a `size` option overrides it) and passed in the Layout
+  context.
 - `curvePose(offset, options, context) → Pose`: the arc length is `s = offset` steps; the heading
   `θ(s)` is the integral of `κ(s)`; the position is the integral of the unit tangent, in the chosen
   Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near `κ =
@@ -84,7 +86,8 @@ One gesture through the engine (M2):
 5. `destroy()`: stop the loop, remove the listeners, restore what DEC-07 lists.
 
 ## Persistence
-None. The library emits `change` (Position) and `select` (Active slide) events; the user persists.
+None. The library emits `change` (Position) and `select` (Active slide) through
+`carousel.on(name, handler)`, which returns an unsubscribe function; the user persists.
 
 ## Configuration
 Options passed to `createCarousel` or the adapter (a Preset name or Curve options, physics options,
@@ -99,8 +102,8 @@ None. GitHub for the code and CI; npm for publishing (from M3).
 
 ## Design references
 None for the library: it is headless (DEC-07). The demo's arc Preset follows the owner's reference
-image (cards on an arc whose centre is below the screen, side cards tilted and dimmed); the demo's
-look lives in the demo only.
+image as described here (cards on an arc whose centre is below the screen, side cards tilted and
+dimmed), judged by the owner in the browser; the demo's look lives in the demo only.
 
 ## Lessons from the 2012 carousel (`../3d-carousel/chosen.carousel.js`)
 What it got right and returns here:

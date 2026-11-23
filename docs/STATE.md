@@ -97,4 +97,8 @@ Every slice's pull request updates it (SESSION §3).
   Next, loop, a Preset; no frame requested at rest.
 - **2026-11-23, close M1:** the owner checked the motion in the playground; M1 is `done` in the
   ROADMAP, and the close pull request ranks the open retro proposals.
-- **Next:** "plan M2" with the owner, then each accepted M1 proposal as its own pull request.
+- **2026-11-23, M1 proposals:** five retro proposals applied (#20 to #24).
+- **2026-11-23, plan M2:** twelve slices, C2.1 to C2.12 (`docs/PLAN.md`). Agreed with the owner:
+  events through `carousel.on()`, the largest Slide as the size (overridable), and DEC-14 (the
+  engine makes the Stage focusable); the arc demo follows ARCHITECTURE's description.
+- **Next:** C2.1 (mount and destroy).
