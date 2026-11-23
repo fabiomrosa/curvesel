@@ -422,7 +422,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07, PRODUCT invariants.
 
 ### C2.4 · Animation loop and goTo
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** code moves the Carousel, and it animates only while it moves.
 - **Depends on:** C2.3, DEC-09.
 - **In scope:** one `requestAnimationFrame` loop over the Track (`dt` from the frame timestamps,
@@ -442,7 +442,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, ARCHITECTURE "Request flow".
 
 ### C2.5 · Events
-- **Status:** waiting (C2.4)
+- **Status:** next
 - **Goal:** the user's code hears where the Carousel is.
 - **Depends on:** C2.4.
 - **In scope:** `carousel.on('change' | 'select', handler)`, typed per event, returning an

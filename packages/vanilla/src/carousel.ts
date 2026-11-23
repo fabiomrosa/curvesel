@@ -7,7 +7,9 @@ import {
   type Pose,
   type PresetName,
   presets,
+  goTo as sendTo,
   slideOffset,
+  step,
   type TrackState,
 } from "@curvesel/core";
 
@@ -19,9 +21,19 @@ export interface CarouselOptions {
   /** The Stage's CSS `perspective`, in px; 1000 by default. */
   perspective?: number;
   loop?: boolean;
+  /** The fraction of a move that counts past the ends; 0.1 by default. */
+  rubberBand?: number;
+  /** The fraction of the velocity kept per second of Inertia. */
+  friction?: number;
 }
 
 export interface Carousel {
+  /** The Track's Position: 2.5 is halfway between Slides 2 and 3. */
+  readonly position: number;
+  /** Animates to Slide `index` (the short way round when looping). */
+  goTo(index: number): void;
+  next(): void;
+  previous(): void;
   /** Restores every property and attribute the Carousel wrote. */
   destroy(): void;
 }
@@ -57,15 +69,53 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     throw new Error(`curvesel: size must be a finite number > 0, got ${options.size}`);
   }
   const loop = options.loop ?? false;
+  const { rubberBand, friction } = options;
   let slides: HTMLElement[] = [];
-  let track: TrackState = createTrack({ count: 1, loop });
+  let track: TrackState = createTrack({
+    count: 1,
+    loop,
+    ...(rubberBand === undefined ? {} : { rubberBand }),
+    ...(friction === undefined ? {} : { friction }),
+  });
   const owned = new Set<HTMLElement>();
   const saved = [save(stage, ["perspective"], [])];
   const measure = () => options.size ?? largest(slides, plane);
+  // Geometry is read on mount, resize and child changes only; a frame computes and writes.
+  const geometry = { size: 0, centres: [] as string[], hidden: new Set<HTMLElement>() };
+  const paint = () => {
+    if (geometry.size > 0) render(slides, track, layout, geometry);
+  };
   const draw = () => {
     const size = measure();
     // While the Slides measure 0 (a hidden Stage) the last layout stays.
-    if (size > 0) render(stage, slides, track, layout, size);
+    if (!(size > 0)) return;
+    Object.assign(geometry, { size, centres: centres(stage, slides) });
+    geometry.hidden.clear();
+    paint();
+  };
+  let frame = 0;
+  let last: number | undefined;
+  const request = () => {
+    if (frame === 0) frame = requestAnimationFrame(tick);
+  };
+  // One loop, running only while the Track moves on its own; `dt` clamped at 0 (GOTCHAS).
+  const tick = (now: number) => {
+    frame = 0;
+    track = step(track, last === undefined ? 0 : Math.max(0, now - last) / 1000);
+    last = now;
+    paint();
+    if (track.phase === "inertia" || track.phase === "snap") request();
+    else last = undefined;
+  };
+  const goTo = (index: number) => {
+    track = sendTo(track, index);
+    request();
+  };
+  /** One Slide on from the one the Track is on or heading to; wrapping when looping. */
+  const by = (delta: number) => {
+    const at = (track.phase === "snap" ? track.target : Math.round(track.position)) + delta;
+    const count = track.count;
+    goTo(loop ? ((at % count) + count) % count : Math.min(Math.max(at, 0), count - 1));
   };
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
@@ -89,12 +139,15 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     }
     slides = children;
     track = { ...track, count: Math.max(slides.length, 1) };
+    // Past the new last Slide (it was removed), Snap back to it.
+    if (!loop && Math.max(track.position, track.target) > track.count - 1) goTo(track.count - 1);
   };
   const mutations = new MutationObserver(() => {
     adopt();
     draw();
   });
   const destroy = () => {
+    if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
     resizes.disconnect();
     for (const slide of owned) owners.get(slide)?.();
@@ -120,7 +173,15 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     destroy();
     throw error;
   }
-  return { destroy };
+  return {
+    get position() {
+      return track.position;
+    },
+    goTo,
+    next: () => by(1),
+    previous: () => by(-1),
+    destroy,
+  };
 }
 
 /** The Layout to call, and the Plane it bends in when it is a Curve. */
@@ -147,23 +208,29 @@ function largest(slides: HTMLElement[], plane: Plane): number {
   return Math.max(0, ...slides.map(along));
 }
 
-function render(
-  stage: HTMLElement,
-  slides: HTMLElement[],
-  track: TrackState,
-  layout: Layout,
-  size: number,
-): void {
-  const { count, position, loop } = track;
-  // Where each absolute Slide starts (padding, alignment, direction), all read before any write.
-  const centres = slides.map(
+/** Where each absolute Slide starts (padding, alignment, direction), all read before any write. */
+function centres(stage: HTMLElement, slides: HTMLElement[]): string[] {
+  return slides.map(
     (slide) =>
       `translate(${stage.clientWidth / 2 - slide.offsetLeft}px, ${stage.clientHeight / 2 - slide.offsetTop}px) translate(-50%, -50%)`,
   );
+}
+
+/** Writes each Slide's Pose; a culled Slide is written once, then left until it comes back. */
+function render(
+  slides: HTMLElement[],
+  track: TrackState,
+  layout: Layout,
+  { size, centres, hidden }: { size: number; centres: string[]; hidden: Set<HTMLElement> },
+): void {
+  const { count, position, loop } = track;
   const active = (((Math.round(position) % count) + count) % count) as number;
   slides.forEach((slide, index) => {
     const offset = slideOffset(index, position, count, loop);
     const pose = layout(offset, { size, position });
+    if (!pose.visible && hidden.has(slide)) return;
+    if (pose.visible) hidden.delete(slide);
+    else hidden.add(slide);
     slide.style.transform = `${centres[index]} ${matrix3d(pose)}`;
     slide.style.zIndex = String(pose.zIndex);
     slide.style.visibility = pose.visible ? "visible" : "hidden";

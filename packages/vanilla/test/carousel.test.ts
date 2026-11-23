@@ -300,6 +300,87 @@ describe("follow the children", () => {
   });
 });
 
+describe("motion", () => {
+  const settle = () => vi.advanceTimersByTime(5000);
+  const mutated = () => new Promise((resolve) => setTimeout(resolve, 0));
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["requestAnimationFrame", "cancelAnimationFrame"] });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("animates to the Slide `goTo` names, and requests no frame at rest", () => {
+    const root = stage(5);
+    const carousel = createCarousel(root, { layout: "ribbon", size: 100 });
+    carousel.goTo(3);
+    vi.advanceTimersByTime(100);
+    expect(carousel.position).toBeGreaterThan(0);
+    expect(carousel.position).toBeLessThan(3);
+    // Real time: a Snap of 3 Slides (ω = 12/s) rests within about a second.
+    vi.advanceTimersByTime(1400);
+    expect(vi.getTimerCount()).toBe(0);
+    expect(carousel.position).toBeCloseTo(3, 9);
+    expect(slides(root)[3]?.hasAttribute("data-cs-active")).toBe(true);
+    expectPose(
+      slides(root)[4]?.style.transform ?? "",
+      curvePose(1, presets.ribbon, { size: 100, position: 3 }),
+    );
+    expect(vi.getTimerCount()).toBe(0);
+    expect(() => carousel.goTo(5)).toThrow("curvesel: index");
+  });
+
+  it("steps with next and previous, stopping at the ends or wrapping when looping", () => {
+    const carousel = createCarousel(stage(4), { size: 100 });
+    carousel.previous();
+    settle();
+    expect(carousel.position).toBeCloseTo(0, 9);
+    carousel.next();
+    carousel.next();
+    settle();
+    expect(carousel.position).toBeCloseTo(2, 9);
+    const looping = createCarousel(stage(4), { size: 100, loop: true });
+    looping.previous();
+    settle();
+    expect(looping.position).toBeCloseTo(-1, 9);
+  });
+
+  it("writes a culled Slide once, and again only when it comes back", () => {
+    const root = stage(8);
+    const carousel = createCarousel(root, { layout: "cylinder", size: 100 });
+    const [far, near] = [slides(root)[6], slides(root)[3]] as [HTMLElement, HTMLElement];
+    far.style.transform = "none";
+    near.style.transform = "none";
+    carousel.goTo(1);
+    settle();
+    expect(far.style.transform).toBe("none");
+    expect(near.style.transform).not.toBe("none");
+    expect(near.hasAttribute("data-cs-visible")).toBe(true);
+    // A resize measures again, and writes every Slide once more.
+    resize();
+    expect(far.style.transform).not.toBe("none");
+  });
+
+  it("cancels a pending frame on destroy", () => {
+    const carousel = createCarousel(stage(3), { size: 100 });
+    carousel.goTo(2);
+    carousel.destroy();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("Snaps back to the last Slide when the Slides it was on are removed", async () => {
+    const root = stage(5);
+    const carousel = createCarousel(root, { size: 100 });
+    carousel.goTo(4);
+    settle();
+    slides(root)[4]?.remove();
+    slides(root)[3]?.remove();
+    await mutated();
+    settle();
+    expect(carousel.position).toBeCloseTo(2, 9);
+  });
+});
+
 describe("destroy", () => {
   it("restores a static Stage, and leaves nothing written when mounting throws", () => {
     for (const options of [{ size: 100 }, { size: 100, layout: { curvature: 0, gap: -1 } }, {}]) {
@@ -349,6 +430,12 @@ describe("options", () => {
     ).toThrow("curvesel: layout must be a Preset name (cylinder, ribbon, wheel, arc)");
     expect(() => createCarousel(stage(2), { size: -1 })).toThrow(
       "curvesel: size must be a finite number > 0, got -1",
+    );
+    expect(() => createCarousel(stage(2), { size: 100, friction: 2 })).toThrow(
+      "curvesel: friction",
+    );
+    expect(() => createCarousel(stage(2), { size: 100, rubberBand: 2 })).toThrow(
+      "curvesel: rubberBand",
     );
     expect(() => createCarousel(stage(2), { size: 100, perspective: 0 })).toThrow(
       "curvesel: perspective must be a finite number > 0, got 0",

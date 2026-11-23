@@ -39,7 +39,11 @@ Every slice's pull request updates it (SESSION §3).
   writing only DEC-07's properties, and lays them out again when the Stage or a Slide resizes (a
   `ResizeObserver`; while they measure 0 the last layout stays), and follows added and removed
   children (a `MutationObserver`; a removed child gets back what was written); `destroy()` restores
-  them exactly.
+  them exactly. `goTo(index)`, `next()`, `previous()` and `position` move it with one
+  `requestAnimationFrame` loop that runs only in Inertia or Snap (`friction`, `rubberBand`
+  options); geometry is measured on mount, resize and child changes, a frame only writes, and a
+  culled Slide is written once until it comes back. Removing the Slides past the Position Snaps it
+  back to the new last one.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -111,4 +115,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.1:** `packages/vanilla` with `createCarousel` and `destroy()`.
 - **2026-11-23, C2.2:** the Carousel follows the size of the Stage and the Slides.
 - **2026-11-23, C2.3:** the Carousel follows the Stage's children; an empty Stage mounts.
-- **Next:** C2.4 (animation loop and `goTo`).
+- **2026-11-23, C2.4:** the animation loop, `goTo`, `next`, `previous`, `position` and culling.
+- **Next:** C2.5 (events).
