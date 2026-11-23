@@ -35,7 +35,7 @@ Curve in the browser after C1.10 and the motion at the end (C1.16).
 |---|---|
 | `curvesel` | **Curve:** C1.1 constant Curvature, C1.2 playground, C1.3 Planes, C1.4 visible range and depth order, C1.5 Wave in the Plane, C1.6 Wave anchored to the ribbon, C1.7 Wave across the Plane, C1.8 Twist, C1.9 Tilt, C1.10 Presets and custom Layouts. **Physics:** C1.11 Track and Drag, C1.12 Inertia, C1.13 Snap, C1.14 Loop, C1.15 goTo, C1.16 playground with motion |
 
-## M2 · Vanilla engine and demo
+## M2 · Vanilla engine and demo · done (2026-11-23)
 `packages/vanilla` over the user's own elements, then a demo page. Events through `carousel.on()`;
 the Slide size is the largest Slide along the Curve, overridable; the engine makes the Stage
 focusable (DEC-14). The owner checks the Drag in the demo (C2.8) and every Preset at the end
@@ -57,8 +57,8 @@ focusable (DEC-14). The owner checks the Drag in the demo (C2.8) and every Prese
 - **M4 · React adapter.** **M5 · Angular adapter.**
 
 ## Recommended order (one session at a time)
-C0.1 and C1.1 to C1.16 (done; M1 closed), then C2.1 to C2.12 in order; each depends on the one
-before. Then "close M2" and "plan M3" with the owner.
+C0.1 and C1.1 to C1.16 (done; M1 closed), C2.0 to C2.12 (done; M2 closed). Then "plan M3" with
+the owner.
 
 ## Open decisions (see DECISIONS.md)
 | Id | Question | Status | Needed by |
