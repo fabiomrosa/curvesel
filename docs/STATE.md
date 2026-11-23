@@ -29,6 +29,9 @@ Every slice's pull request updates it (SESSION §3).
   at most 0.1 s. Below 0.01 Positions per second (or on a release with no speed), Snap pulls the
   Track to `target`, the nearest whole Position within bounds, with a critically damped spring
   (ω = 12/s, solved exactly, spending the rest of the step), and it rests exactly on it.
+  `createTrack({ count, loop: true })` turns forever: no ends, no Rubber band, Snap to any whole
+  Position. `slideOffset(index, position, count, loop)` is `index − position`, wrapped into
+  `[−count/2, count/2)` when looping.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
@@ -39,7 +42,7 @@ Every slice's pull request updates it (SESSION §3).
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
   `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `step`, `TrackState`,
-  `TrackOptions`).
+  `TrackOptions`), `slide-offset.ts` (`slideOffset`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -79,4 +82,5 @@ Every slice's pull request updates it (SESSION §3).
   30, 60 and 120 fps and with jittery `dt`.
 - **2026-11-23, C1.13:** Snap; a property settles any sequence of gestures on a whole Slide, and
   the frame-rate property now ends on the same Slide.
-- **Next:** C1.14 (Loop).
+- **2026-11-23, C1.14:** Loop and `slideOffset`; the gestures property runs looping too.
+- **Next:** C1.15 (`goTo`).

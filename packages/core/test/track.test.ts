@@ -264,3 +264,30 @@ describe("step", () => {
     expect(() => step(moving, Number.NaN)).toThrow("curvesel: dt");
   });
 });
+
+describe("loop", () => {
+  it("is off by default", () => {
+    expect(createTrack({ count: 3 }).loop).toBe(false);
+  });
+
+  it("lets a Drag move freely past the last Slide", () => {
+    const track = drag(createTrack({ count: 3, loop: true }), 2, 1.5);
+    expect(track.position).toBeCloseTo(3.5, 12);
+    expect(drag(track, 0.5).position).toBeCloseTo(4, 12);
+  });
+
+  it("carries Inertia past the ends without the Rubber band", () => {
+    // From 2 at 4 Positions per second with a decay of ln 2: about 4 / ln 2 farther on.
+    const track = coast(release(drag(createTrack({ count: 3, loop: true, ...HALF }), 2), 4));
+    expect(track.position).toBeCloseTo(2 + (4 - 0.01) / Math.LN2, 4);
+  });
+
+  it("snaps to a whole Position outside [0, count)", () => {
+    expect(
+      settle(release(drag(createTrack({ count: 3, loop: true }), 2, 1.6), 0)).position,
+    ).toBeCloseTo(4, 12);
+    expect(
+      settle(release(drag(createTrack({ count: 3, loop: true }), -1.7), 0)).position,
+    ).toBeCloseTo(-2, 12);
+  });
+});
