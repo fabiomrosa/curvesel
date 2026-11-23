@@ -587,7 +587,7 @@ Ideas not planned yet; a milestone's planning picks from here.
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
 - With a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: a frame of
-  a drag over 200 Slides takes 22.7 ms in Chrome, over the 16.7 ms budget (C2.12, ARCHITECTURE
-  "Frame budget"); 20 Slides take 1.2 ms. The fix, a slice of its own: integrate once over the
+  a drag over 200 Slides takes about 23 ms in Chrome, over the 16.7 ms budget (C2.12, ARCHITECTURE
+  "Frame budget"); 20 Slides take about 1 ms. The fix, a slice of its own: integrate once over the
   sorted Offsets per frame, and skip Slides beyond the visible range.
 

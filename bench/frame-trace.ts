@@ -29,8 +29,8 @@ interface TraceEvent {
 }
 
 /**
- * Milliseconds of work per frame the engine wrote in: its callback's writes start a style update.
- * The script's own wait for a frame lands in the next one, with no style update, and is left out.
+ * Milliseconds of work per frame the engine wrote in (its callback ran, and its writes started a
+ * style update). The script's own wait for a frame lands in the next one and is left out.
  */
 function frameCosts(events: TraceEvent[]): number[] {
   const starts = events.filter((e) => e.name === "BeginMainThreadFrame").map((e) => e.ts);
@@ -38,9 +38,18 @@ function frameCosts(events: TraceEvent[]): number[] {
   const work = events.filter((e) => e.ph === "X" && e.tid === main && WORK.has(e.name));
   return starts.flatMap((start, i) => {
     const end = starts[i + 1] ?? Number.POSITIVE_INFINITY;
-    const inFrame = work.filter((e) => e.ts >= start && e.ts < end);
-    if (!inFrame.some((e) => e.name === "UpdateLayoutTree")) return [];
-    return [inFrame.reduce((sum, e) => sum + (e.dur ?? 0), 0) / 1000];
+    const inFrame = work.filter((e) => e.ts >= start && e.ts < end).sort((a, b) => a.ts - b.ts);
+    const names = new Set(inFrame.map((e) => e.name));
+    if (!names.has("FireAnimationFrame") || !names.has("UpdateLayoutTree")) return [];
+    // Top-level events only: a Paint nests the Paints of its children.
+    let until = Number.NEGATIVE_INFINITY;
+    let total = 0;
+    for (const e of inFrame) {
+      if (e.ts < until) continue;
+      total += e.dur ?? 0;
+      until = e.ts + (e.dur ?? 0);
+    }
+    return [total / 1000];
   });
 }
 
