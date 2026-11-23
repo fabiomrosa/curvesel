@@ -61,6 +61,17 @@ export interface Carousel {
 const DEFAULT_PERSPECTIVE = 1000;
 /** Px: about a finger's slop on a tap. */
 const DEFAULT_DRAG_THRESHOLD = 10;
+/** Ms without a wheel event before the Track Snaps. */
+const WHEEL_PAUSE = 150;
+/** Px per line, for a wheel that counts in lines (Firefox). */
+const WHEEL_LINE = 16;
+/** Each arrow key's direction on screen. */
+const ARROWS: Record<string, Vector> = {
+  ArrowRight: { x: 1, y: 0 },
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowDown: { x: 0, y: 1 },
+  ArrowUp: { x: 0, y: -1 },
+};
 /**
  * Every adopted Slide, and what gives it back. A Slide moved to another Stage is given back by its
  * old Carousel before the new one saves it, whichever observer runs first.
@@ -160,8 +171,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   // A Drag: the pointer's moves are stored, then applied in the next frame along the Curve.
   let dragging: ScreenStep | undefined;
   let pending: Vector = { x: 0, y: 0 };
+  let wheeling: ReturnType<typeof setTimeout> | undefined;
   const stopListening = listenForDrag(stage, dragThreshold, {
     start() {
+      clearTimeout(wheeling);
       dragging = screenStep(layout, geometry.size, track.position);
       if (dragging) track = dragStart(track);
       pending = { x: 0, y: 0 };
@@ -182,6 +195,33 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       request();
     },
   });
+  // A wheel moves the Track like a Drag, within the ends, and Snaps after a pause.
+  const wheel = (event: WheelEvent) => {
+    const along = dragging ? undefined : screenStep(layout, geometry.size, track.position);
+    if (!along) return;
+    const unit = event.deltaMode === 1 ? WHEEL_LINE : event.deltaMode === 2 ? along.px : 1;
+    const by = -toPositions(along, { x: event.deltaX * unit, y: event.deltaY * unit });
+    const from = track.position;
+    const to = loop ? from + by : Math.min(Math.max(from + by, 0), track.count - 1);
+    // At an end the page scrolls instead.
+    if (to === from) return;
+    event.preventDefault();
+    move(dragMove(dragStart(track), to - from));
+    clearTimeout(wheeling);
+    wheeling = setTimeout(() => move(release(track, 0)), WHEEL_PAUSE);
+  };
+  // Keys on the focused Stage; a Slide's own keys (an input's arrows) stay the Slide's.
+  const key = (event: KeyboardEvent) => {
+    if (event.target !== stage || event.altKey || event.ctrlKey || event.metaKey) return;
+    const arrow = ARROWS[event.key];
+    const along = screenStep(layout, geometry.size, track.position);
+    if (event.key === "Home") goTo(0);
+    else if (event.key === "End") goTo(track.count - 1);
+    else if (arrow && along && Math.abs(arrow.x * along.axis.x + arrow.y * along.axis.y) >= 0.5) {
+      move(goBy(track, Math.sign(arrow.x * along.axis.x + arrow.y * along.axis.y)));
+    } else return;
+    event.preventDefault();
+  };
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
   const adopt = () => {
@@ -216,6 +256,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   const destroy = () => {
     destroyed = true;
     stopListening();
+    clearTimeout(wheeling);
+    stage.removeEventListener("wheel", wheel);
+    stage.removeEventListener("keydown", key);
     for (const set of Object.values(handlers)) set.clear();
     if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
@@ -230,6 +273,13 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       stage.style.position = "relative";
     }
     stage.style.perspective = `${perspective}px`;
+    // Focusable for the keys (DEC-14); a `tabindex` the user set stays theirs.
+    if (!stage.hasAttribute("tabindex")) {
+      saved.push(save(stage, [], ["tabindex"]));
+      stage.setAttribute("tabindex", "0");
+    }
+    stage.addEventListener("wheel", wheel, { passive: false });
+    stage.addEventListener("keydown", key);
     // A touch drag along the Curve; the page still scrolls across it (GOTCHAS).
     const axis = screenStep(layout, options.size ?? 1, 0)?.axis ?? { x: 1, y: 0 };
     stage.style.touchAction = Math.abs(axis.y) > Math.abs(axis.x) ? "pan-x" : "pan-y";

@@ -6,9 +6,9 @@ Every slice's pull request updates it (SESSION §3).
 ## Capabilities
 - The npm workspace builds, formats, lints, type-checks, tests and runs the browser tests
   (Playwright in Chrome: the playground's Drag, Rubber band and idle loop, the engine's resize,
-  hidden Stage, removed and moved Slides, and the demo's Drag and click guard) with one command,
-  `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
-  checks). Coverage below 80% of lines fails it.
+  hidden Stage, removed and moved Slides, and the demo's Drag, click guard, keys and wheel) with one
+  command, `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and
+  secret checks). Coverage below 80% of lines fails it.
 - `curvePose(offset, { curvature, gap, plane, wave, twist, tilt, visibleRange }, { size, position
   })`: the Pose of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down
   the screen, bending away) or `xy` (arc: in the screen, the centre below) Plane, from a flat ribbon
@@ -54,7 +54,10 @@ Every slice's pull request updates it (SESSION §3).
   applied in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active
   slide is clamped past an end; `touch-action` follows the drag axis. Past the threshold, the next
   pointer `click` is stopped on the Stage in the capture phase (keyboard clicks pass); the next
-  `pointerdown` or `destroy()` lifts the guard.
+  `pointerdown` or `destroy()` lifts the guard. A wheel along the Curve moves it like a Drag
+  within the ends (at an end the page scrolls) and Snaps after 150 ms without one; on the focused
+  Stage the arrows along the Curve step it, Home and End go to the ends (keys from inside a Slide
+  stay the Slide's); a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14).
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.
@@ -140,4 +143,5 @@ Every slice's pull request updates it (SESSION §3).
   faces, not edges.
 - **2026-11-23, C2.8:** Drag in the engine; the owner checked it in the demo.
 - **2026-11-23, C2.9:** the click guard and `dragThreshold`, with C2.8's Drag e2e.
-- **Next:** C2.10 (wheel and keyboard).
+- **2026-11-23, C2.10:** wheel and keyboard, and the Stage made focusable (DEC-14).
+- **Next:** C2.11 (demo with every Preset; the owner checks M2).
