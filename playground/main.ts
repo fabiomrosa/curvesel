@@ -91,6 +91,7 @@ function render(): void {
     gap: value("gap"),
     plane,
     visibleRange: value("visible-range"),
+    twist: value("twist"),
     wave: {
       amplitude: value("amplitude"),
       wavelength: value("wavelength"),

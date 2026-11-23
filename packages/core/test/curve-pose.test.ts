@@ -301,4 +301,35 @@ describe("curvePose", () => {
       ]);
     });
   });
+
+  describe("with a Twist", () => {
+    it("turns each Slide around its tangent by the Twist times its Offset", () => {
+      // rotateY(π/2) · rotateX(0.6): a quarter turn of the Curve, then 2 · 0.3 around the tangent.
+      const options = { curvature: Math.PI / 4, gap: 20, twist: 0.3 };
+      const [c, s] = [Math.cos(0.6), Math.sin(0.6)];
+      expectRotation(curvePose(2, options, context).rotation, [0, s, c, 0, c, -s, -1, 0, 0]);
+    });
+
+    it("turns the wheel's Slides around their tangent, the Slide's own y axis", () => {
+      const options = { curvature: 0, gap: 20, plane: "yz" as const, twist: 0.3 };
+      const [c, s] = [Math.cos(0.6), Math.sin(0.6)];
+      expectRotation(curvePose(2, options, context).rotation, [c, 0, s, 0, 1, 0, -s, 0, c]);
+    });
+
+    it("leaves every position and Offset 0 where they were", () => {
+      for (const offset of [-3, 0, 1.5]) {
+        const plain = curvePose(offset, { curvature: 0.4, gap: 20 }, context);
+        const twisted = curvePose(offset, { curvature: 0.4, gap: 20, twist: 0.7 }, context);
+        expect([twisted.x, twisted.y, twisted.z]).toEqual([plain.x, plain.y, plain.z]);
+      }
+      const centre = curvePose(0, { curvature: 0.4, gap: 20, twist: 0.7 }, context);
+      expectRotation(centre.rotation, IDENTITY);
+    });
+
+    it("throws a message naming the Twist when it is not a finite number", () => {
+      expect(() => curvePose(0, { curvature: 0, gap: 20, twist: Number.NaN }, context)).toThrow(
+        "curvesel: twist must be a finite number, got NaN",
+      );
+    });
+  });
 });

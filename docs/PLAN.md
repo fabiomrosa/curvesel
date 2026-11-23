@@ -188,7 +188,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08, ARCHITECTURE "The math".
 
 ### C1.8 · Twist
-- **Status:** waiting (C1.7)
+- **Status:** done (2026-11-23)
 - **Goal:** Slides can rotate around the direction of the Curve, more the farther they are.
 - **Depends on:** C1.7.
 - **In scope:** `twist` (radians per step): the Slide at Offset k turns `twist·k` around its tangent;

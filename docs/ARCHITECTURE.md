@@ -43,9 +43,10 @@ Each package is created by the first slice that needs it.
   step (default phase π/2, DEC-13). The Curve has two angles along its length: the yaw in its Plane
   (the Curvature and a `z` Wave) and the pitch across it (a `y` Wave). The tangent `(cos ψ cos φ,
   −cos ψ sin φ, sin ψ)` is integrated in the Curve's own axes (along, bend, across), then each Plane
-  maps those axes to the Stage's; the Slide pitches around the Curve's in-Plane normal. Twist rotates each Slide
-  around its tangent. Tilt rotates the whole Curve around the view axis through the centre, and each
-  Slide back by the same angle, so its content stays upright.
+  maps those axes to the Stage's; the Slide pitches around the Curve's in-Plane normal. Twist turns
+  each Slide by `twist · offset` around its tangent (the rotation times a local turn about its along
+  axis). Tilt rotates the whole Curve around the view axis through the centre, and each Slide back
+  by the same angle, so its content stays upright.
 - A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine
   writes it as one `matrix3d()`. Rotations combine by multiplying matrices, never as Euler angles.
   The Slide at Offset 0 is at the origin with the identity rotation. `zIndex` comes from the Slide's
