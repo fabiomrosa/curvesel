@@ -28,3 +28,6 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - `perspective` belongs on the Stage (the Slides' parent); `transform-style: preserve-3d` is only
   needed when a transformed element has 3D-transformed children, which DEC-07 avoids by giving every
   Slide its own full `transform`.
+- A synchronous loop that never ends (a physics `step` that stops making progress) hangs Vitest:
+  its timeout cannot interrupt the thread. Bound every loop in `core` by a count, as `step` bounds
+  its pieces.

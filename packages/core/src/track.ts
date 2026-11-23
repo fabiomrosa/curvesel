@@ -16,7 +16,7 @@ export interface TrackOptions {
   count: number;
   /** 0.1 by default, as in the 2012 version. */
   rubberBand?: number;
-  /** 0.84 per 30 fps frame by default, as in the 2012 version. */
+  /** The fraction of the velocity kept per second; 0.84³⁰ (2012's 0.84 per 30 fps frame) by default. */
   friction?: number;
 }
 
@@ -26,6 +26,8 @@ const DEFAULT_FRICTION = 0.84 ** 30;
 const REST_SPEED = 0.01;
 /** Seconds: a longer step (a backgrounded tab) counts as this long. */
 const MAX_DT = 0.1;
+/** Past one end, across the bounds, past the other: the velocity never changes sign. */
+const MAX_PIECES = 3;
 
 /** A Track at rest on the first Slide. */
 export function createTrack({
@@ -83,7 +85,7 @@ export function step(state: TrackState, dt: number): TrackState {
   if (state.phase !== "inertia") return state;
   let { position, velocity } = state;
   let left = Math.min(dt, MAX_DT);
-  while (left > 0) {
+  for (let piece = 0; piece < MAX_PIECES && left > 0; piece++) {
     const edge = nextEdge(state.count, position, velocity);
     const outside = edge === undefined || position < 0 || position > state.count - 1;
     const decay = -Math.log(state.friction) / (outside ? state.rubberBand : 1);
@@ -95,6 +97,7 @@ export function step(state: TrackState, dt: number): TrackState {
     position += (velocity * (1 - factor)) / decay;
     velocity *= factor;
     if (time === toRest) return { ...state, position, velocity: 0, phase: "rest" };
+    // Landing exactly on the end moves `nextEdge` on to the next one: each piece makes progress.
     if (time === toEdge) position = edge as number;
     left -= time;
   }

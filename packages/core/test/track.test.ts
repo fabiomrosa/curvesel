@@ -169,6 +169,17 @@ describe("step", () => {
     expect(track.position).toBeCloseTo(-0.037095, 5);
   });
 
+  it("crosses both ends in one step as it would in many", () => {
+    // From 1.05 (past the last of 2 Slides), fast enough to pass the first within 0.1 s.
+    const fast = release(drag(createTrack({ count: 2, ...HALF }), 1.5), -20);
+    let fine = fast;
+    for (let i = 0; i < 100; i++) fine = step(fine, 0.001);
+    const once = step(fast, 0.1);
+    expect(once.position).toBeLessThan(0);
+    expect(once.position).toBeCloseTo(fine.position, 12);
+    expect(once.velocity).toBeCloseTo(fine.velocity, 9);
+  });
+
   it("moves no farther than a tenth of a second allows, however long the step", () => {
     const moving = release(createTrack({ count: 99 }), 10);
     const late = step(moving, 10);

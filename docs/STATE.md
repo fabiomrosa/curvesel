@@ -75,4 +75,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.11:** the Track and Drag with the Rubber band, a pure state in and out.
 - **2026-11-23, C1.12:** Inertia, exact between the ends; a property runs the same release at
   30, 60 and 120 fps and with jittery `dt`.
-- **Next:** C1.13 (Snap).
+- **Next:** C1.13 (Snap). `step` drops the rest of `dt` when Inertia ends; Snap should spend it
+  on the spring in the same call.
