@@ -31,6 +31,8 @@ let carousel: Carousel | undefined;
 function mount(): void {
   carousel?.destroy();
   carousel = createCarousel(stage, { layout: preset.value as PresetName });
+  // Exposed for the browser tests (`e2e/demo.e2e.ts`).
+  Object.assign(window, { carousel });
   active.textContent = "1";
   carousel.on("select", (index) => {
     active.textContent = String(index + 1);

@@ -20,38 +20,57 @@ test.beforeEach(async ({ page }) => {
   await page.goto("/demo/");
 });
 
-for (const preset of ["cylinder", "ribbon", "wheel", "arc"]) {
+/** Where the second card goes from the first, per Preset (screen x right, y down; step 200 px). */
+const neighbours: Record<string, (x: number, y: number) => boolean> = {
+  ribbon: (x, y) => x === 200 && y === 0,
+  cylinder: (x, y) => x > 0 && x < 195 && y === 0,
+  wheel: (x, y) => x === 0 && y > 0,
+  arc: (x, y) => x > 0 && y > 0,
+};
+
+for (const [preset, placed] of Object.entries(neighbours)) {
   test(`lays the cards out as a ${preset}, the Active card centred`, async ({ page }) => {
     await page.selectOption("#preset", preset);
-    const [active, ...others] = await centres(page);
+    const [active, second] = await centres(page);
     expect(active).toEqual([0, 0]);
-    const placed = new Set(others.map((centre) => centre.join(",")));
-    expect(placed.size).toBe(others.length);
+    expect(placed(...(second ?? [0, 0])), `second card at ${second}`).toBe(true);
   });
 }
 
-test("Next moves the Active card, and the page says which it is", async ({ page }) => {
+test("Next and Previous move the Active card, and the page says which it is", async ({ page }) => {
   await page.click("#next");
   await expect(page.locator("#active")).toHaveText("2");
   await expect(page.locator(".card").nth(1)).toHaveAttribute("data-cs-active", "");
+  await page.click("#previous");
+  await expect(page.locator("#active")).toHaveText("1");
 });
 
 test("switching Presets keeps the same cards, with what was typed in them", async ({ page }) => {
   const input = page.locator(".card input").first();
+  const button = page.locator(".card button").first();
   await input.fill("kept");
-  await page.locator(".card button").first().click();
-  const before = await page.evaluate(() => {
-    const first = document.querySelector(".card");
-    Object.assign(window, { first });
-    return first?.querySelector("button")?.textContent;
-  });
+  await button.click();
+  await page.evaluate(() => Object.assign(window, { first: document.querySelector(".card") }));
   await page.selectOption("#preset", "arc");
   await page.selectOption("#preset", "ribbon");
   await expect(input).toHaveValue("kept");
+  await expect(button).toHaveText("Clicked 1 times");
+  await button.click();
+  await expect(button).toHaveText("Clicked 2 times");
   expect(
     await page.evaluate(
       () => document.querySelector(".card") === (window as { first?: Element }).first,
     ),
   ).toBe(true);
-  expect(await page.locator(".card button").first().textContent()).toBe(before);
+});
+
+test("switching Presets destroys the Carousel it replaces", async ({ page }) => {
+  await page.evaluate(() =>
+    Object.assign(window, { old: (window as { carousel?: unknown }).carousel }),
+  );
+  await page.selectOption("#preset", "wheel");
+  // A destroyed Carousel ignores calls: the readout, fed by `select`, stays on the first card.
+  await page.evaluate(() => (window as { old?: { goTo(index: number): void } }).old?.goTo(3));
+  await page.waitForTimeout(1500);
+  await expect(page.locator("#active")).toHaveText("1");
 });
