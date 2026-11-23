@@ -30,6 +30,8 @@ export interface CurveOptions {
   readonly plane?: Plane;
   /** Makes the Curve undulate in its Plane (see `Wave.anchor`). */
   readonly wave?: Wave;
+  /** Radians per Slide step: each Slide turns `twist · offset` around its tangent. */
+  readonly twist?: number;
   /** How far from the centre, in Offsets, a Slide is still shown; every Slide by default. */
   readonly visibleRange?: number;
 }
@@ -77,6 +79,10 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   }
   if (options.wave) checkWave(options.wave);
   const wave = options.wave && travelling(options.wave, position);
+  const twist = options.twist ?? 0;
+  if (!Number.isFinite(twist)) {
+    throw new Error(`curvesel: twist must be a finite number, got ${twist}`);
+  }
   const visibleRange = options.visibleRange ?? Number.POSITIVE_INFINITY;
   if (!(visibleRange >= 0)) {
     throw new Error(`curvesel: visibleRange must be a number ≥ 0, got ${visibleRange}`);
@@ -94,7 +100,12 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   const point = wave
     ? scale(integrate(offset, yaw, pitch), step)
     : circle(offset * step, curvature * offset);
-  const placed = place(plane, point, yaw(offset), pitch(offset));
+  const curved = place(plane, point, yaw(offset), pitch(offset));
+  // The Slide's own axis along the Curve: y in the wheel, x otherwise.
+  const placed = {
+    ...curved,
+    rotation: turn(curved.rotation, plane === "yz" ? 1 : 0, twist * offset),
+  };
   const zIndex = stackOrder(placed.z / step, Math.abs(offset));
   return { ...placed, zIndex, visible: Math.abs(offset) <= visibleRange };
 }
@@ -211,6 +222,39 @@ function place(plane: Plane, point: Vector, yaw: number, pitch: number) {
     case "xy": // rotateZ: bends down the screen, the centre below.
       return at(IN_XY(point), IN_XY(tangent), scale(IN_XY(face), -1), IN_XY(third));
   }
+}
+
+/** The rotation turned by `angle` around the Slide's own axis `axis` (x or y): `R · R_axis(angle)`. */
+function turn(r: Rotation, axis: 0 | 1, angle: number): Rotation {
+  if (angle === 0) return r;
+  const [c, s] = [Math.cos(angle), Math.sin(angle)];
+  const [x0, y0, z0, x1, y1, z1, x2, y2, z2] = r;
+  if (axis === 0) {
+    // rotateX: y → c·y + s·z, z → c·z − s·y.
+    return [
+      x0,
+      c * y0 + s * z0,
+      c * z0 - s * y0,
+      x1,
+      c * y1 + s * z1,
+      c * z1 - s * y1,
+      x2,
+      c * y2 + s * z2,
+      c * z2 - s * y2,
+    ];
+  }
+  // rotateY: x → c·x − s·z, z → s·x + c·z.
+  return [
+    c * x0 - s * z0,
+    y0,
+    s * x0 + c * z0,
+    c * x1 - s * z1,
+    y1,
+    s * x1 + c * z1,
+    c * x2 - s * z2,
+    y2,
+    s * x2 + c * z2,
+  ];
 }
 
 /** A position, and the rotation whose columns are the Slide's own x, y and z axes. */

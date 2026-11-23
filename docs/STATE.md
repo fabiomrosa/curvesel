@@ -14,8 +14,9 @@ Every slice's pull request updates it (SESSION §3).
   `plane`) makes it undulate in its Plane (`z`) or across it (`y`, pitching the Slides), fixed
   relative to the centre (`anchor: 'space'`) or travelling with the Slides (`'ribbon'`, the phase
   shifted by `2π·position / wavelength`; the ribbon rocks as it moves, since the Active slide keeps
-  facing the viewer). Each Pose says whether it is `visible` and its `zIndex` (nearer the viewer
-  above; at equal depth, nearer the centre above). Invalid options throw `curvesel:` errors.
+  facing the viewer). `twist` turns each Slide by `twist · offset` around its tangent. Each Pose
+  says whether it is `visible` and its `zIndex` (nearer the viewer above; at equal depth, nearer the
+  centre above). Invalid options throw `curvesel:` errors.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
   sliders for count, Curvature, gap, size, the Wave with its plane and anchor, the Position (Slides
   at `index − position`) and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -54,4 +55,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.6:** the Wave's `ribbon` anchor and `position` in the Layout context.
 - **2026-11-23, C1.7:** the Wave across the Plane (yaw and pitch, one integration path); the
   property checks every rotation is proper.
-- **Next:** C1.8 (Twist).
+- **2026-11-23, C1.8:** Twist; the Wave property draws a Twist too.
+- **Next:** C1.9 (Tilt).

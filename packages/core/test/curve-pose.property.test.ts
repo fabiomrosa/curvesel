@@ -139,51 +139,80 @@ describe("curvePose invariants", () => {
       anchor: fc.constantFrom("space" as const, "ribbon" as const),
       plane: fc.constantFrom("z" as const, "y" as const),
     });
+    const twist = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 1000);
     // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
     const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
 
-    it("keeps the Slides on the Curve, one step apart, turned with it", () => {
+    it("keeps the Slides on the Curve, one step apart, turned with it, with any Twist", () => {
       fc.assert(
-        fc.property(base, wave, plane, offset, size, gap, position, (c, w, p, o, s, g, t) => {
-          const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w };
-          const at = (u: number) => curvePose(u, options, { size: s, position: t });
-          const step = s + g;
-          // Offset 0 stays at the origin, facing the viewer.
-          const centre = at(0);
-          expect(Math.hypot(centre.x, centre.y, centre.z)).toBeLessThanOrEqual(EPS);
-          centre.rotation.forEach((value, i) => {
-            expect(Math.abs(value - (i % 4 === 0 ? 1 : 0))).toBeLessThanOrEqual(EPS);
-          });
-          // Along a densely sampled Curve, neighbours are one step apart.
-          let length = 0;
-          for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));
-          expect(Math.abs(length - step)).toBeLessThan(1e-3 * step);
-          // Every rotation is proper: orthonormal columns, determinant 1 (no mirror).
-          const [a0, a1, a2, b0, b1, b2, c0, c1, c2] = at(o).rotation;
-          const columns = [
-            [a0, b0, c0],
-            [a1, b1, c1],
-            [a2, b2, c2],
-          ];
-          for (const [i, u] of columns.entries()) {
-            for (const [j, v] of columns.entries()) {
-              const dot =
-                (u[0] ?? 0) * (v[0] ?? 0) + (u[1] ?? 0) * (v[1] ?? 0) + (u[2] ?? 0) * (v[2] ?? 0);
-              expect(Math.abs(dot - (i === j ? 1 : 0))).toBeLessThan(1e-9);
+        fc.property(
+          base,
+          wave,
+          plane,
+          offset,
+          size,
+          gap,
+          position,
+          twist,
+          (c, w, p, o, s, g, t, tw) => {
+            const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w, twist: tw };
+            const at = (u: number) => curvePose(u, options, { size: s, position: t });
+            // Twist turns the Slides only: positions are those without it.
+            const untwisted = curvePose(o, { ...options, twist: 0 }, { size: s, position: t });
+            expect(distance(at(o), untwisted)).toBeLessThanOrEqual(EPS);
+            // ... and by `twist · offset`: measured from the untwisted columns around the tangent.
+            const column = (r: readonly number[], j: number) =>
+              [0, 1, 2].map((i) => r[3 * i + j] ?? 0);
+            const dot = (u: number[], v: number[]) =>
+              u.reduce((sum, x, i) => sum + x * (v[i] ?? 0), 0);
+            const [first, second] = p === "yz" ? [2, 0] : [1, 2];
+            const turned = column(at(o).rotation, first);
+            const angle = Math.atan2(
+              dot(turned, column(untwisted.rotation, second)),
+              dot(turned, column(untwisted.rotation, first)),
+            );
+            const expected = tw * o;
+            expect(
+              Math.abs(Math.atan2(Math.sin(angle - expected), Math.cos(angle - expected))),
+            ).toBeLessThan(1e-9);
+            const step = s + g;
+            // Offset 0 stays at the origin, facing the viewer.
+            const centre = at(0);
+            expect(Math.hypot(centre.x, centre.y, centre.z)).toBeLessThanOrEqual(EPS);
+            centre.rotation.forEach((value, i) => {
+              expect(Math.abs(value - (i % 4 === 0 ? 1 : 0))).toBeLessThanOrEqual(EPS);
+            });
+            // Along a densely sampled Curve, neighbours are one step apart.
+            let length = 0;
+            for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));
+            expect(Math.abs(length - step)).toBeLessThan(1e-3 * step);
+            // Every rotation is proper: orthonormal columns, determinant 1 (no mirror).
+            const [a0, a1, a2, b0, b1, b2, c0, c1, c2] = at(o).rotation;
+            const columns = [
+              [a0, b0, c0],
+              [a1, b1, c1],
+              [a2, b2, c2],
+            ];
+            for (const [i, u] of columns.entries()) {
+              for (const [j, v] of columns.entries()) {
+                const dot =
+                  (u[0] ?? 0) * (v[0] ?? 0) + (u[1] ?? 0) * (v[1] ?? 0) + (u[2] ?? 0) * (v[2] ?? 0);
+                expect(Math.abs(dot - (i === j ? 1 : 0))).toBeLessThan(1e-9);
+              }
             }
-          }
-          const det =
-            a0 * (b1 * c2 - b2 * c1) - a1 * (b0 * c2 - b2 * c0) + a2 * (b0 * c1 - b1 * c0);
-          expect(Math.abs(det - 1)).toBeLessThan(1e-9);
-          // The Curve's direction at the Slide is the Slide's own axis along it.
-          const [before, here, after] = [at(o - 0.01), at(o), at(o + 0.01)];
-          const j = p === "yz" ? 1 : 0;
-          const direction = [after.x - before.x, after.y - before.y, after.z - before.z];
-          direction.forEach((d, i) => {
-            const axis = here.rotation[3 * i + j] ?? Number.NaN;
-            expect(Math.abs(d / (0.02 * step) - axis)).toBeLessThan(1e-3);
-          });
-        }),
+            const det =
+              a0 * (b1 * c2 - b2 * c1) - a1 * (b0 * c2 - b2 * c0) + a2 * (b0 * c1 - b1 * c0);
+            expect(Math.abs(det - 1)).toBeLessThan(1e-9);
+            // The Curve's direction at the Slide is the Slide's own axis along it.
+            const [before, here, after] = [at(o - 0.01), at(o), at(o + 0.01)];
+            const j = p === "yz" ? 1 : 0;
+            const direction = [after.x - before.x, after.y - before.y, after.z - before.z];
+            direction.forEach((d, i) => {
+              const axis = here.rotation[3 * i + j] ?? Number.NaN;
+              expect(Math.abs(d / (0.02 * step) - axis)).toBeLessThan(1e-3);
+            });
+          },
+        ),
         { numRuns: 300 },
       );
     });
