@@ -74,7 +74,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08, ARCHITECTURE "The math", PRODUCT invariants, CONVENTIONS §5.
 
 ### C1.2 · Playground
-- **Status:** waiting (C1.1)
+- **Status:** done (2026-11-23)
 - **Goal:** the owner can see the Curve and bend it by hand in the browser.
 - **Depends on:** C1.1.
 - **In scope:** Vite (dev), `npm run dev`; `playground/index.html` and `playground/main.ts` drawing
