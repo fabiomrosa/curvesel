@@ -68,8 +68,8 @@ Each package is created by the first slice that needs it.
   a threshold, Snap takes over in the same step: a critically damped spring to `target`,
   `round(position)` clamped (or free when looping), also in closed form. Snap never overshoots:
   the speed handed over is at most the rest threshold and decaying, so only a target already within
-  the rest distance could be passed, and the step that would pass it rests on it instead. `goTo` keeps
-  only the velocity towards its target, capped at `ω` times the distance, which a critically
+  the rest distance could be passed, and the step that would pass it rests on it instead. `goTo`
+  keeps only the velocity towards its target, capped at `ω` times the distance, which a critically
   damped spring never passes.
 
 ## Request flow
