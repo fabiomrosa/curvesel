@@ -29,6 +29,15 @@ describe("createTrack", () => {
     );
     expect(() => createTrack({ count: 3, rubberBand: 1.5 })).toThrow("curvesel: rubberBand");
     expect(() => createTrack({ count: 3, rubberBand: Number.NaN })).toThrow("curvesel: rubberBand");
+    expect(createTrack({ count: 3, rubberBand: 1 }).rubberBand).toBeCloseTo(1, 12);
+  });
+});
+
+describe("dragStart", () => {
+  it("puts the Track in the drag phase where it is", () => {
+    const track = dragStart(createTrack({ count: 3 }));
+    expect(track.phase).toBe("drag");
+    expect(track.position).toBeCloseTo(0, 12);
   });
 });
 

@@ -43,7 +43,7 @@ export function dragMove(state: TrackState, delta: number): TrackState {
     throw new Error(`curvesel: delta must be a finite number, got ${delta}`);
   }
   const pointer = toPointer(state, state.position) + delta;
-  return { ...state, position: fromPointer(state, pointer), phase: "drag" };
+  return { ...state, position: fromPointer(state, pointer) };
 }
 
 /** Where the pointer is for a Position: past an end, the excess is stretched back by the band. */
