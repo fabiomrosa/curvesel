@@ -516,7 +516,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10, ARCHITECTURE "Request flow".
 
 ### C2.9 · Click guard
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a tap reaches the card; a drag does not click it.
 - **Depends on:** C2.8, DEC-10.
 - **In scope:** `dragThreshold` (px, a default from Pointer Events practice); past it, the next
@@ -531,7 +531,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10.
 
 ### C2.10 · Wheel and keyboard
-- **Status:** waiting (C2.9)
+- **Status:** next
 - **Goal:** a trackpad or wheel scrolls the Carousel, and arrow keys step it.
 - **Depends on:** C2.9, DEC-10, DEC-14.
 - **In scope:** `wheel` along the drag axis moves the Track like a Drag and Snaps after a short

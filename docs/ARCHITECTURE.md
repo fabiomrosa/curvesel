@@ -82,7 +82,7 @@ and the size are read on mount, resize and child changes only; a frame computes 
 ## Request flow
 One gesture through the engine (M2):
 1. `pointerdown` on the Stage: record the pointer; Track goes to `drag`.
-2. `pointermove`: capture the pointer on the first move (GOTCHAS), store the delta; nothing else.
+2. `pointermove`: capture the pointer past the drag threshold (GOTCHAS), store the delta.
    The frame turns px into Positions along the Layout's tangent on screen at the centre.
 3. Each `requestAnimationFrame`: apply the stored delta, `step(state, dt)`, compute each visible
    Slide's Offset and Pose, write `transform`, `z-index`, `visibility` and the CSS variables, all

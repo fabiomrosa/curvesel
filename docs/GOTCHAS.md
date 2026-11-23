@@ -38,7 +38,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - Without `touch-action` set on the Stage, a touch drag scrolls the page and fires `pointercancel`.
 - `setPointerCapture` keeps `pointermove` coming when the pointer leaves the Stage; without it, a
   fast drag is lost. Captured on `pointerdown`, Chrome retargets the following `click` to the
-  Stage, so a tap on a Slide's button never reaches it: capture on the first move instead.
+  Stage, so a tap on a Slide's button never reaches it: capture past the drag threshold instead.
+  After a captured drag, Chrome sends the `click` to the Stage, not the Slide: a test of the click
+  guard listens on the page, or it passes with the guard off.
 - Reading layout (`getBoundingClientRect`, `offsetWidth`) right after a style write forces a
   synchronous layout; in the animation loop that costs more than all the math.
 - `perspective` belongs on the Stage (the Slides' parent); `transform-style: preserve-3d` is only

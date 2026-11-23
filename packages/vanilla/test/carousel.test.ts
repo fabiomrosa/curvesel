@@ -581,6 +581,9 @@ describe("options", () => {
     expect(() => createCarousel(stage(2), { size: 100, rubberBand: 2 })).toThrow(
       "curvesel: rubberBand",
     );
+    expect(() => createCarousel(stage(2), { size: 100, dragThreshold: -1 })).toThrow(
+      "curvesel: dragThreshold must be a finite number ≥ 0, got -1",
+    );
     expect(() => createCarousel(stage(2), { size: 100, perspective: 0 })).toThrow(
       "curvesel: perspective must be a finite number > 0, got 0",
     );
