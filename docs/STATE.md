@@ -7,20 +7,21 @@ Every slice's pull request updates it (SESSION §3).
 - The npm workspace builds, formats, lints, type-checks and tests with one command,
   `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
-- `curvePose(offset, { curvature, gap, plane, wave, visibleRange }, { size, position })`: the Pose
-  of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down the screen,
-  bending away) or `xy` (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a
-  closed cylinder (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`, `phase`,
-  `plane`) makes it undulate in its Plane (`z`) or across it (`y`, pitching the Slides), fixed
-  relative to the centre (`anchor: 'space'`) or travelling with the Slides (`'ribbon'`, the phase
-  shifted by `2π·position / wavelength`; the ribbon rocks as it moves, since the Active slide keeps
-  facing the viewer). `twist` turns each Slide by `twist · offset` around its tangent. Each Pose
-  says whether it is `visible` and its `zIndex` (nearer the viewer above; at equal depth, nearer the
-  centre above). Invalid options throw `curvesel:` errors.
+- `curvePose(offset, { curvature, gap, plane, wave, twist, tilt, visibleRange }, { size, position
+  })`: the Pose of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down
+  the screen, bending away) or `xy` (arc: in the screen, the centre below) Plane, from a flat ribbon
+  (0) to a closed cylinder (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`,
+  `phase`, `plane`) makes it undulate in its Plane (`z`) or across it (`y`, pitching the Slides),
+  fixed relative to the centre (`anchor: 'space'`) or travelling with the Slides (`'ribbon'`, the
+  phase shifted by `2π·position / wavelength`; the ribbon rocks as it moves, since the Active slide
+  keeps facing the viewer). `twist` turns each Slide by `twist · offset` around its tangent; `tilt`
+  leans the whole Curve around the view axis, the Slides staying upright. Each Pose says whether it
+  is `visible` and its `zIndex` (nearer the viewer above; at equal depth, nearer the centre above).
+  Invalid options throw `curvesel:` errors.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
-  sliders for count, Curvature, gap, size, the Wave with its plane and anchor, the Position (Slides
-  at `index − position`) and visible range (hidden Slides dashed, painted in `zIndex` order), and a
-  button that closes the ring; errors show on the page.
+  sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist, Tilt, the
+  Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted in
+  `zIndex` order), and a button that closes the ring; errors show on the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
@@ -56,4 +57,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.7:** the Wave across the Plane (yaw and pitch, one integration path); the
   property checks every rotation is proper.
 - **2026-11-23, C1.8:** Twist; the Wave property draws a Twist too.
-- **Next:** C1.9 (Tilt).
+- **2026-11-23, C1.9:** Tilt; the Wave property draws a Tilt too.
+- **Next:** C1.10 (Presets and custom Layouts), then the owner's check of the Curve.
