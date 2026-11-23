@@ -160,6 +160,21 @@ describe("curvePose invariants", () => {
             // Twist turns the Slides only: positions are those without it.
             const untwisted = curvePose(o, { ...options, twist: 0 }, { size: s, position: t });
             expect(distance(at(o), untwisted)).toBeLessThanOrEqual(EPS);
+            // ... and by `twist · offset`: measured from the untwisted columns around the tangent.
+            const column = (r: readonly number[], j: number) =>
+              [0, 1, 2].map((i) => r[3 * i + j] ?? 0);
+            const dot = (u: number[], v: number[]) =>
+              u.reduce((sum, x, i) => sum + x * (v[i] ?? 0), 0);
+            const [first, second] = p === "yz" ? [2, 0] : [1, 2];
+            const turned = column(at(o).rotation, first);
+            const angle = Math.atan2(
+              dot(turned, column(untwisted.rotation, second)),
+              dot(turned, column(untwisted.rotation, first)),
+            );
+            const expected = tw * o;
+            expect(
+              Math.abs(Math.atan2(Math.sin(angle - expected), Math.cos(angle - expected))),
+            ).toBeLessThan(1e-9);
             const step = s + g;
             // Offset 0 stays at the origin, facing the viewer.
             const centre = at(0);

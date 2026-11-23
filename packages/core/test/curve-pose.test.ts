@@ -310,6 +310,13 @@ describe("curvePose", () => {
       expectRotation(curvePose(2, options, context).rotation, [0, s, c, 0, c, -s, -1, 0, 0]);
     });
 
+    it("turns the other way on the other side of the centre", () => {
+      // Offset −2 of a flat ribbon: rotateX(−0.6).
+      const options = { curvature: 0, gap: 20, twist: 0.3 };
+      const [c, s] = [Math.cos(0.6), Math.sin(0.6)];
+      expectRotation(curvePose(-2, options, context).rotation, [1, 0, 0, 0, c, s, 0, -s, c]);
+    });
+
     it("turns the wheel's Slides around their tangent, the Slide's own y axis", () => {
       const options = { curvature: 0, gap: 20, plane: "yz" as const, twist: 0.3 };
       const [c, s] = [Math.cos(0.6), Math.sin(0.6)];
