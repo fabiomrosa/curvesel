@@ -508,7 +508,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Out of scope:** the click guard (C2.9), wheel and keys (C2.10).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
-  1. A drag in Chrome moves the cards with the pointer, and a release Snaps (e2e).
+  1. A drag moves the cards with the pointer, and a release Snaps (unit; its Chrome e2e moved to
+     C2.9 for size).
   2. Past an end the Rubber band resists; a held-still release Snaps where it is.
   3. The Drag, Inertia and Snap feel right in the demo (seen in the browser, by the owner).
 - **Files:** ~6: `src/carousel.ts` (or `src/drag.ts`), its test, `e2e/drag.e2e.ts`, PLAN, STATE.
@@ -520,7 +521,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Depends on:** C2.8, DEC-10.
 - **In scope:** `dragThreshold` (px, a default from Pointer Events practice); past it, the next
   `click` is stopped in the capture phase on the Stage, and the guard is removed after that click
-  or at the next `pointerdown`.
+  or at the next `pointerdown`. Also C2.8's Drag e2e in the demo (follow, Rubber band).
 - **Out of scope:** wheel and keys.
 - **Contract:** none. **Public API:** additive, the `dragThreshold` option.
 - **Acceptance criteria:**
