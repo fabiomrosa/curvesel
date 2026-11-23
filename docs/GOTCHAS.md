@@ -10,6 +10,8 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - TypeScript 7 is the native (Go) compiler; the binary is still `tsc`. Source imports use the `.ts`
   extension (`rewriteRelativeImportExtensions` turns them into `.js` in `dist/`).
 - Vitest's default include also matches `*.spec.ts`: name Playwright files `e2e/*.e2e.ts`.
+- The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
+  a command's exit code, run it without a pipe and read `$?`.
 
 ## DOM and motion
 - Without `touch-action` set on the Stage, a touch drag scrolls the page and fires `pointercancel`.
