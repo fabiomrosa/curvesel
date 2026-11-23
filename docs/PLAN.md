@@ -339,5 +339,6 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 
 ## Later
 Ideas not planned yet; a milestone's planning picks from here.
-- None yet.
+- For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
+  height in the `yz` Plane and the width otherwise (C1.3 review).
 

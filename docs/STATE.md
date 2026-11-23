@@ -9,10 +9,11 @@ Every slice's pull request updates it (SESSION §3).
   checks). Coverage below 80% of lines fails it.
 - `curvePose(offset, { curvature, gap, plane }, { size })`: the Pose of a Slide on a Curve of
   constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
-  (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder (`2π / N`), exact
-  through `κ = 0`. Invalid options throw `curvesel:` errors.
+  (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder
+  (`2π / N`), exact through `κ = 0`. Invalid options throw `curvesel:` errors.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
-  sliders for count, Curvature, gap and size, and a button that closes the ring; errors show on the page.
+  sliders for count, Curvature, gap and size, and a button that closes the ring; errors show on
+  the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
