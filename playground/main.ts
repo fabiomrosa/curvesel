@@ -62,7 +62,8 @@ function draw(
       p[a] + along[a] * half,
       p[b] + along[b] * half,
     ] as const;
-    shapes.push(line(...ends, offset === 0 ? "slide centre" : "slide"));
+    const kind = offset === 0 ? "slide centre" : pose.visible ? "slide" : "slide hidden";
+    shapes.push(line(...ends, kind));
     shapes.push(
       line(p[a], p[b], p[a] + face[a] * half * 0.4, p[b] + face[b] * half * 0.4, "facing"),
     );
@@ -85,13 +86,20 @@ function render(): void {
     output.textContent = input(output.htmlFor.value).value;
   }
   const plane = byId<HTMLSelectElement>("plane").value as Plane;
-  const options = { curvature: value("curvature"), gap: value("gap"), plane };
+  const options = {
+    curvature: value("curvature"),
+    gap: value("gap"),
+    plane,
+    visibleRange: value("visible-range"),
+  };
   const context = { size: value("size") };
   try {
     const poses = offsets(value("count")).map((offset) => ({
       offset,
       pose: curvePose(offset, options, context),
     }));
+    // Painted back to front, as the browser stacks them by z-index.
+    poses.sort((a, b) => a.pose.zIndex - b.pose.zIndex);
     for (const view of views) draw(view, poses, context.size, plane);
     error.textContent = "";
   } catch (thrown) {

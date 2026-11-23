@@ -109,7 +109,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08, PRODUCT "Plane".
 
 ### C1.4 · Visible range and depth order
-- **Status:** waiting (C1.3)
+- **Status:** done (2026-11-23)
 - **Goal:** every Pose says whether its Slide is shown and how it stacks.
 - **Depends on:** C1.3.
 - **In scope:** `visibleRange` (in Offsets, everything visible by default): `visible` is

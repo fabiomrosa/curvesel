@@ -110,4 +110,28 @@ describe("curvePose", () => {
       `curvesel: plane must be "xz", "yz" or "xy", got "zz"`,
     );
   });
+
+  describe("visible range", () => {
+    const options = { curvature: 0.3, gap: 20, visibleRange: 2 };
+
+    it("shows every Slide when no visible range is set", () => {
+      expect(curvePose(40, { curvature: 0.3, gap: 20 }, context).visible).toBe(true);
+    });
+
+    it("shows a Slide within the visible range and hides it beyond", () => {
+      expect(curvePose(2, options, context).visible).toBe(true);
+      expect(curvePose(-2, options, context).visible).toBe(true);
+      expect(curvePose(2.01, options, context).visible).toBe(false);
+      expect(curvePose(-2.5, options, context).visible).toBe(false);
+    });
+
+    it("throws a message naming the visible range when it is negative", () => {
+      expect(() => curvePose(0, { ...options, visibleRange: -1 }, context)).toThrow(
+        "curvesel: visibleRange must be a number ≥ 0, got -1",
+      );
+      expect(() => curvePose(0, { ...options, visibleRange: Number.NaN }, context)).toThrow(
+        "curvesel: visibleRange",
+      );
+    });
+  });
 });
