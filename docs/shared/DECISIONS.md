@@ -142,6 +142,36 @@ it on `destroy()`; a `tabindex` the user set is left as it is.
 - **Consequences:** the Stage joins the tab order; a user who wants otherwise sets their own
   `tabindex`. The focus ring is the user's CSS.
 
+## DEC-15 · ARIA on the Stage and the Slides; announcements through the user's element — Accepted (owner, 2026-11-23)
+Fills in DEC-07's "ARIA attributes (M3)" and extends its list to the Slides. The library writes, and
+restores on `destroy()`, unless the user set them: on the Stage `role="region"`,
+`aria-roledescription="carousel"` and `aria-label` (option `label`); on each Slide `role="group"`,
+`aria-roledescription="slide"` and `aria-label` (option `slideLabel`, "3 of 10" by default). Option
+`announcer` takes the user's own live-region element; the library writes only its text, the
+Active slide's label, when the Track comes to rest on a new one. Keyboard focus entering a Slide
+sends the Track to it. Culled Slides need no `inert`: `visibility: hidden` already takes them out of
+the focus order and the accessibility tree.
+- **Why:** the WAI-ARIA carousel pattern, within DEC-07: the library still creates no element.
+- **Consequences:** without an `announcer`, nothing is announced; the default labels are English and
+  overridable (AGENTS "Language").
+
+## DEC-16 · Reduced motion lands at once — Accepted (owner, 2026-11-23)
+While `prefers-reduced-motion: reduce` matches (followed live), or the option `reducedMotion` is
+true, the Track lands on its target at once after a release, `goTo`, `next`, `previous`, a key or a
+wheel gesture: no Inertia, no spring. A Drag still follows the pointer. The option overrides the
+media query both ways.
+- **Why:** motion the user did not make is what reduced motion asks to avoid; a Drag is the user's.
+- **Consequences:** `change` fires once for such a jump; a user who wants a short animation sets the
+  option to false.
+
+## DEC-17 · Released from CI on a tag; the demo on GitHub Pages — Accepted (owner, 2026-11-23)
+A `v*` tag runs a workflow that verifies, checks the tag against the versions and publishes every
+package with npm provenance; versions move in lockstep, starting at 1.0.0. A push to `main` deploys
+the demo to GitHub Pages.
+- **Why:** a publish no one can run by hand differently; provenance ties each package to its commit.
+- **Consequences:** the owner sets up npm publishing for CI (P3) and Pages (P4) once; releasing is
+  pushing a tag.
+
 ---
 
 ## Proposed (waiting for the owner)
