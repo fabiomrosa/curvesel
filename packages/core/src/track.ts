@@ -110,14 +110,14 @@ function coast(state: TrackState, time: number): TrackState {
     const toRest = Math.log(Math.abs(velocity) / REST_SPEED) / decay;
     const kept = edge === undefined ? 0 : 1 - (decay * (edge - position)) / velocity;
     const toEdge = kept > 0 ? -Math.log(kept) / decay : Number.POSITIVE_INFINITY;
-    const piece = Math.max(0, Math.min(left, toRest, toEdge));
-    const factor = Math.exp(-decay * piece);
+    const span = Math.max(0, Math.min(left, toRest, toEdge));
+    const factor = Math.exp(-decay * span);
     position += (velocity * (1 - factor)) / decay;
     velocity *= factor;
-    left -= piece;
-    if (piece === Math.max(0, toRest)) return spring(snapFrom(state, position, velocity), left);
+    left -= span;
+    if (span === Math.max(0, toRest)) return spring(snapFrom(state, position, velocity), left);
     // Landing exactly on the end moves `nextEdge` on to the next one: each piece makes progress.
-    if (piece === toEdge) position = edge as number;
+    if (span === toEdge) position = edge as number;
   }
   return { ...state, position, velocity };
 }

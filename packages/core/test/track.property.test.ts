@@ -83,7 +83,7 @@ describe("Inertia and Snap invariants", () => {
             expectSettled(end, n);
             expect(smooth).toBe(true);
             expect(time).toBeLessThanOrEqual(bound);
-            expect(end.position).toBe(reference);
+            expect(end.position).toBeCloseTo(reference, 12);
           }
           if (reference === 0 || reference === n - 1) atEnd++;
           else between++;

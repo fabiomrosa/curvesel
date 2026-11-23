@@ -66,9 +66,10 @@ Each package is created by the first slice that needs it.
 - Inertia decays velocity by friction per second, `rubberBand` times faster past an end, solved in
   closed form piece by piece between the ends (any split of `dt` ends at the same Position); below
   a threshold, Snap takes over in the same step: a critically damped spring to `target`,
-  `round(position)` clamped (or free when looping), also in closed form. It never overshoots: the
-  speed handed over is below the rest threshold, so only a target already within the rest distance
-  could be passed, and the step that would pass it rests on it instead.
+  `round(position)` clamped (or free when looping), also in closed form. Snap never overshoots:
+  the speed handed over is at most the rest threshold and decaying, so only a target already within
+  the rest distance could be passed, and the step that would pass it rests on it instead. A faster
+  start (a `goTo` during a fling) can pass the target.
 
 ## Request flow
 One gesture through the engine (M2):

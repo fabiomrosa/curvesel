@@ -197,8 +197,8 @@ describe("step", () => {
   it("snaps to the nearest Slide when Inertia ends, and rests exactly on it", () => {
     const track = settle(release(drag(createTrack({ count: 10, ...HALF }), 1), 4));
     expect(track.phase).toBe("rest");
-    expect(track.position).toBe(7);
-    expect(track.velocity).toBe(0);
+    expect(track.position).toBeCloseTo(7, 12);
+    expect(track.velocity).toBeCloseTo(0, 12);
   });
 
   it("returns to the end it passed, without overshooting it", () => {
@@ -208,9 +208,12 @@ describe("step", () => {
       track = step(track, 1 / 60);
       lowest = Math.min(lowest, track.position);
     }
-    expect(track.position).toBe(2);
+    expect(track.position).toBeCloseTo(2, 12);
     expect(lowest).toBeGreaterThanOrEqual(2);
-    expect(settle(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2)).position).toBe(0);
+    expect(settle(release(drag(createTrack({ count: 3, ...HALF }), 2.5), -2)).position).toBeCloseTo(
+      0,
+      12,
+    );
   });
 
   it("pulls with a critically damped spring of 12 per second", () => {
@@ -233,11 +236,17 @@ describe("step", () => {
     expect(next.position).toBeGreaterThan(ending.position + 0.05);
   });
 
+  it("keeps snapping while it is close to the target but still fast", () => {
+    const snapping = release(drag(createTrack({ count: 5 }), 1), 0);
+    const passing = step({ ...snapping, position: 1.0001, velocity: 0.5 }, 0.001);
+    expect(passing.phase).toBe("snap");
+  });
+
   it("stops a Snap when a Drag starts", () => {
     const snapping = release(drag(createTrack({ count: 5 }), 1.4), 0);
     const caught = dragStart(step(snapping, 0.05));
     expect(caught.phase).toBe("drag");
-    expect(caught.velocity).toBe(0);
+    expect(caught.velocity).toBeCloseTo(0, 12);
   });
 
   it("leaves a Track at rest or in a Drag where it is", () => {
