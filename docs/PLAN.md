@@ -361,33 +361,35 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-12, GOTCHAS "Toolchain".
 
 ### C2.1 · Mount and destroy
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a Stage's children sit on the Curve, and `destroy()` leaves them exactly as they were.
-- **Depends on:** C2.0, DEC-07, DEC-08, DEC-12.
-- **In scope:** `packages/vanilla` (`@curvesel/vanilla`, depending on `core`) and `happy-dom`.
-  `createCarousel(stage, options)` with `layout` (a Preset name, Curve options or a Layout
-  function; `cylinder` by default), `size`, `perspective`, and the Track options; it writes DEC-07's
-  properties for every Slide at Position 0: `transform` (the Pose's `matrix3d`, centred on the Stage
-  by the transform alone, since DEC-07 writes no `left` or `top`), `z-index`, `visibility`,
-  `--cs-offset`, `--cs-abs-offset`, `data-cs-active`, `data-cs-visible`. The size is measured once:
-  the largest Slide along the Curve (its height in `yz`, its width otherwise); `size` overrides it.
-  `destroy()` restores every property and attribute it wrote.
+- **Depends on:** C2.0, DEC-07, DEC-08.
+- **In scope:** `createCarousel(stage, options)` with `layout` (a Preset name, Curve options or a
+  Layout function; `cylinder` by default), `size`, `perspective` and `loop`; it writes DEC-07's
+  properties for every Slide at Position 0: `transform` (the Pose's `matrix3d`, centred on the
+  Stage by the transform alone, from where the absolute Slide starts, since DEC-07 writes no `left`
+  or `top`), `z-index`, `visibility`, `--cs-offset`, `--cs-abs-offset`, `data-cs-active`,
+  `data-cs-visible`. Measured once, after the Slides are absolute: the Stage, and the largest Slide
+  along the Curve (its height in `yz`, its width otherwise); `size` overrides it. `destroy()`
+  restores every property and attribute it wrote.
 - **Out of scope:** resizing (C2.2), added or removed children (C2.3), motion (C2.4), input.
-- **Contract:** none. **Public API:** new package: `createCarousel`, `CarouselOptions`, `Carousel`
+- **Contract:** none. **Public API:** additive, `createCarousel`, `CarouselOptions`, `Carousel`
   (`destroy`).
 - **Acceptance criteria:**
   1. Each Slide carries the `matrix3d`, `z-index`, `visibility`, variables and attributes of its
-     Pose at Position 0 (checked against `curvePose`).
+     Pose at Position 0 (checked against `curvePose`), centred whatever the Stage's padding,
+     alignment or direction.
   2. `destroy()` restores every inline property and attribute to its earlier value (absent stays
      absent); the Slides are the same nodes, in the same order, throughout.
-  3. The size is the largest Slide along the Curve, and `size` overrides it.
-  4. A missing Stage, an unknown Preset or an invalid option throws a `curvesel:` message naming it.
-- **Files:** ~10: `packages/vanilla/{package.json,tsconfig.json,src/index.ts,src/carousel.ts,
-  test/carousel.test.ts}`, root `package.json`, the lockfile, ARCHITECTURE, PLAN, STATE.
+  3. The size is the largest absolute Slide along the Curve, and `size` overrides it.
+  4. A missing Stage, an unknown Preset, an invalid option or Slides that measure 0 throw a
+     `curvesel:` message naming it, and leave nothing written.
+- **Files:** ~7: `src/carousel.ts`, `src/index.ts`, `test/carousel.test.ts`, the smoke test
+  (removed), ARCHITECTURE, GOTCHAS, PLAN, STATE.
 - **References:** DEC-07, ARCHITECTURE "Modules" and "Request flow".
 
 ### C2.2 · Follow the size
-- **Status:** waiting (C2.1)
+- **Status:** next
 - **Goal:** the Curve keeps fitting when the Stage or a Slide changes size.
 - **Depends on:** C2.1.
 - **In scope:** one `ResizeObserver` over the Stage and every Slide; a change re-measures and lays
@@ -425,7 +427,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Goal:** code moves the Carousel, and it animates only while it moves.
 - **Depends on:** C2.3, DEC-09.
 - **In scope:** one `requestAnimationFrame` loop over the Track (`dt` from the frame timestamps,
-  clamped at 0, GOTCHAS); `goTo(index)`, `next()`, `previous()` and a read-only `position`; per
+  clamped at 0, GOTCHAS), with the `friction` and `rubberBand` options; `goTo(index)`, `next()`,
+  `previous()` and a read-only `position`; per
   frame, only DEC-07's properties are written, all together; a Slide beyond the Visible range is
   hidden and not written again until it comes back.
 - **Out of scope:** input (C2.8, C2.10), events (C2.5).
