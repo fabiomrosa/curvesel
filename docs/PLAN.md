@@ -422,7 +422,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07, PRODUCT invariants.
 
 ### C2.4 · Animation loop and goTo
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** code moves the Carousel, and it animates only while it moves.
 - **Depends on:** C2.3, DEC-09.
 - **In scope:** one `requestAnimationFrame` loop over the Track (`dt` from the frame timestamps,
@@ -442,7 +442,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, ARCHITECTURE "Request flow".
 
 ### C2.5 · Events
-- **Status:** waiting (C2.4)
+- **Status:** next
 - **Goal:** the user's code hears where the Carousel is.
 - **Depends on:** C2.4.
 - **In scope:** `carousel.on('change' | 'select', handler)`, typed per event, returning an
@@ -502,7 +502,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
   step on screen, along the Curve's direction on screen (vertical in `yz`, turned by the Tilt);
   `touch-action` for that axis; release at the velocity of the last 100 ms (none if the pointer was
   held still); one pointer at a time; `pointercancel` releases. The owner checks the Drag in the
-  demo.
+  demo. Test then the clamp on removed Slides during Inertia (C2.4 review: it uses the Position
+  unless the Track Snaps).
 - **Out of scope:** the click guard (C2.9), wheel and keys (C2.10).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**

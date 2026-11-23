@@ -3,6 +3,7 @@ import {
   createTrack,
   dragMove,
   dragStart,
+  goBy,
   goTo,
   release,
   step,
@@ -358,5 +359,33 @@ describe("goTo", () => {
     );
     expect(() => goTo(createTrack({ count: 3 }), -1)).toThrow("curvesel: index");
     expect(() => goTo(createTrack({ count: 3, loop: true }), 1.5)).toThrow("curvesel: index");
+  });
+});
+
+describe("goBy", () => {
+  it("steps whole Slides on from the one the Track is heading to, when looping", () => {
+    const resting = release(drag(createTrack({ count: 3, loop: true }), 0), 0);
+    expect(goBy(goBy(resting, 1), 1).target).toBe(2);
+    expect(goBy(createTrack({ count: 2, loop: true }), 1).target).toBe(1);
+    expect(goBy(createTrack({ count: 2, loop: true }), -1).target).toBe(-1);
+  });
+
+  it("stops at the ends when not looping", () => {
+    expect(goBy(createTrack({ count: 3 }), -1).target).toBe(0);
+    expect(goBy(goBy(goBy(createTrack({ count: 3 }), 1), 1), 1).target).toBe(2);
+  });
+
+  it("keeps the velocity towards the target, like goTo, and is ignored during a Drag", () => {
+    const moving = release(drag(createTrack({ count: 9 }), 3), 5);
+    expect(goBy(moving, 3).velocity).toBeCloseTo(5, 12);
+    expect(goBy(moving, -1).velocity).toBeCloseTo(0, 12);
+    const dragging = drag(createTrack({ count: 9 }), 2);
+    expect(goBy(dragging, 1)).toEqual(dragging);
+  });
+
+  it("throws a message naming the delta when it is not a whole number", () => {
+    expect(() => goBy(createTrack({ count: 3 }), 0.5)).toThrow(
+      "curvesel: delta must be a whole number, got 0.5",
+    );
   });
 });

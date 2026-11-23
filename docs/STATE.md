@@ -33,13 +33,18 @@ Every slice's pull request updates it (SESSION §3).
   Position. `slideOffset(index, position, count, loop)` is `index − position`, wrapped into
   `[−count/2, count/2)` when looping. `goTo(state, index)` starts Snap's spring towards that Slide
   (the nearest Position showing it when looping), keeping the velocity towards it up to what never
-  passes it; it is ignored during a Drag.
+  passes it; it is ignored during a Drag. `goBy(state, delta)` steps whole Slides on from the one
+  it is on or heading to (past the ends when looping, so repeated steps keep their direction).
 - `createCarousel(stage, { layout, size, perspective, loop })` (`@curvesel/vanilla`) lays the
   Stage's children on the Curve at Position 0 (size: the largest Slide along the Curve, or given),
   writing only DEC-07's properties, and lays them out again when the Stage or a Slide resizes (a
   `ResizeObserver`; while they measure 0 the last layout stays), and follows added and removed
   children (a `MutationObserver`; a removed child gets back what was written); `destroy()` restores
-  them exactly.
+  them exactly. `goTo(index)`, `next()`, `previous()` and `position` move it with one
+  `requestAnimationFrame` loop that runs only in Inertia or Snap (`friction`, `rubberBand`
+  options); geometry is measured on mount, resize and child changes, a frame only writes, and a
+  culled Slide is written once until it comes back. Removing the Slides past the Position Snaps it
+  back to the new last one.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -55,7 +60,7 @@ Every slice's pull request updates it (SESSION §3).
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
-  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `step`, `TrackState`,
+  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `goBy`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
 - `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
@@ -111,4 +116,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.1:** `packages/vanilla` with `createCarousel` and `destroy()`.
 - **2026-11-23, C2.2:** the Carousel follows the size of the Stage and the Slides.
 - **2026-11-23, C2.3:** the Carousel follows the Stage's children; an empty Stage mounts.
-- **Next:** C2.4 (animation loop and `goTo`).
+- **2026-11-23, C2.4:** the animation loop, `goTo`, `next`, `previous`, `position` and culling.
+- **Next:** C2.5 (events).
