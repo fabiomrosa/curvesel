@@ -13,8 +13,9 @@
       output { font: 0.85rem ui-monospace, monospace; }
       button { font: inherit; padding: 0.2rem 0.5rem; }
       .error { color: #b42318; min-height: 1.4em; }
+      .views { display: flex; flex-wrap: wrap; gap: 1rem; }
       figure { margin: 1rem 0 0; }
-      svg { width: 32rem; max-width: 100%; aspect-ratio: 1; background: #fff; border: 1px solid #cbd2d9; border-radius: 8px; }
+      svg { width: 22rem; max-width: 100%; aspect-ratio: 1; background: #fff; border: 1px solid #cbd2d9; border-radius: 8px; }
       .slide { stroke: #3e4c59; stroke-width: 3; stroke-linecap: round; }
       .slide.centre { stroke: #c2410c; }
       .facing { stroke: #9aa5b1; stroke-width: 1.5; }
@@ -23,6 +24,13 @@
   <body>
     <h1>curvesel playground <small>@curvesel/core, by hand</small></h1>
     <form id="options">
+      <label for="plane">Plane</label>
+      <select id="plane">
+        <option value="xz">xz (in depth)</option>
+        <option value="yz">yz (wheel)</option>
+        <option value="xy">xy (arc, in the screen)</option>
+      </select>
+      <span></span>
       <label for="count">Slides</label>
       <input id="count" type="range" min="1" max="24" step="1" value="12" />
       <output for="count"></output>
@@ -39,10 +47,21 @@
       <button id="close-ring" type="button">Curvature = 2π / N</button>
     </form>
     <p class="error" id="error"></p>
-    <figure>
-      <svg id="top" role="img" aria-label="Top view of the Curve"></svg>
-      <figcaption>Top view (x right, z towards the viewer at the bottom). Orange: Offset 0. Ticks: where each Slide faces.</figcaption>
-    </figure>
+    <div class="views">
+      <figure>
+        <svg id="top" role="img" aria-label="Top view of the Curve"></svg>
+        <figcaption>Top view: x right, z towards the viewer at the bottom.</figcaption>
+      </figure>
+      <figure>
+        <svg id="front" role="img" aria-label="Front view of the Curve"></svg>
+        <figcaption>Front view, as the viewer sees it: x right, y down.</figcaption>
+      </figure>
+      <figure>
+        <svg id="side" role="img" aria-label="Side view of the Curve"></svg>
+        <figcaption>Side view: z towards the viewer to the right, y down.</figcaption>
+      </figure>
+    </div>
+    <p><small>Each Slide is drawn along the Curve at its size. Orange: Offset 0. Ticks: where each Slide faces.</small></p>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

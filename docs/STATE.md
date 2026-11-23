@@ -7,15 +7,17 @@ Every slice's pull request updates it (SESSION §3).
 - The npm workspace builds, formats, lints, type-checks and tests with one command,
   `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
-- `curvePose(offset, { curvature, gap }, { size })`: the Pose of a Slide on a Curve of constant
-  Curvature in the `xz` Plane, from a flat ribbon (0) to a closed cylinder (`2π / N`), exact
-  through `κ = 0`. Invalid options throw `curvesel:` errors.
-- The playground (`npm run dev`): a top view of N Slides with sliders for count, Curvature, gap
-  and size, and a button that closes the ring; errors show on the page.
+- `curvePose(offset, { curvature, gap, plane }, { size })`: the Pose of a Slide on a Curve of
+  constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
+  (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder
+  (`2π / N`), exact through `κ = 0`. Invalid options throw `curvesel:` errors.
+- The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
+  sliders for count, Curvature, gap and size, and a button that closes the ring; errors show on
+  the page.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
-  `LayoutContext`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
+  `LayoutContext`, `Plane`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
@@ -38,4 +40,5 @@ None.
   independent formula of the circle).
 - **2026-11-23, C1.2:** the playground, Vite with no config file, importing `core` from source.
   Checked in Chrome with a scratch Playwright script (flat, half bend, closed ring, error).
-- **Next:** C1.3 (Planes).
+- **2026-11-23, C1.3:** the three Planes; the property tests run over each.
+- **Next:** C1.4 (visible range and depth order).
