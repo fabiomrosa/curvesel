@@ -14,7 +14,7 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
   a command's exit code, run it without a pipe and read `$?`.
 
 ## Property tests
-- `fc.double({ min, max })` favours values near 0 and the bounds: over `±2π`, fewer than 5% of
+- `fc.double({ min, max })` favours values near 0 and the bounds: over `±2π`, under 10% of
   draws exceed 1. Map `fc.integer` for an even spread (`n / 1000`).
 - `fc.double` also draws denormals (`5e-324`): a reference formula must divide before it multiplies
   (`L · (sin(u) / u)`), or `L · sin(u)` underflows to 0.

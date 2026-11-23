@@ -54,8 +54,9 @@ describe("curvePose invariants", () => {
         const x = u === 0 ? length : length * (Math.sin(u) / u);
         const z = u === 0 ? 0 : (-2 * length * Math.sin(u / 2) ** 2) / u;
         const pose = curvePose(o, { curvature: k, gap: g }, { size: s });
-        expect(Math.abs(pose.x - x)).toBeLessThan(EPS * (s + g) * 20);
-        expect(Math.abs(pose.z - z)).toBeLessThan(EPS * (s + g) * 20);
+        // Relative to the length, tight enough to catch a wrong series coefficient.
+        expect(Math.abs(pose.x - x)).toBeLessThanOrEqual(1e-11 * Math.abs(length));
+        expect(Math.abs(pose.z - z)).toBeLessThanOrEqual(1e-11 * Math.abs(length));
       }),
       { numRuns: 500 },
     );

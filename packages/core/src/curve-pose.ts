@@ -14,7 +14,7 @@ export interface LayoutContext {
   readonly size: number;
 }
 
-/** Below this turn (radians), `sin(u)/u` and `(cos(u) − 1)/u` use their series, error under 1e-24. */
+/** Below this turn (radians), `sin(u)/u` and `(cos(u) − 1)/u` use their series, error under 1e-22. */
 const SERIES_LIMIT = 1e-4;
 
 /**
