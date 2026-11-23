@@ -83,4 +83,49 @@ describe("curvePose invariants", () => {
       { numRuns: 500 },
     );
   });
+
+  it("stacks the Slide nearer the viewer above, and at equal depth the one nearer the centre", () => {
+    let deeper = 0;
+    let level = 0;
+    const position = fc.double({ min: -20, max: 20, noNaN: true });
+    // Small indexes make pairs less than one Offset apart in distance from the centre common.
+    const index = fc.oneof(fc.integer({ min: -2, max: 2 }), fc.integer({ min: -30, max: 30 }));
+    // Exact 0 and the xy Plane make Slides at equal depth common.
+    const k = fc.oneof(fc.constant(0), curvature);
+    fc.assert(
+      fc.property(k, plane, size, gap, position, index, index, (c, p, s, g, at, i, j) => {
+        fc.pre(i !== j);
+        const options: CurveOptions = { curvature: c, gap: g, plane: p };
+        const a = curvePose(i - at, options, { size: s });
+        const b = curvePose(j - at, options, { size: s });
+        for (const { zIndex } of [a, b]) {
+          expect(Number.isInteger(zIndex)).toBe(true);
+          expect(zIndex).toBeGreaterThanOrEqual(0);
+          expect(zIndex).toBeLessThanOrEqual(2 ** 31 - 1);
+        }
+        const step = s + g;
+        // Each pair both ways round: `front` is the one expected above.
+        for (const [front, back, nearer, farther] of [
+          [a, b, i - at, j - at],
+          [b, a, j - at, i - at],
+        ] as const) {
+          if (front.z > back.z + step / 100) {
+            expect(front.zIndex).toBeGreaterThan(back.zIndex);
+            deeper++;
+          } else if (
+            // The documented tolerance: 1/100 of an Offset, for Slides within 99 of the centre.
+            front.z === back.z &&
+            Math.abs(nearer) + 1 / 100 < Math.abs(farther) &&
+            Math.abs(farther) < 99
+          ) {
+            expect(front.zIndex).toBeGreaterThan(back.zIndex);
+            level++;
+          }
+        }
+      }),
+      { numRuns: 2000 },
+    );
+    expect(deeper).toBeGreaterThan(100);
+    expect(level).toBeGreaterThan(100);
+  });
 });

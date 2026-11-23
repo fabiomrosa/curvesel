@@ -17,4 +17,11 @@ export interface Pose {
   readonly y: number;
   readonly z: number;
   readonly rotation: Rotation;
+  /**
+   * The stacking order, a whole number ≥ 0: higher for the Slide nearer the viewer, and at equal
+   * depth for the one nearer the centre.
+   */
+  readonly zIndex: number;
+  /** Whether the Slide is within the visible range. */
+  readonly visible: boolean;
 }
