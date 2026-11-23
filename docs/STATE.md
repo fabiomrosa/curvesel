@@ -7,14 +7,15 @@ Every slice's pull request updates it (SESSION §3).
 - The npm workspace builds, formats, lints, type-checks and tests with one command,
   `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
-- `curvePose(offset, { curvature, gap, plane, visibleRange }, { size })`: the Pose of a Slide on a Curve of
+- `curvePose(offset, { curvature, gap, plane, wave, visibleRange }, { size })`: the Pose of a Slide on a Curve of
   constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
   (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder
-  (`2π / N`), exact through `κ = 0`. Each Pose says whether it is `visible` and its `zIndex`
+  (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`, `phase`) makes it undulate
+  in its Plane, fixed relative to the centre. Each Pose says whether it is `visible` and its `zIndex`
   (nearer the viewer above; at equal depth, nearer the centre above). Invalid options throw
   `curvesel:` errors.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Plane selector and
-  sliders for count, Curvature, gap, size and visible range (hidden Slides dashed, painted in
+  sliders for count, Curvature, gap, size, the Wave and visible range (hidden Slides dashed, painted in
   `zIndex` order), and a button that closes the ring; errors show on
   the page.
 
@@ -45,4 +46,5 @@ None.
   Checked in Chrome with a scratch Playwright script (flat, half bend, closed ring, error).
 - **2026-11-23, C1.3:** the three Planes; the property tests run over each.
 - **2026-11-23, C1.4:** `visible` and `zIndex` in every Pose, with a depth-order property.
-- **Next:** C1.5 (Wave in the Plane).
+- **2026-11-23, C1.5:** the Wave in the Curve's Plane (anchor `space`), default phase π/2.
+- **Next:** C1.6 (Wave anchored to the ribbon).

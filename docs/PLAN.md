@@ -128,11 +128,12 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07 (`z-index`, `visibility`), PRODUCT "Visible range".
 
 ### C1.5 · Wave in the Plane
-- **Status:** waiting (C1.4)
+- **Status:** done (2026-11-23)
 - **Goal:** a ribbon undulates in its own Plane, its Slides still equally spaced.
 - **Depends on:** C1.4.
 - **In scope:** `wave: { amplitude, wavelength, phase }` (radians per step, Slides, radians; phase
-  0 by default, which keeps the Curvature at the Active slide equal to `curvature`):
+  π/2 by default, which puts the Active slide on a crest, flat, and keeps a wavy ribbon level on
+  average; phase 0 made it lean, seen in the playground):
   `κ(s) = curvature + amplitude · sin(2π·s / wavelength + phase)`, wave fixed relative to the
   centre (anchor `space`); the heading has a closed form, the position a fixed number of Simpson
   steps per step. The playground gets the Wave's sliders.

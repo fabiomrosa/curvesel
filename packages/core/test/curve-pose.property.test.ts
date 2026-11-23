@@ -128,4 +128,37 @@ describe("curvePose invariants", () => {
     expect(deeper).toBeGreaterThan(100);
     expect(level).toBeGreaterThan(100);
   });
+
+  describe("with a Wave", () => {
+    // Curvatures up to π/2 and amplitudes up to 1 per step, wavelengths from 1 to 20 Slides.
+    const base = fc.integer({ min: -1571, max: 1571 }).map((n) => n / 1000);
+    const wave = fc.record({
+      amplitude: fc.integer({ min: -1000, max: 1000 }).map((n) => n / 1000),
+      wavelength: fc.integer({ min: 100, max: 2000 }).map((n) => n / 100),
+      phase: fc.integer({ min: -3142, max: 3142 }).map((n) => n / 1000),
+    });
+
+    it("keeps the Slides on the Curve, one step apart, turned with it", () => {
+      fc.assert(
+        fc.property(base, wave, plane, offset, size, gap, (c, w, p, o, s, g) => {
+          const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w };
+          const at = (u: number) => curvePose(u, options, { size: s });
+          const step = s + g;
+          // Along a densely sampled Curve, neighbours are one step apart.
+          let length = 0;
+          for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));
+          expect(Math.abs(length - step)).toBeLessThan(1e-3 * step);
+          // The Curve's direction at the Slide is the Slide's own axis along it.
+          const [before, here, after] = [at(o - 0.01), at(o), at(o + 0.01)];
+          const j = p === "yz" ? 1 : 0;
+          const direction = [after.x - before.x, after.y - before.y, after.z - before.z];
+          direction.forEach((d, i) => {
+            const axis = here.rotation[3 * i + j] ?? Number.NaN;
+            expect(Math.abs(d / (0.02 * step) - axis)).toBeLessThan(1e-3);
+          });
+        }),
+        { numRuns: 300 },
+      );
+    });
+  });
 });
