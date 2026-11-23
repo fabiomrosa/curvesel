@@ -88,7 +88,8 @@ describe("curvePose invariants", () => {
     let deeper = 0;
     let level = 0;
     const position = fc.double({ min: -20, max: 20, noNaN: true });
-    const index = fc.integer({ min: -30, max: 30 });
+    // Small indexes make pairs less than one Offset apart in distance from the centre common.
+    const index = fc.oneof(fc.integer({ min: -2, max: 2 }), fc.integer({ min: -30, max: 30 }));
     // Exact 0 and the xy Plane make Slides at equal depth common.
     const k = fc.oneof(fc.constant(0), curvature);
     fc.assert(
@@ -112,15 +113,17 @@ describe("curvePose invariants", () => {
             expect(front.zIndex).toBeGreaterThan(back.zIndex);
             deeper++;
           } else if (
+            // The documented tolerance: 1/100 of an Offset, for Slides within 99 of the centre.
             front.z === back.z &&
-            Math.round(Math.abs(nearer)) < Math.round(Math.abs(farther))
+            Math.abs(nearer) + 1 / 100 < Math.abs(farther) &&
+            Math.abs(farther) < 99
           ) {
             expect(front.zIndex).toBeGreaterThan(back.zIndex);
             level++;
           }
         }
       }),
-      { numRuns: 1000 },
+      { numRuns: 2000 },
     );
     expect(deeper).toBeGreaterThan(100);
     expect(level).toBeGreaterThan(100);

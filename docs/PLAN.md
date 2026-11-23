@@ -119,8 +119,11 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Contract:** none. **Public API:** additive, `zIndex` and `visible` in `Pose`, `visibleRange`.
 - **Acceptance criteria:**
   1. Offsets on each side of `visibleRange` are visible and hidden; a negative range throws.
-  2. Property: of any two Slides, the one with the larger `z` (or, at equal `z`, the smaller
-     `|offset|`) has the larger `zIndex`; every `zIndex` is a whole number ≥ 0.
+  2. Property: of any two Slides, the one more than 1/100 of a step nearer the viewer has the
+     larger `zIndex`; at equal `z`, so does the one more than 1/100 of an Offset nearer the centre
+     (within 99 Offsets of it); every `zIndex` is a whole number from 0 to 2³¹ − 1 (for a depth
+     within ±1000 steps). An integer computed from one Slide alone cannot order every pair
+     exactly, so these tolerances are the rule.
 - **Files:** ~6: `src/curve-pose.ts`, `src/pose.ts`, its tests, `playground/main.ts`, PLAN, STATE.
 - **References:** DEC-07 (`z-index`, `visibility`), PRODUCT "Visible range".
 

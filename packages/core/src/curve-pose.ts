@@ -23,10 +23,12 @@ export interface LayoutContext {
 
 const PLANES: readonly Plane[] = ["xz", "yz", "xy"];
 
-// The stacking order: depth in buckets of 1/100 of a step, each bucket split in 100 for the
-// distance from the centre. The base keeps it ≥ 0 for a depth within ±1e5 steps; CSS allows 2³¹ − 1.
+// The stacking order: depth in buckets of 1/100 of a step, each bucket split by the distance from
+// the centre in 1/100 of an Offset, up to 100 Offsets. The base keeps it within CSS's 0 to 2³¹ − 1
+// for a depth within ±1000 steps.
 const DEPTH_BUCKETS_PER_STEP = 100;
-const OFFSETS_PER_BUCKET = 100;
+const DISTANCE_STEPS_PER_OFFSET = 100;
+const DISTANCES_PER_BUCKET = 100 * DISTANCE_STEPS_PER_OFFSET;
 const Z_INDEX_BASE = 1e9;
 const Z_INDEX_MAX = 2 ** 31 - 1;
 
@@ -75,8 +77,8 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
 /** Higher nearer the viewer (`depth` in steps); within one depth bucket, higher nearer the centre. */
 function stackOrder(depth: number, distance: number): number {
   const bucket = Math.round(depth * DEPTH_BUCKETS_PER_STEP);
-  const nearness = OFFSETS_PER_BUCKET - 1 - Math.min(Math.round(distance), OFFSETS_PER_BUCKET - 1);
-  const order = Z_INDEX_BASE + bucket * OFFSETS_PER_BUCKET + nearness;
+  const far = Math.min(Math.round(distance * DISTANCE_STEPS_PER_OFFSET), DISTANCES_PER_BUCKET - 1);
+  const order = Z_INDEX_BASE + bucket * DISTANCES_PER_BUCKET + (DISTANCES_PER_BUCKET - 1 - far);
   return Math.min(Math.max(order, 0), Z_INDEX_MAX);
 }
 

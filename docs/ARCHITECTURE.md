@@ -46,8 +46,8 @@ Each package is created by the first slice that needs it.
 - A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine
   writes it as one `matrix3d()`. Rotations combine by multiplying matrices, never as Euler angles.
   The Slide at Offset 0 is at the origin with the identity rotation. `zIndex` comes from the
-  Slide's own depth, in buckets of 1/100 of a step, each split by `round(|offset|)` so that at
-  equal depth the Slide nearer the centre is above; `visible` is `|offset| ≤ visibleRange`.
+  Slide's own depth, in buckets of 1/100 of a step, each split by `|offset|` in 1/100 of an Offset
+  (up to 100) so that at equal depth the Slide nearer the centre is above; `visible` is `|offset| ≤ visibleRange`.
 - Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`, with a
   helper that builds a rotation from angles.
 

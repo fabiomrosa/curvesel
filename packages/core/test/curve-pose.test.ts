@@ -134,4 +134,12 @@ describe("curvePose", () => {
       );
     });
   });
+
+  it("stacks the Slide nearer the centre above when two are at the same depth", () => {
+    // In the screen's Plane every Slide is at z = 0; between two Slides the Track is at 0.3.
+    const options = { curvature: 0.2, gap: 20, plane: "xy" as const };
+    const nearer = curvePose(0.7, options, context);
+    const farther = curvePose(-1.3, options, context);
+    expect(nearer.zIndex).toBeGreaterThan(farther.zIndex);
+  });
 });
