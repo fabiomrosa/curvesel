@@ -344,10 +344,26 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Files:** ~4: `playground/main.ts`, `playground/index.html`, PLAN, STATE.
 - **References:** ARCHITECTURE "Request flow", DEC-09.
 
+### C2.0 · Engine package
+- **Status:** done (2026-11-23)
+- **Goal:** `packages/vanilla` builds and tests against `core`'s source from a clean clone.
+- **Depends on:** C1.16, DEC-12.
+- **In scope:** `@curvesel/vanilla` (depending on `core`), `happy-dom`, the `vitest.config.ts`
+  alias and the root `paths` that reach `core`'s source; a smoke test. Split from C2.1, which
+  would not fit in one pull request.
+- **Out of scope:** `createCarousel` (C2.1).
+- **Contract:** none. **Public API:** a new, empty package.
+- **Acceptance criteria:**
+  1. With no `packages/*/dist`, `npm run verify` passes, and a `vanilla` test reaches `core` and a
+     DOM.
+- **Files:** ~10: the package's `package.json`, `tsconfig.json`, `src/index.ts`, a test,
+  `vitest.config.ts`, the root `package.json` and `tsconfig.json`, the lockfile, GOTCHAS, PLAN.
+- **References:** DEC-12, GOTCHAS "Toolchain".
+
 ### C2.1 · Mount and destroy
 - **Status:** next
 - **Goal:** a Stage's children sit on the Curve, and `destroy()` leaves them exactly as they were.
-- **Depends on:** C1.16, DEC-07, DEC-08, DEC-12.
+- **Depends on:** C2.0, DEC-07, DEC-08, DEC-12.
 - **In scope:** `packages/vanilla` (`@curvesel/vanilla`, depending on `core`) and `happy-dom`.
   `createCarousel(stage, options)` with `layout` (a Preset name, Curve options or a Layout
   function; `cylinder` by default), `size`, `perspective`, and the Track options; it writes DEC-07's

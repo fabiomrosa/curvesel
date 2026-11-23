@@ -10,6 +10,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - TypeScript 7 is the native (Go) compiler; the binary is still `tsc`. Source imports use the `.ts`
   extension (`rewriteRelativeImportExtensions` turns them into `.js` in `dist/`).
 - Vitest's default include also matches `*.spec.ts`: name Playwright files `e2e/*.e2e.ts`.
+- `vanilla` imports `core` at runtime, through its exports, to `dist/`, which a clean clone lacks:
+  tests alias the source (`vitest.config.ts`), the type check maps it (`paths` in the root
+  `tsconfig.json`), and each package's build keeps `paths: {}`, using the built `dist/`.
 - The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
   a command's exit code, run it without a pipe and read `$?`.
 
