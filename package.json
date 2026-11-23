@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage.enabled --coverage.include='packages/*/src/**' --coverage.thresholds.lines=80",
     "build": "npm run build --workspaces",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "bench": "node bench/frame-trace.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.8",
