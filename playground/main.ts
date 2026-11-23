@@ -66,45 +66,55 @@ function axis(pose: Pose, j: 0 | 1 | 2): Vector {
   return [r[j], r[3 + j], r[6 + j]] as Vector;
 }
 
-/** A Slide's segment in one view: its two ends along the Curve's direction. */
-function segment(pose: Pose, [a, b]: View["axes"], half: number, plane: Plane) {
+const SQUARE = [
+  [-1, -1],
+  [1, -1],
+  [1, 1],
+  [-1, 1],
+] as const;
+
+/** A Slide's square in one view: its four corners, along its own x and y axes. */
+function corners(pose: Pose, [a, b]: View["axes"], half: number): [number, number][] {
   const p: Vector = [pose.x, pose.y, pose.z];
-  // The Curve runs along the Slide's own y axis in the wheel, along its x axis otherwise.
-  const along = axis(pose, plane === "yz" ? 1 : 0);
-  return [
-    p[a] - along[a] * half,
-    p[b] - along[b] * half,
-    p[a] + along[a] * half,
-    p[b] + along[b] * half,
-  ] as const;
+  const [u, v] = [axis(pose, 0), axis(pose, 1)];
+  return SQUARE.map(([i, j]) => [
+    p[a] + (u[a] * i + v[a] * j) * half,
+    p[b] + (u[b] * i + v[b] * j) * half,
+  ]);
+}
+
+function polygon(points: [number, number][], className: string): SVGPolygonElement {
+  const element = document.createElementNS(SVG, "polygon");
+  element.setAttribute("points", points.map((point) => point.join(",")).join(" "));
+  element.setAttribute("class", className);
+  return element;
 }
 
 /**
- * One view: each Slide a segment along the Curve's direction, a tick along its own z axis. The view
- * is fitted to `frame` (the Curve at Position 0), not to the Slides, so they move under a Drag.
+ * One view: each Slide a square, a tick along its own z axis. The view is fitted to `frame` (the
+ * Curve at Position 0), not to the Slides, so they move under a Drag.
  */
 function draw(
   { svg, axes }: View,
   poses: { offset: number; pose: Pose }[],
   frame: Pose[],
   size: number,
-  plane: Plane,
 ): void {
   const [a, b] = axes;
   const half = size / 2;
-  const shapes: SVGLineElement[] = [];
+  const shapes: SVGElement[] = [];
   for (const { offset, pose } of poses) {
     const p: Vector = [pose.x, pose.y, pose.z];
     const face = axis(pose, 2);
     const kind = Math.abs(offset) < 0.5 ? "slide centre" : pose.visible ? "slide" : "slide hidden";
-    shapes.push(line(...segment(pose, axes, half, plane), kind));
+    shapes.push(polygon(corners(pose, axes, half), kind));
     shapes.push(
       line(p[a], p[b], p[a] + face[a] * half * 0.4, p[b] + face[b] * half * 0.4, "facing"),
     );
   }
-  const ends = frame.map((pose) => segment(pose, axes, half, plane));
-  const us = ends.flatMap(([u0, , u1]) => [u0, u1]);
-  const vs = ends.flatMap(([, v0, , v1]) => [v0, v1]);
+  const points = frame.flatMap((pose) => corners(pose, axes, half));
+  const us = points.map(([u]) => u);
+  const vs = points.map(([, v]) => v);
   const [u0, u1, v0, v1] = [Math.min(...us), Math.max(...us), Math.min(...vs), Math.max(...vs)];
   const span = Math.max(u1 - u0, v1 - v0, size) * 1.15;
   // The view stays centred on the frame, square, with a margin.
@@ -150,7 +160,7 @@ function render(): void {
     const frame = Array.from({ length: track.count }, (_, i) =>
       curvePose(i - Math.floor(track.count / 2), options, { size: context.size }),
     );
-    for (const view of views) draw(view, poses, frame, context.size, plane);
+    for (const view of views) draw(view, poses, frame, context.size);
     error.textContent = "";
   } catch (thrown) {
     error.textContent = thrown instanceof Error ? thrown.message : String(thrown);
