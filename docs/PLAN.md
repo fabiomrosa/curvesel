@@ -383,28 +383,28 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
   3. The size is the largest Slide along the Curve, and `size` overrides it.
   4. A missing Stage, an unknown Preset, an invalid option or Slides that measure 0 throw a
      `curvesel:` message naming it, and leave nothing written.
-- **Files:** ~10: `packages/vanilla/{package.json,tsconfig.json,src/index.ts,src/carousel.ts,
-  test/carousel.test.ts}`, root `package.json`, the lockfile, ARCHITECTURE, PLAN, STATE.
+- **Files:** ~7: `src/carousel.ts`, `src/index.ts`, its test, ARCHITECTURE, GOTCHAS, PLAN, STATE.
 - **References:** DEC-07, ARCHITECTURE "Modules" and "Request flow".
 
 ### C2.2 · Follow the size
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the Curve keeps fitting when the Stage or a Slide changes size.
 - **Depends on:** C2.1.
 - **In scope:** one `ResizeObserver` over the Stage and every Slide; a change re-measures and lays
-  out again (Slides only when `size` is not given); `destroy()` disconnects it.
+  out again (the size is re-measured unless given; a moved Slide is re-centred either way); while
+  the Slides measure 0 (a hidden Stage) the last layout stays; `destroy()` disconnects it.
 - **Out of scope:** added or removed children (C2.3).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
   1. Resizing a Slide or the Stage lays the Slides out again with the new size (a stubbed
      `ResizeObserver` in `happy-dom`).
-  2. With `size` given, a Slide's resize changes nothing; the Stage's still re-centres.
+  2. With `size` given, a Slide's resize keeps the size, and a Slide that moved is re-centred.
   3. `destroy()` disconnects the observer.
 - **Files:** ~5: `src/carousel.ts`, its test, PLAN, STATE.
 - **References:** DEC-07.
 
 ### C2.3 · Follow the children
-- **Status:** waiting (C2.2)
+- **Status:** next
 - **Goal:** the user adds and removes Slides freely, and the Carousel follows.
 - **Depends on:** C2.2.
 - **In scope:** a `MutationObserver` on the Stage's child list: an added child is adopted, a
