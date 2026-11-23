@@ -30,6 +30,8 @@ export interface CarouselOptions {
   rubberBand?: number;
   /** The fraction of the velocity kept per second of Inertia. */
   friction?: number;
+  /** How far a pointer moves, in px, before it is a drag and its click is stopped; 10 by default. */
+  dragThreshold?: number;
 }
 
 /** What each event hands its handlers. */
@@ -57,6 +59,8 @@ export interface Carousel {
 }
 
 const DEFAULT_PERSPECTIVE = 1000;
+/** Px: about a finger's slop on a tap. */
+const DEFAULT_DRAG_THRESHOLD = 10;
 /**
  * Every adopted Slide, and what gives it back. A Slide moved to another Stage is given back by its
  * old Carousel before the new one saves it, whichever observer runs first.
@@ -85,6 +89,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   }
   if (options.size !== undefined && !(Number.isFinite(options.size) && options.size > 0)) {
     throw new Error(`curvesel: size must be a finite number > 0, got ${options.size}`);
+  }
+  const dragThreshold = options.dragThreshold ?? DEFAULT_DRAG_THRESHOLD;
+  if (!(Number.isFinite(dragThreshold) && dragThreshold >= 0)) {
+    throw new Error(`curvesel: dragThreshold must be a finite number ≥ 0, got ${dragThreshold}`);
   }
   const loop = options.loop ?? false;
   const { rubberBand, friction } = options;
@@ -152,7 +160,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   // A Drag: the pointer's moves are stored, then applied in the next frame along the Curve.
   let dragging: ScreenStep | undefined;
   let pending: Vector = { x: 0, y: 0 };
-  const stopListening = listenForDrag(stage, {
+  const stopListening = listenForDrag(stage, dragThreshold, {
     start() {
       dragging = screenStep(layout, geometry.size, track.position);
       if (dragging) track = dragStart(track);

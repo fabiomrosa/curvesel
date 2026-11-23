@@ -5,9 +5,9 @@ Every slice's pull request updates it (SESSION §3).
 
 ## Capabilities
 - The npm workspace builds, formats, lints, type-checks, tests and runs the browser tests
-  (Playwright in Chrome: the playground's Drag, Rubber band and idle loop, and the engine's resize,
-  hidden Stage, removed and moved Slides) with one command, `npm run verify`, which CI runs in the
-  `gate` job (plus the title, size, frozen-files and secret
+  (Playwright in Chrome: the playground's Drag, Rubber band and idle loop, the engine's resize,
+  hidden Stage, removed and moved Slides, and the demo's Drag and click guard) with one command,
+  `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
 - `curvePose(offset, { curvature, gap, plane, wave, twist, tilt, visibleRange }, { size, position
   })`: the Pose of a Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down
@@ -43,16 +43,18 @@ Every slice's pull request updates it (SESSION §3).
   `ResizeObserver`; while they measure 0 the last layout stays), and follows added and removed
   children (a `MutationObserver`; a removed child gets back what was written); `destroy()` restores
   them exactly. `goTo(index)`, `next()`, `previous()` and `position` move it with one
-  `requestAnimationFrame` loop that runs only in Inertia or Snap (`friction`, `rubberBand`
-  options); geometry is measured on mount, resize and child changes, a frame only writes, and a
-  culled Slide is written once until it comes back. Removing the Slides past the Position Snaps it
-  back to the new last one. `on('change' | 'select', handler)` returns an unsubscribe function:
-  `change` hands the Position once per frame that moved it, `select` the Active slide's index when
-  it changes (also after a child change); a handler's error is reported (`reportError`), not
-  thrown; `destroy()` drops every handler. A Drag (`drag.ts`: one pointer, captured on its first
-  move, no `window` or `document` listener) moves it along the Layout's tangent on screen, applied
-  in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active slide
-  is clamped past an end; `touch-action` follows the drag axis.
+  `requestAnimationFrame` loop that runs only in Inertia or Snap (`friction`, `rubberBand` options);
+  geometry is measured on mount, resize and child changes, a frame only writes, and a culled Slide
+  is written once until it comes back. Removing the Slides past the Position Snaps it back to the
+  new last one. `on('change' | 'select', handler)` returns an unsubscribe function: `change` hands
+  the Position once per frame that moved it, `select` the Active slide's index when it changes (also
+  after a child change); a handler's error is reported (`reportError`), not thrown; `destroy()`
+  drops every handler. A Drag (`drag.ts`: one pointer, captured past `dragThreshold`, 10 px by
+  default, no `window` or `document` listener) moves it along the Layout's tangent on screen,
+  applied in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active
+  slide is clamped past an end; `touch-action` follows the drag axis. Past the threshold, the next
+  pointer `click` is stopped on the Stage in the capture phase (keyboard clicks pass); the next
+  `pointerdown` or `destroy()` lifts the guard.
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.
@@ -68,11 +70,11 @@ Every slice's pull request updates it (SESSION §3).
   the Track and Snaps it when let go.
 
 ## Modules
-- `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
-  `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
-  `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
-  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `goBy`, `step`, `TrackState`,
-  `TrackOptions`), `slide-offset.ts` (`slideOffset`).
+- `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`, `LayoutContext`,
+  `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix), `layout.ts` (`Layout`,
+  `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`), `track.ts` (`createTrack`,
+  `dragStart`, `dragMove`, `release`, `goTo`, `goBy`, `step`, `TrackState`, `TrackOptions`),
+  `slide-offset.ts` (`slideOffset`).
 - `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`,
   `CarouselEvents`), `drag.ts` (pointer handling).
 - `demo/` (`index.html`, `main.ts`): the engine's demo page; its look lives here only (DEC-07).
@@ -136,5 +138,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.7:** the demo page, and `vite.config.ts` resolving `core` to its source.
 - **2026-11-23, fix playground:** each Slide drawn as a square, so the front and side views show
   faces, not edges.
-- **2026-11-23, C2.8:** Drag in the engine (its Chrome e2e lands with C2.9).
-- **Next:** the owner checks the Drag in the demo (C2.8 criterion 3), then C2.9 (click guard).
+- **2026-11-23, C2.8:** Drag in the engine; the owner checked it in the demo.
+- **2026-11-23, C2.9:** the click guard and `dragThreshold`, with C2.8's Drag e2e.
+- **Next:** C2.10 (wheel and keyboard).

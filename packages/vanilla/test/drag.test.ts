@@ -123,14 +123,83 @@ describe("Drag", () => {
     expect(carousel.position).toBe(0);
   });
 
-  it("captures the pointer once it moves, so a still tap keeps its own target", () => {
+  it("captures the pointer past the drag threshold, so a tap keeps its own target", () => {
     const capture = vi.fn();
     root.setPointerCapture = capture;
     pointer(root, "pointerdown", 500, 300, 0);
+    pointer(root, "pointermove", 494, 308, 10);
     expect(capture).not.toHaveBeenCalled();
-    pointer(root, "pointermove", 490, 300, 10);
     pointer(root, "pointermove", 480, 300, 20);
+    pointer(root, "pointermove", 470, 300, 30);
     expect(capture).toHaveBeenCalledTimes(1);
+  });
+
+  it("swallows a drag's click before it reaches the Slide; a tap's click reaches it", () => {
+    const card = slides(root)[1] as HTMLElement;
+    const heard = vi.fn();
+    card.addEventListener("click", heard);
+    const click = (detail = 1) => {
+      const event = new MouseEvent("click", { bubbles: true, cancelable: true, detail });
+      card.dispatchEvent(event);
+      return event;
+    };
+    drag(root, [[495, 300]]);
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    drag(root, [[380, 300]], 300);
+    expect(click().defaultPrevented).toBe(true);
+    expect(heard).toHaveBeenCalledTimes(1);
+    // Only that one click: the next reaches the Slide.
+    click();
+    expect(heard).toHaveBeenCalledTimes(2);
+    // A drag with no click after it (touch): the next pointerdown lifts the guard.
+    drag(root, [[380, 300]], 300);
+    click(0);
+    expect(heard).toHaveBeenCalledTimes(3);
+    drag(root, [[500, 300]]);
+    click();
+    expect(heard).toHaveBeenCalledTimes(4);
+    // A drag's guard goes with destroy.
+    drag(root, [[380, 300]], 300);
+    carousel.destroy();
+    click();
+    expect(heard).toHaveBeenCalledTimes(5);
+  });
+
+  it("lifts the guard at a press a Slide stops from reaching the Stage", () => {
+    const card = slides(root)[1] as HTMLElement;
+    const heard = vi.fn();
+    card.addEventListener("click", heard);
+    card.addEventListener("pointerdown", (event) => event.stopPropagation());
+    drag(root, [[380, 300]], 300);
+    pointer(card, "pointerdown", 500, 300, 400);
+    pointer(card, "pointerup", 500, 300, 410);
+    const click = () => card.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    // A second finger during a drag leaves that drag's guard on.
+    pointer(root, "pointerdown", 500, 300, 500);
+    pointer(root, "pointermove", 380, 300, 510);
+    pointer(root, "pointerdown", 500, 300, 520, 2);
+    pointer(root, "pointerup", 380, 300, 800);
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+  });
+
+  it("takes the drag threshold from `dragThreshold`", () => {
+    carousel.destroy();
+    const card = slides(root)[1] as HTMLElement;
+    const heard = vi.fn();
+    card.addEventListener("click", heard);
+    const wide = createCarousel(root, { layout: "ribbon", size: 100, dragThreshold: 50 });
+    const click = () => card.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    drag(root, [[460, 300]], 300);
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    drag(root, [[440, 300]], 300);
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    wide.destroy();
   });
 
   it("follows one pointer at a time, and releases on pointercancel", () => {
@@ -161,6 +230,23 @@ describe("Drag", () => {
     drag(root, [[0, 300]], 300);
     settle();
     expect(carousel.position).toBeCloseTo(1, 9);
+  });
+
+  it("removes on destroy every listener it added to the Stage", () => {
+    carousel.destroy();
+    const added = vi.spyOn(root, "addEventListener");
+    const removed = vi.spyOn(root, "removeEventListener");
+    const key = ([type, listener, options]: unknown[]) => [
+      type,
+      listener,
+      options === true || (options as { capture?: boolean })?.capture === true,
+    ];
+    const watched = createCarousel(root, { layout: "ribbon", size: 100 });
+    // Past the threshold, so the click guard is on too.
+    drag(root, [[380, 300]], 300);
+    watched.destroy();
+    expect(added.mock.calls.length).toBeGreaterThan(4);
+    expect(removed.mock.calls.map(key)).toEqual(expect.arrayContaining(added.mock.calls.map(key)));
   });
 
   it("drags along the Curve on screen: down the wheel, up a ribbon tilted a quarter turn", () => {
