@@ -2,17 +2,21 @@ import {
   type CurveOptions,
   createTrack,
   curvePose,
+  dragMove,
+  dragStart,
   goBy,
   type Layout,
   type Plane,
   type Pose,
   type PresetName,
   presets,
+  release,
   goTo as sendTo,
   slideOffset,
   step,
   type TrackState,
 } from "@curvesel/core";
+import { listenForDrag, type Vector } from "./drag.ts";
 
 export interface CarouselOptions {
   /** A Preset name, a Curve's options or a Layout function; `cylinder` by default. */
@@ -92,7 +96,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     ...(friction === undefined ? {} : { friction }),
   });
   const owned = new Set<HTMLElement>();
-  const saved = [save(stage, ["perspective"], [])];
+  const saved = [save(stage, ["perspective", "touch-action"], [])];
   const measure = () => options.size ?? largest(slides, plane);
   // Geometry is read on mount, resize and child changes only; a frame computes and writes.
   const geometry = { size: 0, centres: [] as string[], hidden: new Set<HTMLElement>() };
@@ -113,8 +117,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   let heard = { position: 0, active: 0 };
   /** Tells the handlers what changed since they last heard. */
   const notify = () => {
-    const { position, count } = track;
-    const active = ((Math.round(position) % count) + count) % count;
+    const { position } = track;
+    const active = activeIndex(track);
     const before = heard;
     heard = { position, active };
     if (position !== before.position) emit(handlers.change, position);
@@ -129,6 +133,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   // One loop, running only while the Track moves on its own; `dt` clamped at 0 (GOTCHAS).
   const tick = (now: number) => {
     frame = 0;
+    if (dragging && (pending.x !== 0 || pending.y !== 0)) {
+      track = dragMove(track, toPositions(dragging, pending));
+      pending = { x: 0, y: 0 };
+    }
     track = step(track, last === undefined ? 0 : Math.max(0, now - last) / 1000);
     last = now;
     paint();
@@ -141,6 +149,31 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     request();
   };
   const goTo = (index: number) => move(sendTo(track, index));
+  // A Drag: the pointer's moves are stored, then applied in the next frame along the Curve.
+  let dragging: ScreenStep | undefined;
+  let pending: Vector = { x: 0, y: 0 };
+  const stopListening = listenForDrag(stage, {
+    start() {
+      dragging = screenStep(layout, geometry.size, track.position);
+      if (dragging) track = dragStart(track);
+      pending = { x: 0, y: 0 };
+    },
+    move(delta) {
+      if (!dragging) return;
+      pending = { x: pending.x + delta.x, y: pending.y + delta.y };
+      request();
+    },
+    end(velocity) {
+      if (!dragging) return;
+      track = release(
+        dragMove(track, toPositions(dragging, pending)),
+        toPositions(dragging, velocity),
+      );
+      pending = { x: 0, y: 0 };
+      dragging = undefined;
+      request();
+    },
+  });
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
   const adopt = () => {
@@ -174,6 +207,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   });
   const destroy = () => {
     destroyed = true;
+    stopListening();
     for (const set of Object.values(handlers)) set.clear();
     if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
@@ -188,6 +222,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       stage.style.position = "relative";
     }
     stage.style.perspective = `${perspective}px`;
+    // A touch drag along the Curve; the page still scrolls across it (GOTCHAS).
+    const axis = screenStep(layout, options.size ?? 1, 0)?.axis ?? { x: 1, y: 0 };
+    stage.style.touchAction = Math.abs(axis.y) > Math.abs(axis.x) ? "pan-x" : "pan-y";
     resizes.observe(stage, { box: "border-box" });
     adopt();
     if (slides.length > 0 && !(measure() > 0)) {
@@ -237,6 +274,33 @@ function emit(handlers: Set<(value: number) => void>, value: number): void {
   }
 }
 
+/** The Active slide: the nearest whole Position, wrapped when looping, clamped otherwise. */
+function activeIndex({ position, count, loop }: TrackState): number {
+  const at = Math.round(position);
+  return loop ? ((at % count) + count) % count : Math.min(Math.max(at, 0), count - 1);
+}
+
+/** The Curve's direction on screen at the centre, and how many px one Position covers there. */
+interface ScreenStep {
+  axis: Vector;
+  px: number;
+}
+
+/** From the Layout's tangent at Offset 0 (any Plane, Tilt or custom Layout); none if it is flat. */
+function screenStep(layout: Layout, size: number, position: number): ScreenStep | undefined {
+  if (!(size > 0)) return undefined;
+  const near = 1e-3;
+  const [from, to] = [layout(0, { size, position }), layout(near, { size, position })];
+  const [dx, dy] = [(to.x - from.x) / near, (to.y - from.y) / near];
+  const px = Math.hypot(dx, dy);
+  return px > 1e-9 ? { axis: { x: dx / px, y: dy / px }, px } : undefined;
+}
+
+/** Pointer px (or px per second) as Positions: moving along the Curve brings the earlier Slides in. */
+function toPositions({ axis, px }: ScreenStep, delta: Vector): number {
+  return -(delta.x * axis.x + delta.y * axis.y) / px;
+}
+
 /** The Layout to call, and the Plane it bends in when it is a Curve. */
 function resolveLayout(layout: PresetName | CurveOptions | Layout): {
   layout: Layout;
@@ -277,7 +341,7 @@ function render(
   { size, centres, hidden }: { size: number; centres: string[]; hidden: Set<HTMLElement> },
 ): void {
   const { count, position, loop } = track;
-  const active = (((Math.round(position) % count) + count) % count) as number;
+  const active = activeIndex(track);
   slides.forEach((slide, index) => {
     const offset = slideOffset(index, position, count, loop);
     const pose = layout(offset, { size, position });

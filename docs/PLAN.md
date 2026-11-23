@@ -494,7 +494,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07, PRODUCT "Headless, children keep their behaviour".
 
 ### C2.8 · Drag
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the user drags the Carousel with mouse, touch or pen.
 - **Depends on:** C2.7, DEC-10.
 - **In scope:** `pointerdown` on the Stage with pointer capture (no listener on `window` or
@@ -515,7 +515,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-10, ARCHITECTURE "Request flow".
 
 ### C2.9 · Click guard
-- **Status:** waiting (C2.8)
+- **Status:** next
 - **Goal:** a tap reaches the card; a drag does not click it.
 - **Depends on:** C2.8, DEC-10.
 - **In scope:** `dragThreshold` (px, a default from Pointer Events practice); past it, the next
