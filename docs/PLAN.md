@@ -166,18 +166,21 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-08.
 
 ### C1.7 · Wave across the Plane
-- **Status:** waiting (C1.6)
+- **Status:** done (2026-11-23)
 - **Goal:** a ribbon or a ring can undulate across its Plane (a horizontal ribbon waving up and
   down, a crown).
 - **Depends on:** C1.6.
 - **In scope:** `wave.plane: 'z' | 'y'`, `z` (in the Curve's Plane) by default; `y` bends across
-  it, so the integration steps a rotation frame (the base Curvature around one normal, the Wave
-  around the other) instead of an angle, with the Slide's rotation taken from the frame.
+  it. As built: a yaw around the Plane's fixed normal (the Curvature and a `z` Wave) and a pitch
+  around the Curve's in-Plane normal (a `y` Wave), both in closed form, with one integration of the
+  tangent; the Slide's rotation comes from the same two angles.
 - **Out of scope:** a Wave in both directions at once.
 - **Contract:** none. **Public API:** additive, `plane` in the Wave options.
 - **Acceptance criteria:**
   1. Curvature 0 in `xz` with a `y` Wave keeps every Slide at `z = 0`, its `y` a wave.
-  2. Curvature `2π / N` with a `y` Wave still closes the ring, with `y` oscillating.
+  2. Curvature `2π / N` with a `y` Wave still closes the ring, with `y` oscillating, for a whole
+     number of wavelengths at the default phase with `anchor: 'space'`. Otherwise it opens: the
+     pitch shortens the ring's path by `cos ψ`, and closing it would need the Slide count.
   3. With `plane: 'z'` the frame integration matches C1.5's within `EPS` (one path, or both agree).
   4. The property test covers both Wave planes.
 - **Files:** ~5: `src/curve-pose.ts` (or `src/frame.ts`), its tests, `playground/main.ts`, PLAN,

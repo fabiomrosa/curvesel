@@ -96,6 +96,7 @@ function render(): void {
       wavelength: value("wavelength"),
       phase: value("phase"),
       anchor: byId<HTMLSelectElement>("anchor").value as "space" | "ribbon",
+      plane: byId<HTMLSelectElement>("wave-plane").value as "z" | "y",
     },
   };
   const context = { size: value("size"), position: value("position") };

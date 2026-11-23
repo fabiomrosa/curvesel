@@ -229,6 +229,49 @@ describe("curvePose", () => {
       });
     });
 
+    describe("across the Plane", () => {
+      const across = { ...wave, plane: "y" as const };
+
+      it("pitches each Slide by the integral of the Wave", () => {
+        // Default phase π/2: over [0, 1] the pitch is 0.5·(4/2π)·sin(π/2) = 1/π, tilting down.
+        const pose = curvePose(1, { curvature: 0, gap: 20, wave: across }, context);
+        const [c, s] = [Math.cos(1 / Math.PI), Math.sin(1 / Math.PI)];
+        expectRotation(pose.rotation, [c, -s, 0, s, c, 0, 0, 0, 1]);
+      });
+
+      it("pitches across the wheel (x) and across the arc (z, towards the viewer)", () => {
+        const [c, s] = [Math.cos(1 / Math.PI), Math.sin(1 / Math.PI)];
+        const wheel = curvePose(1, { curvature: 0, gap: 20, plane: "yz", wave: across }, context);
+        expectRotation(wheel.rotation, [c, s, 0, -s, c, 0, 0, 0, 1]);
+        const arc = curvePose(1, { curvature: 0, gap: 20, plane: "xy", wave: across }, context);
+        expectRotation(arc.rotation, [c, 0, -s, 0, 1, 0, s, 0, c]);
+      });
+
+      it("waves a flat ribbon up and down in the screen, at no depth", () => {
+        const at = (offset: number) =>
+          curvePose(offset, { curvature: 0, gap: 20, wave: across }, context);
+        for (const offset of [-3, 0.7, 1, 2, 5.5]) expect(at(offset).z).toBeCloseTo(0, 9);
+        expect(at(2).y).toBeGreaterThan(50);
+        expect(at(4).y).toBeCloseTo(0, 6);
+        expect(at(4).x).toBeLessThan(4 * 220);
+      });
+
+      it("closes a ring whose length is a whole number of wavelengths, its height waving", () => {
+        const ring = { curvature: (2 * Math.PI) / 12, gap: 20, wave: { ...across, wavelength: 3 } };
+        const full = curvePose(12, ring, context);
+        expect(Math.hypot(full.x, full.y, full.z)).toBeLessThan(1e-6);
+        expectRotation(full.rotation, IDENTITY);
+        expect(Math.abs(curvePose(1.5, ring, context).y)).toBeGreaterThan(20);
+      });
+
+      it("throws a message naming the Wave's plane when it is unknown", () => {
+        const bad = { ...wave, plane: "x" as NonNullable<Wave["plane"]> };
+        expect(() => curvePose(0, { curvature: 0, gap: 20, wave: bad }, context)).toThrow(
+          `curvesel: wave.plane must be "z" or "y", got "x"`,
+        );
+      });
+    });
+
     it("throws a message naming the Wave option when it is invalid", () => {
       const at = (w: Wave) => () => curvePose(0, { curvature: 0, gap: 20, wave: w }, context);
       expect(at({ amplitude: 0.5, wavelength: 0 })).toThrow(

@@ -1,4 +1,4 @@
-import type { Pose } from "./pose.ts";
+import type { Pose, Rotation } from "./pose.ts";
 
 /** Where the Curve bends: `xz` in depth, `yz` vertically in depth (a wheel), `xy` in the screen. */
 export type Plane = "xz" | "yz" | "xy";
@@ -16,6 +16,8 @@ export interface Wave {
   readonly phase?: number;
   /** `space` (default): the Wave stays put as the Slides move; `ribbon`: it travels with them. */
   readonly anchor?: "space" | "ribbon";
+  /** `z` (default): bends in the Curve's Plane; `y`: across it, pitching the Slides. */
+  readonly plane?: "z" | "y";
 }
 
 /** The Curve's options. Lengths along the Curve count Slide steps (`size + gap`). */
@@ -83,31 +85,39 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
     throw new Error(`curvesel: size must be a finite number > 0, got ${context.size}`);
   }
   const step = context.size + options.gap;
-  const turn = options.curvature * offset;
-  const heading = wave ? turn + waveTurn(offset, wave) : turn;
-  const length = offset * step;
-  const cos = Math.cos(turn);
-  const sin = Math.sin(turn);
-  const small = Math.abs(turn) < SERIES_LIMIT;
-  const turn2 = turn * turn;
-  // x = R·sin(turn) and z = R·(cos(turn) − 1), with R = step / curvature, written so they stay
-  // exact as the Curvature tends to 0.
-  const sinc = small ? 1 - turn2 / 6 + (turn2 * turn2) / 120 : sin / turn;
-  const cosc = small ? -turn / 2 + (turn * turn2) / 24 : (cos - 1) / turn;
-  // In the Curve's own Plane: `along` from the centre, `bend` towards the side it curves to.
-  let along = length * sinc;
-  let bend = length * cosc;
-  if (wave) {
-    const [a, b] = integrate(offset, options.curvature, wave);
-    along = a * step;
-    bend = b * step;
-  }
-  const placed = place(plane, along, bend, Math.cos(heading), Math.sin(heading));
+  const curvature = options.curvature;
+  // The Curve's two angles along its length: yaw turns it in its Plane, pitch lifts it across.
+  const waveTurns = (u: number) => (wave ? waveTurn(u, wave) : 0);
+  const pitching = wave?.plane === "y";
+  const yaw = (u: number) => curvature * u + (pitching ? 0 : waveTurns(u));
+  const pitch = (u: number) => (pitching ? waveTurns(u) : 0);
+  const point = wave
+    ? scale(integrate(offset, yaw, pitch), step)
+    : circle(offset * step, curvature * offset);
+  const placed = place(plane, point, yaw(offset), pitch(offset));
   const zIndex = stackOrder(placed.z / step, Math.abs(offset));
   return { ...placed, zIndex, visible: Math.abs(offset) <= visibleRange };
 }
 
-function checkWave({ amplitude, wavelength, phase = DEFAULT_PHASE, anchor = "space" }: Wave): void {
+/** A point in the Curve's own axes: along it from the centre, towards its bend, across its Plane. */
+type Vector = readonly [along: number, bend: number, across: number];
+
+const scale = ([a, b, n]: Vector, k: number): Vector => [a * k, b * k, n * k];
+
+/**
+ * The point `length` px along a circle that turns by `turn`: `R·sin(turn)` along and
+ * `R·(cos(turn) − 1)` towards the bend, written so they stay exact as the turn tends to 0.
+ */
+function circle(length: number, turn: number): Vector {
+  const turn2 = turn * turn;
+  const small = Math.abs(turn) < SERIES_LIMIT;
+  const sinc = small ? 1 - turn2 / 6 + (turn2 * turn2) / 120 : Math.sin(turn) / turn;
+  const cosc = small ? -turn / 2 + (turn * turn2) / 24 : (Math.cos(turn) - 1) / turn;
+  return [length * sinc, length * cosc, 0];
+}
+
+function checkWave(wave: Wave): void {
+  const { amplitude, wavelength, phase = DEFAULT_PHASE, anchor = "space", plane = "z" } = wave;
   if (anchor !== "space" && anchor !== "ribbon") {
     throw new Error(
       `curvesel: wave.anchor must be "space" or "ribbon", got ${JSON.stringify(anchor)}`,
@@ -121,6 +131,9 @@ function checkWave({ amplitude, wavelength, phase = DEFAULT_PHASE, anchor = "spa
   }
   if (!Number.isFinite(phase)) {
     throw new Error(`curvesel: wave.phase must be a finite number, got ${phase}`);
+  }
+  if (plane !== "z" && plane !== "y") {
+    throw new Error(`curvesel: wave.plane must be "z" or "y", got ${JSON.stringify(plane)}`);
   }
 }
 
@@ -145,20 +158,33 @@ const DEFAULT_PHASE = Math.PI / 2;
  */
 const SIMPSON_PER_STEP = 32;
 
-/** The point at `s` steps along a Curve with a Wave: the integral of `(cos θ, −sin θ)`, in steps. */
-function integrate(s: number, curvature: number, wave: Wave): [along: number, bend: number] {
+/** The point `s` steps along the Curve: the integral of its unit tangent, by Simpson's rule. */
+function integrate(s: number, yaw: (u: number) => number, pitch: (u: number) => number): Vector {
   const n = 2 * Math.ceil((Math.abs(s) * SIMPSON_PER_STEP) / 2) || 2;
   const h = s / n;
-  let along = 0;
-  let bend = 0;
+  let [along, bend, across] = [0, 0, 0];
   for (let i = 0; i <= n; i++) {
-    const u = i * h;
     const weight = i === 0 || i === n ? 1 : i % 2 === 1 ? 4 : 2;
-    const theta = curvature * u + waveTurn(u, wave);
-    along += weight * Math.cos(theta);
-    bend -= weight * Math.sin(theta);
+    const [t] = frame(yaw(i * h), pitch(i * h));
+    along += weight * t[0];
+    bend += weight * t[1];
+    across += weight * t[2];
   }
-  return [(along * h) / 3, (bend * h) / 3];
+  return scale([along, bend, across], h / 3);
+}
+
+/**
+ * The Slide's own axes in the Curve's axes, for a yaw `φ` in the Plane and a pitch `ψ` across it:
+ * the tangent, the in-Plane normal (which the pitch turns around; the Slide's face in `xz` and
+ * `yz`) and the third axis.
+ */
+function frame(yaw: number, pitch: number): [tangent: Vector, face: Vector, third: Vector] {
+  const [cy, sy, cp, sp] = [Math.cos(yaw), Math.sin(yaw), Math.cos(pitch), Math.sin(pitch)];
+  return [
+    [cp * cy, -cp * sy, sp],
+    [sy, cy, 0],
+    [-sp * cy, sp * sy, cp],
+  ];
 }
 
 /** Higher nearer the viewer (`depth` in steps); within one depth bucket, higher nearer the centre. */
@@ -169,14 +195,26 @@ function stackOrder(depth: number, distance: number): number {
   return Math.min(Math.max(order, 0), Z_INDEX_MAX);
 }
 
-/** Turns a point and heading in the Curve's own Plane into a position and rotation in the Stage. */
-function place(plane: Plane, along: number, bend: number, cos: number, sin: number) {
+// Where each Plane puts the Curve's axes (along, bend, across) in the Stage's (x, y, z).
+const IN_XZ = ([a, b, n]: Vector): Vector => [a, n, b];
+const IN_YZ = ([a, b, n]: Vector): Vector => [n, a, b];
+const IN_XY = ([a, b, n]: Vector): Vector => [a, -b, n];
+
+/** Turns a point and the Slide's axes from the Curve's own axes into the Stage's. */
+function place(plane: Plane, point: Vector, yaw: number, pitch: number) {
+  const [tangent, face, third] = frame(yaw, pitch);
   switch (plane) {
-    case "xz": // rotateY(turn): bends away from the viewer.
-      return { x: along, y: 0, z: bend, rotation: [cos, 0, sin, 0, 1, 0, -sin, 0, cos] } as const;
-    case "yz": // rotateX(−turn): goes down the screen, bends away from the viewer.
-      return { x: 0, y: along, z: bend, rotation: [1, 0, 0, 0, cos, sin, 0, -sin, cos] } as const;
-    case "xy": // rotateZ(turn): bends down the screen, the centre below.
-      return { x: along, y: -bend, z: 0, rotation: [cos, -sin, 0, sin, cos, 0, 0, 0, 1] } as const;
+    case "xz": // rotateY: bends away from the viewer.
+      return at(IN_XZ(point), IN_XZ(tangent), IN_XZ(third), IN_XZ(face));
+    case "yz": // rotateX(−θ): goes down the screen, bends away from the viewer.
+      return at(IN_YZ(point), IN_YZ(third), IN_YZ(tangent), IN_YZ(face));
+    case "xy": // rotateZ: bends down the screen, the centre below.
+      return at(IN_XY(point), IN_XY(tangent), scale(IN_XY(face), -1), IN_XY(third));
   }
+}
+
+/** A position, and the rotation whose columns are the Slide's own x, y and z axes. */
+function at([x, y, z]: Vector, X: Vector, Y: Vector, Z: Vector) {
+  const rotation: Rotation = [X[0], Y[0], Z[0], X[1], Y[1], Z[1], X[2], Y[2], Z[2]];
+  return { x, y, z, rotation };
 }
