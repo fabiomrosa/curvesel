@@ -345,4 +345,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 Ideas not planned yet; a milestone's planning picks from here.
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
+- For M2: with a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: 0.05
+  ms a frame for 20 Slides, 6.7 ms for 200 (C1.5 review, a scratch benchmark). If the demo needs
+  more, integrate once over the sorted Offsets per frame, and skip Slides beyond the visible range.
 

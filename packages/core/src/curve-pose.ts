@@ -10,8 +10,8 @@ export interface Wave {
   /** In Slides. */
   readonly wavelength: number;
   /**
-   * Radians; π/2 by default, which puts the centre on a crest so the heading swings evenly around
-   * the centre's and the Active slide stays flat: a wavy ribbon stays level on average.
+   * Radians; π/2 by default (DEC-13): the centre sits on a crest and the heading swings evenly
+   * around it, so a wavy ribbon stays level on average.
    */
   readonly phase?: number;
 }
@@ -118,7 +118,10 @@ function waveTurn(s: number, { amplitude, wavelength, phase = DEFAULT_PHASE }: W
 
 const DEFAULT_PHASE = Math.PI / 2;
 
-/** Simpson intervals per Slide step: under 1e-6 of a step of error for Curvatures up to ~3. */
+/**
+ * Simpson intervals per Slide step: about 1e-6 of a step of error for |curvature| + |amplitude| ≤ 3
+ * and wavelengths ≥ 1 (1.6e-5 at a wavelength of 0.25): far below a pixel.
+ */
 const SIMPSON_PER_STEP = 32;
 
 /** The point at `s` steps along a Curve with a Wave: the integral of `(cos θ, −sin θ)`, in steps. */

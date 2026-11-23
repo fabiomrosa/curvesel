@@ -144,6 +144,12 @@ describe("curvePose invariants", () => {
           const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w };
           const at = (u: number) => curvePose(u, options, { size: s });
           const step = s + g;
+          // Offset 0 stays at the origin, facing the viewer.
+          const centre = at(0);
+          expect(Math.hypot(centre.x, centre.y, centre.z)).toBeLessThanOrEqual(EPS);
+          centre.rotation.forEach((value, i) => {
+            expect(Math.abs(value - (i % 4 === 0 ? 1 : 0))).toBeLessThanOrEqual(EPS);
+          });
           // Along a densely sampled Curve, neighbours are one step apart.
           let length = 0;
           for (let i = 0; i < 64; i++) length += distance(at(o + i / 64), at(o + (i + 1) / 64));

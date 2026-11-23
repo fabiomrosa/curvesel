@@ -156,7 +156,7 @@ describe("curvePose", () => {
       for (const curvature of [0, 0.3, -1, Math.PI / 2]) {
         for (const offset of [-7.5, -1, 0.25, 3]) {
           const plain = curvePose(offset, { curvature, gap: 20 }, context);
-          const flat = { amplitude: 1e-12, wavelength: 3 };
+          const flat = { amplitude: 0, wavelength: 3 };
           const waved = curvePose(offset, { curvature, gap: 20, wave: flat }, context);
           // Simpson's error, relative to the length: far below a pixel.
           const tolerance = 1e-7 * Math.abs(offset) * 220 + 1e-12;

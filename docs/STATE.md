@@ -7,8 +7,8 @@ Every slice's pull request updates it (SESSION §3).
 - The npm workspace builds, formats, lints, type-checks and tests with one command,
   `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and secret
   checks). Coverage below 80% of lines fails it.
-- `curvePose(offset, { curvature, gap, plane, wave, visibleRange }, { size })`: the Pose of a Slide on a Curve of
-  constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
+- `curvePose(offset, { curvature, gap, plane, wave, visibleRange }, { size })`: the Pose of a
+  Slide on a Curve of constant Curvature in the `xz` (default), `yz` (wheel: down the screen, bending away) or `xy`
   (arc: in the screen, the centre below) Plane, from a flat ribbon (0) to a closed cylinder
   (`2π / N`), exact through `κ = 0`. A Wave (`amplitude`, `wavelength`, `phase`) makes it undulate
   in its Plane, fixed relative to the centre. Each Pose says whether it is `visible` and its `zIndex`
