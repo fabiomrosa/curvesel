@@ -442,7 +442,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, ARCHITECTURE "Request flow".
 
 ### C2.5 · Events
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** the user's code hears where the Carousel is.
 - **Depends on:** C2.4.
 - **In scope:** `carousel.on('change' | 'select', handler)`, typed per event, returning an
@@ -458,7 +458,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** ARCHITECTURE "Persistence".
 
 ### C2.6 · Browser tests
-- **Status:** waiting (C2.5)
+- **Status:** next
 - **Goal:** real-browser tests run in the gate.
 - **Depends on:** C2.5.
 - **In scope:** Playwright, configured as in `../list-picker` (the installed Chrome, no download),
