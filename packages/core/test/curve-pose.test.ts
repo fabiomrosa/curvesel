@@ -339,4 +339,40 @@ describe("curvePose", () => {
       );
     });
   });
+
+  describe("with a Tilt", () => {
+    const radius = 880 / Math.PI;
+
+    it("leans every position around the view axis, keeping each Slide upright", () => {
+      const tilt = 0.4;
+      const pose = curvePose(2, { curvature: Math.PI / 4, gap: 20, tilt }, context);
+      // Untilted at (R, 0, −R); rotateZ(0.4) turns it clockwise on the screen (y down).
+      expect(pose.x).toBeCloseTo(radius * Math.cos(tilt), 9);
+      expect(pose.y).toBeCloseTo(radius * Math.sin(tilt), 9);
+      expect(pose.z).toBeCloseTo(-radius, 9);
+      expectRotation(pose.rotation, [0, 0, 1, 0, 1, 0, -1, 0, 0]);
+    });
+
+    it("leaves Offset 0 at the origin with no rotation", () => {
+      const pose = curvePose(0, { curvature: 0.5, gap: 20, tilt: 1.1 }, context);
+      expect(Math.hypot(pose.x, pose.y, pose.z)).toBeCloseTo(0, 9);
+      expectRotation(pose.rotation, IDENTITY);
+    });
+
+    it("turns an xz Curve into the wheel's positions with a quarter turn", () => {
+      for (const offset of [-3, 1, 2.5]) {
+        const tilted = curvePose(offset, { curvature: 0.5, gap: 20, tilt: Math.PI / 2 }, context);
+        const wheel = curvePose(offset, { curvature: 0.5, gap: 20, plane: "yz" }, context);
+        expect(Math.hypot(tilted.x - wheel.x, tilted.y - wheel.y, tilted.z - wheel.z)).toBeLessThan(
+          1e-9,
+        );
+      }
+    });
+
+    it("throws a message naming the Tilt when it is not a finite number", () => {
+      expect(() => curvePose(0, { curvature: 0, gap: 20, tilt: Number.NaN }, context)).toThrow(
+        "curvesel: tilt must be a finite number, got NaN",
+      );
+    });
+  });
 });

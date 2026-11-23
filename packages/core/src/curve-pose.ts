@@ -32,6 +32,8 @@ export interface CurveOptions {
   readonly wave?: Wave;
   /** Radians per Slide step: each Slide turns `twist · offset` around its tangent. */
   readonly twist?: number;
+  /** Radians: leans the whole Curve around the view axis through the centre; Slides stay upright. */
+  readonly tilt?: number;
   /** How far from the centre, in Offsets, a Slide is still shown; every Slide by default. */
   readonly visibleRange?: number;
 }
@@ -83,6 +85,10 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   if (!Number.isFinite(twist)) {
     throw new Error(`curvesel: twist must be a finite number, got ${twist}`);
   }
+  const tilt = options.tilt ?? 0;
+  if (!Number.isFinite(tilt)) {
+    throw new Error(`curvesel: tilt must be a finite number, got ${tilt}`);
+  }
   const visibleRange = options.visibleRange ?? Number.POSITIVE_INFINITY;
   if (!(visibleRange >= 0)) {
     throw new Error(`curvesel: visibleRange must be a number ≥ 0, got ${visibleRange}`);
@@ -102,8 +108,13 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
     : circle(offset * step, curvature * offset);
   const curved = place(plane, point, yaw(offset), pitch(offset));
   // The Slide's own axis along the Curve: y in the wheel, x otherwise.
+  // Tilt leans the positions around the view axis (rotateZ); turning each Slide back by the same
+  // angle leaves its rotation as it was, so its content stays upright.
+  const [cos, sin] = [Math.cos(tilt), Math.sin(tilt)];
   const placed = {
-    ...curved,
+    x: cos * curved.x - sin * curved.y,
+    y: sin * curved.x + cos * curved.y,
+    z: curved.z,
     rotation: turn(curved.rotation, plane === "yz" ? 1 : 0, twist * offset),
   };
   const zIndex = stackOrder(placed.z / step, Math.abs(offset));

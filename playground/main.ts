@@ -92,6 +92,7 @@ function render(): void {
     plane,
     visibleRange: value("visible-range"),
     twist: value("twist"),
+    tilt: value("tilt"),
     wave: {
       amplitude: value("amplitude"),
       wavelength: value("wavelength"),

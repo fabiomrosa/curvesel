@@ -140,10 +140,11 @@ describe("curvePose invariants", () => {
       plane: fc.constantFrom("z" as const, "y" as const),
     });
     const twist = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 1000);
+    const tilt = fc.integer({ min: -3142, max: 3142 }).map((n) => n / 1000);
     // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
     const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
 
-    it("keeps the Slides on the Curve, one step apart, turned with it, with any Twist", () => {
+    it("keeps the Slides on the Curve, one step apart, turned with it, with any Twist and Tilt", () => {
       fc.assert(
         fc.property(
           base,
@@ -154,9 +155,24 @@ describe("curvePose invariants", () => {
           gap,
           position,
           twist,
-          (c, w, p, o, s, g, t, tw) => {
-            const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w, twist: tw };
+          tilt,
+          (c, w, p, o, s, g, t, tw, tl) => {
+            const options: CurveOptions = {
+              ...{ curvature: c, gap: g, plane: p, wave: w },
+              ...{ twist: tw, tilt: tl },
+            };
             const at = (u: number) => curvePose(u, options, { size: s, position: t });
+            // Tilt leans the positions around the view axis and leaves the rotation as it was.
+            const upright = curvePose(o, { ...options, tilt: 0 }, { size: s, position: t });
+            const leaned = at(o);
+            const [cl, sl] = [Math.cos(tl), Math.sin(tl)];
+            expect(Math.abs(leaned.x - (cl * upright.x - sl * upright.y))).toBeLessThan(
+              EPS * (s + g) * 20,
+            );
+            expect(Math.abs(leaned.y - (sl * upright.x + cl * upright.y))).toBeLessThan(
+              EPS * (s + g) * 20,
+            );
+            expect(leaned.rotation).toEqual(upright.rotation);
             // Twist turns the Slides only: positions are those without it.
             const untwisted = curvePose(o, { ...options, twist: 0 }, { size: s, position: t });
             expect(distance(at(o), untwisted)).toBeLessThanOrEqual(EPS);
@@ -207,9 +223,15 @@ describe("curvePose invariants", () => {
             const [before, here, after] = [at(o - 0.01), at(o), at(o + 0.01)];
             const j = p === "yz" ? 1 : 0;
             const direction = [after.x - before.x, after.y - before.y, after.z - before.z];
+            // The Curve's direction is the Slide's axis along it, leaned by the Tilt.
+            const [ax, ay, az] = [0, 1, 2].map((i) => here.rotation[3 * i + j] ?? Number.NaN);
+            const axis = [
+              cl * (ax ?? 0) - sl * (ay ?? 0),
+              sl * (ax ?? 0) + cl * (ay ?? 0),
+              az ?? 0,
+            ];
             direction.forEach((d, i) => {
-              const axis = here.rotation[3 * i + j] ?? Number.NaN;
-              expect(Math.abs(d / (0.02 * step) - axis)).toBeLessThan(1e-3);
+              expect(Math.abs(d / (0.02 * step) - (axis[i] ?? Number.NaN))).toBeLessThan(1e-3);
             });
           },
         ),

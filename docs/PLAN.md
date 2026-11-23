@@ -204,7 +204,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** PRODUCT "Twist".
 
 ### C1.9 · Tilt
-- **Status:** waiting (C1.8)
+- **Status:** done (2026-11-23)
 - **Goal:** the whole Curve can lean around the view axis (a tilted wheel), with the Slides upright.
 - **Depends on:** C1.8.
 - **In scope:** `tilt` (radians): positions rotate around the view axis through the centre; each
