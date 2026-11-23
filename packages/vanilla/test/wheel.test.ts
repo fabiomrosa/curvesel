@@ -10,13 +10,8 @@ class InertResizeObserver {
 
 /** A wheel event on the Stage; returns it, to see whether the page scroll was prevented. */
 function wheel(target: Element, deltaX: number, deltaY = 0, deltaMode = 0, extra = {}): WheelEvent {
-  const event = new WheelEvent("wheel", {
-    bubbles: true,
-    cancelable: true,
-    deltaX,
-    deltaY,
-    deltaMode,
-  });
+  const init = { bubbles: true, cancelable: true, deltaX, deltaY, deltaMode };
+  const event = new WheelEvent("wheel", init);
   // `happy-dom` ignores `ctrlKey` in the init: set on the event.
   for (const [name, value] of Object.entries(extra)) Object.defineProperty(event, name, { value });
   target.dispatchEvent(event);
@@ -25,13 +20,8 @@ function wheel(target: Element, deltaX: number, deltaY = 0, deltaMode = 0, extra
 
 function pointer(target: Element, type: string, x: number, t: number) {
   const buttons = type === "pointerup" ? 0 : 1;
-  const event = new PointerEvent(type, {
-    bubbles: true,
-    clientX: x,
-    clientY: 300,
-    pointerId: 1,
-    buttons,
-  });
+  const init = { bubbles: true, clientX: x, clientY: 300, pointerId: 1, buttons };
+  const event = new PointerEvent(type, init);
   Object.defineProperty(event, "timeStamp", { value: t });
   target.dispatchEvent(event);
 }
