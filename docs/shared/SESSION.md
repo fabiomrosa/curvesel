@@ -11,7 +11,8 @@ criterion**, never a whole feature.
 Lockfiles, generated files and the `size_excluded` globs of `.agents/protected.json` don't count. CI
 enforces it (`scripts/check-pr-size.py`). A slice that won't fit is split in `docs/PLAN.md` with the
 owner before coding. The owner may waive the limit for one pull request with the `oversized-ok`
-label; an agent never adds it.
+label; an agent never adds it. Review fixes need room: plan a slice that adds input or DOM
+behaviour at 300 lines at most, and setting up a package or tooling as a slice of its own.
 
 **Status** (as written on `main`): `waiting (<ids>)` → `next` → `done (YYYY-MM-DD)`.
 - `waiting (<ids>)` lists the slices and decisions in "Depends on".
