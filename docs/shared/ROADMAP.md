@@ -25,7 +25,7 @@ build, and the gate in CI.
 |---|---|
 | `curvesel` | C0.1 runnable skeleton |
 
-## M1 · Core
+## M1 · Core · done (2026-11-23)
 The Curve layout and the physics in `packages/core`, with property tests of the PRODUCT invariants,
 and a local playground that draws the Curve and grows with every slice. Curve options count length
 in Slide steps; a Pose's rotation is a 3×3 matrix (ARCHITECTURE "The math"). The owner checks the
@@ -52,8 +52,7 @@ Curve in the browser after C1.10 and the motion at the end (C1.16).
 - **M4 · React adapter.** **M5 · Angular adapter.**
 
 ## Recommended order (one session at a time)
-C0.1 (done), then C1.1 to C1.16 in order; each depends on the one before. Then "close M1" and
-"plan M2" with the owner.
+C0.1 and C1.1 to C1.16 (done; M1 closed). Next: "plan M2" with the owner.
 
 ## Open decisions (see DECISIONS.md)
 | Id | Question | Status | Needed by |
