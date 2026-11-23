@@ -1,11 +1,11 @@
 import { expect, type Page, test } from "@playwright/test";
 
-/** The screen x of every Slide's segment in a view, left to right. */
+/** The screen x of every Slide in a view, left to right. */
 function slideXs(page: Page, view: string): Promise<number[]> {
-  return page.locator(`#${view} line.slide`).evaluateAll((lines) =>
-    lines
-      .map((line) => {
-        const box = line.getBoundingClientRect();
+  return page.locator(`#${view} .slide`).evaluateAll((slides) =>
+    slides
+      .map((slide) => {
+        const box = slide.getBoundingClientRect();
         return box.x + box.width / 2;
       })
       .sort((a, b) => a - b),
@@ -72,4 +72,13 @@ test("no frame is requested at rest", async ({ page }) => {
   const frames = await page.locator("#frames").textContent();
   await page.waitForTimeout(500);
   await expect(page.locator("#frames")).toHaveText(frames ?? "");
+});
+
+test("the front view shows each Slide's face, not an edge", async ({ page }) => {
+  await page.selectOption("#preset", "cylinder");
+  const heights = await page
+    .locator("#front .slide")
+    .evaluateAll((slides) => slides.map((slide) => slide.getBoundingClientRect().height));
+  expect(heights).toHaveLength(10);
+  for (const height of heights) expect(height).toBeGreaterThan(20);
 });

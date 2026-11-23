@@ -53,16 +53,16 @@ Every slice's pull request updates it (SESSION §3).
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.
-- The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
-  selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
-  Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
-  button that closes the ring; errors show on the page. It runs a Track: dragging any view moves it
-  (pixels divided by the step on screen), a release carries the velocity of the last 100 ms into
-  Inertia and Snap, one `requestAnimationFrame` loop runs only while the Track moves, Previous and
-  Next call `goTo`, a checkbox loops it, and the page shows the Position, the phase and the frames
-  requested. Slides sit at `slideOffset(index, position, count, loop)`; each view is fitted to the
-  Curve at Position 0, so the Slides move under the pointer. The Position slider drags the Track
-  and Snaps it when let go.
+- The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a Preset
+  selector, a Plane selector and sliders for count, Curvature, gap, size, the Wave with its plane
+  and anchor, Twist, Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex`
+  order), and a button that closes the ring; errors show on the page. It runs a Track: dragging any
+  view moves it (pixels divided by the step on screen), a release carries the velocity of the last
+  100 ms into Inertia and Snap, one `requestAnimationFrame` loop runs only while the Track moves,
+  Previous and Next call `goTo`, a checkbox loops it, and the page shows the Position, the phase and
+  the frames requested. Slides sit at `slideOffset(index, position, count, loop)`; each view is
+  fitted to the Curve at Position 0, so the Slides move under the pointer. The Position slider drags
+  the Track and Snaps it when let go.
 
 ## Modules
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
@@ -131,4 +131,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.6:** Playwright in the gate; each browser test went red against the bug it
   guards (C1.16's re-centring, C2.2's content box, C2.3's `style=""` and hand-over).
 - **2026-11-23, C2.7:** the demo page, and `vite.config.ts` resolving `core` to its source.
+- **2026-11-23, fix playground:** each Slide drawn as a square, so the front and side views show
+  faces, not edges.
 - **Next:** C2.8 (Drag); the owner checks it in the demo.
