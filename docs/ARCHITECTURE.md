@@ -63,8 +63,10 @@ Each package is created by the first slice that needs it.
   or loop. `step(state, dt) → state` is pure. Input becomes calls (`dragStart`, `dragMove(delta)`,
   `release(velocity)`, `goTo(index)`) that return a new state.
 - Drag converts pixels to Position by the slide step; past the ends it is divided (Rubber band).
-- Inertia decays velocity by friction per second; below a threshold, Snap takes over: a critically
-  damped spring to `round(position)` (clamped, or free when looping).
+- Inertia decays velocity by friction per second, `rubberBand` times faster past an end, solved in
+  closed form piece by piece between the ends (any split of `dt` ends at the same Position); below
+  a threshold, Snap takes over: a critically damped spring to `round(position)` (clamped, or free
+  when looping).
 
 ## Request flow
 One gesture through the engine (M2):
