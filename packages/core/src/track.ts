@@ -96,11 +96,30 @@ export function release(state: TrackState, velocity: number): TrackState {
  */
 export function goTo(state: TrackState, index: number): TrackState {
   const offset = slideOffset(index, state.position, state.count, state.loop);
+  return snapTo(state, Math.round(state.position + offset));
+}
+
+/**
+ * Sends the Track `delta` whole Slides on from the one it is on, or heading to while it Snaps:
+ * past the ends when looping (so repeated steps keep their direction), clamped otherwise. The
+ * velocity is kept as `goTo` keeps it. Ignored during a Drag.
+ */
+export function goBy(state: TrackState, delta: number): TrackState {
+  if (!Number.isInteger(delta)) {
+    throw new Error(`curvesel: delta must be a whole number, got ${delta}`);
+  }
+  const aim = (state.phase === "snap" ? state.target : Math.round(state.position)) + delta;
+  return snapTo(state, state.loop ? aim : Math.min(Math.max(aim, 0), state.count - 1));
+}
+
+/** Snap's spring towards a whole Position, keeping the velocity towards it that never passes it. */
+function snapTo(state: TrackState, target: number): TrackState {
   if (state.phase === "drag") return state;
+  const offset = target - state.position;
   const most = SNAP_RATE * Math.abs(offset);
   const towards = Math.sign(offset) * state.velocity;
   const velocity = Math.sign(offset) * Math.min(Math.max(towards, 0), most);
-  return { ...state, velocity, target: Math.round(state.position + offset), phase: "snap" };
+  return { ...state, velocity, target, phase: "snap" };
 }
 
 /**

@@ -2,6 +2,7 @@ import {
   type CurveOptions,
   createTrack,
   curvePose,
+  goBy,
   type Layout,
   type Plane,
   type Pose,
@@ -95,8 +96,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   };
   let frame = 0;
   let last: number | undefined;
+  let destroyed = false;
   const request = () => {
-    if (frame === 0) frame = requestAnimationFrame(tick);
+    if (frame === 0 && !destroyed) frame = requestAnimationFrame(tick);
   };
   // One loop, running only while the Track moves on its own; `dt` clamped at 0 (GOTCHAS).
   const tick = (now: number) => {
@@ -107,16 +109,11 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     if (track.phase === "inertia" || track.phase === "snap") request();
     else last = undefined;
   };
-  const goTo = (index: number) => {
-    track = sendTo(track, index);
+  const move = (next: TrackState) => {
+    track = next;
     request();
   };
-  /** One Slide on from the one the Track is on or heading to; wrapping when looping. */
-  const by = (delta: number) => {
-    const at = (track.phase === "snap" ? track.target : Math.round(track.position)) + delta;
-    const count = track.count;
-    goTo(loop ? ((at % count) + count) % count : Math.min(Math.max(at, 0), count - 1));
-  };
+  const goTo = (index: number) => move(sendTo(track, index));
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
   const adopt = () => {
@@ -140,13 +137,15 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     slides = children;
     track = { ...track, count: Math.max(slides.length, 1) };
     // Past the new last Slide (it was removed), Snap back to it.
-    if (!loop && Math.max(track.position, track.target) > track.count - 1) goTo(track.count - 1);
+    const at = track.phase === "snap" ? track.target : track.position;
+    if (!loop && at > track.count - 1) goTo(track.count - 1);
   };
   const mutations = new MutationObserver(() => {
     adopt();
     draw();
   });
   const destroy = () => {
+    destroyed = true;
     if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
     resizes.disconnect();
@@ -178,8 +177,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       return track.position;
     },
     goTo,
-    next: () => by(1),
-    previous: () => by(-1),
+    next: () => move(goBy(track, 1)),
+    previous: () => move(goBy(track, -1)),
     destroy,
   };
 }

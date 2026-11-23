@@ -33,7 +33,8 @@ Every slice's pull request updates it (SESSION §3).
   Position. `slideOffset(index, position, count, loop)` is `index − position`, wrapped into
   `[−count/2, count/2)` when looping. `goTo(state, index)` starts Snap's spring towards that Slide
   (the nearest Position showing it when looping), keeping the velocity towards it up to what never
-  passes it; it is ignored during a Drag.
+  passes it; it is ignored during a Drag. `goBy(state, delta)` steps whole Slides on from the one
+  it is on or heading to (past the ends when looping, so repeated steps keep their direction).
 - `createCarousel(stage, { layout, size, perspective, loop })` (`@curvesel/vanilla`) lays the
   Stage's children on the Curve at Position 0 (size: the largest Slide along the Curve, or given),
   writing only DEC-07's properties, and lays them out again when the Stage or a Slide resizes (a
@@ -59,7 +60,7 @@ Every slice's pull request updates it (SESSION §3).
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
-  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `step`, `TrackState`,
+  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `goBy`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
 - `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.

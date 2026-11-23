@@ -361,6 +361,35 @@ describe("motion", () => {
     expect(far.style.transform).not.toBe("none");
   });
 
+  it("keeps stepping the same way when next is pressed again mid-Snap, looping", () => {
+    const carousel = createCarousel(stage(3), { size: 100, loop: true });
+    carousel.next();
+    vi.advanceTimersByTime(50);
+    carousel.next();
+    settle();
+    expect(carousel.position).toBeCloseTo(2, 9);
+  });
+
+  it("starts each motion from a still first frame, however long it rested", () => {
+    const carousel = createCarousel(stage(5), { size: 100 });
+    carousel.goTo(1);
+    settle();
+    vi.advanceTimersByTime(60_000);
+    carousel.goTo(3);
+    vi.advanceTimersByTime(17);
+    expect(carousel.position).toBeCloseTo(1, 12);
+  });
+
+  it("does nothing once destroyed", () => {
+    const root = stage(3);
+    const carousel = createCarousel(root, { size: 100 });
+    carousel.destroy();
+    carousel.goTo(2);
+    carousel.next();
+    settle();
+    expect(slides(root).some((slide) => slide.hasAttribute("style"))).toBe(false);
+  });
+
   it("cancels a pending frame on destroy", () => {
     const carousel = createCarousel(stage(3), { size: 100 });
     carousel.goTo(2);

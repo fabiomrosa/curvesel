@@ -502,7 +502,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
   step on screen, along the Curve's direction on screen (vertical in `yz`, turned by the Tilt);
   `touch-action` for that axis; release at the velocity of the last 100 ms (none if the pointer was
   held still); one pointer at a time; `pointercancel` releases. The owner checks the Drag in the
-  demo.
+  demo. Test then the clamp on removed Slides during Inertia (C2.4 review: it uses the Position
+  unless the Track Snaps).
 - **Out of scope:** the click guard (C2.9), wheel and keys (C2.10).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
