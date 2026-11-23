@@ -27,6 +27,11 @@ export interface Carousel {
 }
 
 const DEFAULT_PERSPECTIVE = 1000;
+/**
+ * Every adopted Slide, and what gives it back. A Slide moved to another Stage is given back by its
+ * old Carousel before the new one saves it, whichever observer runs first.
+ */
+const owners = new WeakMap<HTMLElement, () => void>();
 const POSITIONED = ["relative", "absolute", "fixed", "sticky"];
 const SLIDE_PROPERTIES = [
   "position",
@@ -54,27 +59,30 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   const loop = options.loop ?? false;
   let slides: HTMLElement[] = [];
   let track: TrackState = createTrack({ count: 1, loop });
-  const restores = new Map<HTMLElement, () => void>();
+  const owned = new Set<HTMLElement>();
   const saved = [save(stage, ["perspective"], [])];
   const measure = () => options.size ?? largest(slides, plane);
   const draw = () => {
     const size = measure();
     // While the Slides measure 0 (a hidden Stage) the last layout stays.
-    if (size > 0 && slides.length > 0) render(stage, slides, track, layout, size);
+    if (size > 0) render(stage, slides, track, layout, size);
   };
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
   const adopt = () => {
     const children = [...stage.children].filter((child) => child instanceof HTMLElement);
-    for (const [slide, restore] of restores) {
-      if (children.includes(slide)) continue;
-      resizes.unobserve(slide);
-      restore();
-      restores.delete(slide);
-    }
+    for (const slide of owned) if (!children.includes(slide)) owners.get(slide)?.();
     for (const slide of children) {
-      if (restores.has(slide)) continue;
-      restores.set(slide, save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES));
+      if (owned.has(slide)) continue;
+      owners.get(slide)?.();
+      const restore = save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES);
+      owned.add(slide);
+      owners.set(slide, () => {
+        resizes.unobserve(slide);
+        restore();
+        owned.delete(slide);
+        owners.delete(slide);
+      });
       // Measured once out of the flow, as it will stay.
       slide.style.position = "absolute";
       resizes.observe(slide, { box: "border-box" });
@@ -89,8 +97,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   const destroy = () => {
     mutations.disconnect();
     resizes.disconnect();
-    for (const restore of [...saved, ...restores.values()]) restore();
-    restores.clear();
+    for (const slide of owned) owners.get(slide)?.();
+    for (const restore of saved) restore();
   };
   try {
     // A positioned Stage keeps its own position; a static one becomes the Slides' containing block.

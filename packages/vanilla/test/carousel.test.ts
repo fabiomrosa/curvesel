@@ -270,6 +270,26 @@ describe("follow the children", () => {
     expect(first.hasAttribute("data-cs-active")).toBe(true);
   });
 
+  it("hands a Slide over cleanly when it moves to another Carousel", async () => {
+    // Whichever Carousel's observer runs first, the Slide ends up laid out by its new one.
+    for (const order of [
+      ["b", "a"],
+      ["a", "b"],
+    ]) {
+      document.body.innerHTML = `<div id="a"><div></div><div></div></div><div id="b"><div></div></div>`;
+      const byId = (id: string) => document.getElementById(id) as HTMLElement;
+      const moving = slides(byId("a"))[0] as HTMLElement;
+      const before = snapshot(moving);
+      const carousels = order.map((id) => createCarousel(byId(id), { size: 100 }));
+      byId("b").append(moving);
+      await mutated();
+      expect(moving.style.position).toBe("absolute");
+      expect(Number(moving.style.getPropertyValue("--cs-offset"))).toBeCloseTo(1, 12);
+      for (const carousel of carousels) carousel.destroy();
+      expect(snapshot(moving)).toEqual(before);
+    }
+  });
+
   it("stops following on destroy", async () => {
     const root = stage(2);
     createCarousel(root, { size: 100 }).destroy();

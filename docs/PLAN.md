@@ -465,7 +465,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
   `npm run e2e` in `verify` and in CI; a smoke test of the playground (the M1 close's proposal 4:
   drag the ribbon, Rubber band, Snap, no frame at rest); the engine's resize in the browser (C2.2
   review: a Slide's padding change, a hidden then shown Stage, no `ResizeObserver` loop error); a
-  restored or removed Slide that had no `style` attribute has none (C2.3; `happy-dom` drops it).
+  restored or removed Slide that had no `style` attribute has none, and a Slide moved to a Carousel
+  created earlier is laid out by it and fully restored (C2.3; `happy-dom` hides both).
 - **Out of scope:** the demo (C2.7).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**

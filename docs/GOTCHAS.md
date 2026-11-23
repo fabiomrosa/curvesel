@@ -17,6 +17,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - `ResizeObserver` watches the content box by default: a padding or border change alone never
   fires it. Observe `{ box: "border-box" }` when measuring `offsetWidth`. It never fires for an
   element that only moves.
+- Chrome keeps an emptied `style=""` attribute; `happy-dom` drops it. `happy-dom` also runs
+  `MutationObserver` callbacks in another order than Chrome (creation order), so a Slide moved
+  between two Carousels only shows a mix-up in the browser.
 - The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
   a command's exit code, run it without a pipe and read `$?`.
 
