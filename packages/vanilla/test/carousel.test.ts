@@ -112,17 +112,6 @@ describe("createCarousel", () => {
     expect(second.startsWith("translate(320px, 150px) translate(-50%, -50%) ")).toBe(true);
     expectPose(second, curvePose(1, presets.ribbon, { size: 150 }));
   });
-    for (const slide of slides(root)) {
-      stub(slide, { offsetLeft: 80, offsetTop: 50 });
-      Object.defineProperty(slide, "offsetWidth", {
-        get: () => (absolute(slide) ? 150 : 800),
-      });
-    }
-    createCarousel(root, { layout: "ribbon" });
-    const second = slides(root)[1]?.style.transform ?? "";
-    expect(second.startsWith("translate(320px, 150px) translate(-50%, -50%) ")).toBe(true);
-    expectPose(second, curvePose(1, presets.ribbon, { size: 150 }));
-  });
 
   it("wraps the Offsets when looping, the far Slides behind the centre", () => {
     const root = stage(5);
