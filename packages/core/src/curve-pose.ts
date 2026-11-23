@@ -14,6 +14,8 @@ export interface Wave {
    * around it, so a wavy ribbon stays level on average.
    */
   readonly phase?: number;
+  /** `space` (default): the Wave stays put as the Slides move; `ribbon`: it travels with them. */
+  readonly anchor?: "space" | "ribbon";
 }
 
 /** The Curve's options. Lengths along the Curve count Slide steps (`size + gap`). */
@@ -34,6 +36,8 @@ export interface CurveOptions {
 export interface LayoutContext {
   /** The slide size along the Curve, in px. */
   readonly size: number;
+  /** The Track's Position; 0 when absent. */
+  readonly position?: number;
 }
 
 const PLANES: readonly Plane[] = ["xz", "yz", "xy"];
@@ -65,7 +69,12 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   if (!PLANES.includes(plane)) {
     throw new Error(`curvesel: plane must be "xz", "yz" or "xy", got ${JSON.stringify(plane)}`);
   }
+  const position = context.position ?? 0;
+  if (!Number.isFinite(position)) {
+    throw new Error(`curvesel: position must be a finite number, got ${position}`);
+  }
   if (options.wave) checkWave(options.wave);
+  const wave = options.wave && travelling(options.wave, position);
   const visibleRange = options.visibleRange ?? Number.POSITIVE_INFINITY;
   if (!(visibleRange >= 0)) {
     throw new Error(`curvesel: visibleRange must be a number ≥ 0, got ${visibleRange}`);
@@ -75,7 +84,7 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   }
   const step = context.size + options.gap;
   const turn = options.curvature * offset;
-  const heading = options.wave ? turn + waveTurn(offset, options.wave) : turn;
+  const heading = wave ? turn + waveTurn(offset, wave) : turn;
   const length = offset * step;
   const cos = Math.cos(turn);
   const sin = Math.sin(turn);
@@ -88,8 +97,8 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   // In the Curve's own Plane: `along` from the centre, `bend` towards the side it curves to.
   let along = length * sinc;
   let bend = length * cosc;
-  if (options.wave) {
-    const [a, b] = integrate(offset, options.curvature, options.wave);
+  if (wave) {
+    const [a, b] = integrate(offset, options.curvature, wave);
     along = a * step;
     bend = b * step;
   }
@@ -98,7 +107,12 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   return { ...placed, zIndex, visible: Math.abs(offset) <= visibleRange };
 }
 
-function checkWave({ amplitude, wavelength, phase = DEFAULT_PHASE }: Wave): void {
+function checkWave({ amplitude, wavelength, phase = DEFAULT_PHASE, anchor = "space" }: Wave): void {
+  if (anchor !== "space" && anchor !== "ribbon") {
+    throw new Error(
+      `curvesel: wave.anchor must be "space" or "ribbon", got ${JSON.stringify(anchor)}`,
+    );
+  }
   if (!Number.isFinite(amplitude)) {
     throw new Error(`curvesel: wave.amplitude must be a finite number, got ${amplitude}`);
   }
@@ -108,6 +122,13 @@ function checkWave({ amplitude, wavelength, phase = DEFAULT_PHASE }: Wave): void
   if (!Number.isFinite(phase)) {
     throw new Error(`curvesel: wave.phase must be a finite number, got ${phase}`);
   }
+}
+
+/** A Wave anchored to the ribbon carries its phase with the Slides: shifted by the Position. */
+function travelling(wave: Wave, position: number): Wave {
+  if (wave.anchor !== "ribbon") return wave;
+  const phase = (wave.phase ?? DEFAULT_PHASE) + (2 * Math.PI * position) / wave.wavelength;
+  return { ...wave, phase };
 }
 
 /** How much the Wave alone turns the Curve between the centre and `s`: its Curvature's integral. */

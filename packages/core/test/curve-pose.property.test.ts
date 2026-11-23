@@ -136,13 +136,16 @@ describe("curvePose invariants", () => {
       amplitude: fc.integer({ min: -1000, max: 1000 }).map((n) => n / 1000),
       wavelength: fc.integer({ min: 100, max: 2000 }).map((n) => n / 100),
       phase: fc.integer({ min: -3142, max: 3142 }).map((n) => n / 1000),
+      anchor: fc.constantFrom("space" as const, "ribbon" as const),
     });
+    // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
+    const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
 
     it("keeps the Slides on the Curve, one step apart, turned with it", () => {
       fc.assert(
-        fc.property(base, wave, plane, offset, size, gap, (c, w, p, o, s, g) => {
+        fc.property(base, wave, plane, offset, size, gap, position, (c, w, p, o, s, g, t) => {
           const options: CurveOptions = { curvature: c, gap: g, plane: p, wave: w };
-          const at = (u: number) => curvePose(u, options, { size: s });
+          const at = (u: number) => curvePose(u, options, { size: s, position: t });
           const step = s + g;
           // Offset 0 stays at the origin, facing the viewer.
           const centre = at(0);

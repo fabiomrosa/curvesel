@@ -179,6 +179,47 @@ describe("curvePose", () => {
       expectRotation(pose.rotation, IDENTITY);
     });
 
+    describe("anchored to the ribbon", () => {
+      const ribbon = { ...wave, phase: 0.4, anchor: "ribbon" as const };
+      const options = (w: Wave) => ({ curvature: 0.2, gap: 20, wave: w });
+
+      it("moves the Wave with the Position", () => {
+        for (const position of [-3.7, 0.25, 1, 6]) {
+          const shifted = { ...wave, phase: 0.4 + (2 * Math.PI * position) / 4 };
+          for (const offset of [-2, 0.5, 3]) {
+            const moving = curvePose(offset, options(ribbon), { size: 200, position });
+            const fixed = curvePose(offset, options(shifted), { size: 200 });
+            expect(Math.hypot(moving.x - fixed.x, moving.z - fixed.z)).toBeLessThan(1e-9);
+            expectRotation(moving.rotation, fixed.rotation);
+          }
+        }
+      });
+
+      it("repeats the Poses one wavelength later", () => {
+        const now = curvePose(2.5, options(ribbon), { size: 200, position: 1.3 });
+        const later = curvePose(2.5, options(ribbon), { size: 200, position: 5.3 });
+        expect(Math.hypot(now.x - later.x, now.z - later.z)).toBeLessThan(1e-6);
+        expectRotation(later.rotation, now.rotation);
+      });
+
+      it("leaves a Wave anchored in space where it is when the Position changes", () => {
+        const space = { ...wave, anchor: "space" as const };
+        const here = curvePose(2.5, options(space), { size: 200, position: 0 });
+        const there = curvePose(2.5, options(space), { size: 200, position: 3.3 });
+        expect(there).toEqual(here);
+      });
+
+      it("throws a message naming the anchor or the Position when either is invalid", () => {
+        const bad = { ...wave, anchor: "floor" as NonNullable<Wave["anchor"]> };
+        expect(() => curvePose(0, options(bad), context)).toThrow(
+          `curvesel: wave.anchor must be "space" or "ribbon", got "floor"`,
+        );
+        expect(() => curvePose(0, options(ribbon), { size: 200, position: Number.NaN })).toThrow(
+          "curvesel: position must be a finite number, got NaN",
+        );
+      });
+    });
+
     it("throws a message naming the Wave option when it is invalid", () => {
       const at = (w: Wave) => () => curvePose(0, { curvature: 0, gap: 20, wave: w }, context);
       expect(at({ amplitude: 0.5, wavelength: 0 })).toThrow(
