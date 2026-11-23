@@ -344,6 +344,218 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Files:** ~4: `playground/main.ts`, `playground/index.html`, PLAN, STATE.
 - **References:** ARCHITECTURE "Request flow", DEC-09.
 
+### C2.1 · Mount and destroy
+- **Status:** next
+- **Goal:** a Stage's children sit on the Curve, and `destroy()` leaves them exactly as they were.
+- **Depends on:** C1.16, DEC-07, DEC-08, DEC-12.
+- **In scope:** `packages/vanilla` (`@curvesel/vanilla`, depending on `core`) and `happy-dom`.
+  `createCarousel(stage, options)` with `layout` (a Preset name, Curve options or a Layout
+  function; `cylinder` by default), `size`, `perspective`, and the Track options; it writes DEC-07's
+  properties for every Slide at Position 0: `transform` (the Pose's `matrix3d`, centred on the Stage
+  by the transform alone, since DEC-07 writes no `left` or `top`), `z-index`, `visibility`,
+  `--cs-offset`, `--cs-abs-offset`, `data-cs-active`, `data-cs-visible`. The size is measured once:
+  the largest Slide along the Curve (its height in `yz`, its width otherwise); `size` overrides it.
+  `destroy()` restores every property and attribute it wrote.
+- **Out of scope:** resizing (C2.2), added or removed children (C2.3), motion (C2.4), input.
+- **Contract:** none. **Public API:** new package: `createCarousel`, `CarouselOptions`, `Carousel`
+  (`destroy`).
+- **Acceptance criteria:**
+  1. Each Slide carries the `matrix3d`, `z-index`, `visibility`, variables and attributes of its
+     Pose at Position 0 (checked against `curvePose`).
+  2. `destroy()` restores every inline property and attribute to its earlier value (absent stays
+     absent); the Slides are the same nodes, in the same order, throughout.
+  3. The size is the largest Slide along the Curve, and `size` overrides it.
+  4. A missing Stage, an unknown Preset or an invalid option throws a `curvesel:` message naming it.
+- **Files:** ~10: `packages/vanilla/{package.json,tsconfig.json,src/index.ts,src/carousel.ts,
+  test/carousel.test.ts}`, root `package.json`, the lockfile, ARCHITECTURE, PLAN, STATE.
+- **References:** DEC-07, ARCHITECTURE "Modules" and "Request flow".
+
+### C2.2 · Follow the size
+- **Status:** waiting (C2.1)
+- **Goal:** the Curve keeps fitting when the Stage or a Slide changes size.
+- **Depends on:** C2.1.
+- **In scope:** one `ResizeObserver` over the Stage and every Slide; a change re-measures and lays
+  out again (Slides only when `size` is not given); `destroy()` disconnects it.
+- **Out of scope:** added or removed children (C2.3).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. Resizing a Slide or the Stage lays the Slides out again with the new size (a stubbed
+     `ResizeObserver` in `happy-dom`).
+  2. With `size` given, a Slide's resize changes nothing; the Stage's still re-centres.
+  3. `destroy()` disconnects the observer.
+- **Files:** ~5: `src/carousel.ts`, its test, PLAN, STATE.
+- **References:** DEC-07.
+
+### C2.3 · Follow the children
+- **Status:** waiting (C2.2)
+- **Goal:** the user adds and removes Slides freely, and the Carousel follows.
+- **Depends on:** C2.2.
+- **In scope:** a `MutationObserver` on the Stage's child list: an added child is adopted, a
+  removed one gets back everything the library wrote, the Track takes the new count (the Position
+  clamped unless looping); an empty Stage draws nothing.
+- **Out of scope:** reordering animations.
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. An appended child is laid out at its Offset; a removed child carries none of the library's
+     properties or attributes.
+  2. Removing the last Slides while the Position is past them clamps it to the new last Slide.
+  3. An empty Stage mounts, draws nothing, and starts drawing when a child arrives.
+  4. `destroy()` disconnects the observer.
+- **Files:** ~5: `src/carousel.ts`, its test, PLAN, STATE.
+- **References:** DEC-07, PRODUCT invariants.
+
+### C2.4 · Animation loop and goTo
+- **Status:** waiting (C2.3)
+- **Goal:** code moves the Carousel, and it animates only while it moves.
+- **Depends on:** C2.3, DEC-09.
+- **In scope:** one `requestAnimationFrame` loop over the Track (`dt` from the frame timestamps,
+  clamped at 0, GOTCHAS); `goTo(index)`, `next()`, `previous()` and a read-only `position`; per
+  frame, only DEC-07's properties are written, all together; a Slide beyond the Visible range is
+  hidden and not written again until it comes back.
+- **Out of scope:** input (C2.8, C2.10), events (C2.5).
+- **Contract:** none. **Public API:** additive, `goTo`, `next`, `previous`, `position`.
+- **Acceptance criteria:**
+  1. `goTo` animates to the Slide and rests on it; no frame is requested at rest (a fake clock).
+  2. A culled Slide is written once when it leaves the Visible range and not again until it
+     returns.
+  3. `next` and `previous` stop at the ends, or wrap when looping.
+  4. `destroy()` cancels a pending frame.
+- **Files:** ~5: `src/carousel.ts`, its test, `src/index.ts`, PLAN, STATE.
+- **References:** DEC-09, ARCHITECTURE "Request flow".
+
+### C2.5 · Events
+- **Status:** waiting (C2.4)
+- **Goal:** the user's code hears where the Carousel is.
+- **Depends on:** C2.4.
+- **In scope:** `carousel.on('change' | 'select', handler)`, typed per event, returning an
+  unsubscribe function: `change` with the Position, at most once per frame while it moves;
+  `select` with the Active slide's index when it changes. `destroy()` drops every handler.
+- **Out of scope:** DOM events on the Stage.
+- **Contract:** none. **Public API:** additive, `on`, `CarouselEvents`.
+- **Acceptance criteria:**
+  1. `change` fires once per frame that moved the Position, never at rest.
+  2. `select` fires once per change of the Active slide, with its index (wrapped when looping).
+  3. Unsubscribing, or `destroy()`, stops a handler.
+- **Files:** ~5: `src/carousel.ts`, its test, `src/index.ts`, PLAN, STATE.
+- **References:** ARCHITECTURE "Persistence".
+
+### C2.6 · Browser tests
+- **Status:** waiting (C2.5)
+- **Goal:** real-browser tests run in the gate.
+- **Depends on:** C2.5.
+- **In scope:** Playwright, configured as in `../list-picker` (the installed Chrome, no download),
+  `npm run e2e` in `verify` and in CI; a smoke test of the playground (the M1 close's proposal 4:
+  drag the ribbon, Rubber band, Snap, no frame at rest).
+- **Out of scope:** the demo (C2.7).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. `npm run verify` runs the e2e tests, locally and in CI.
+  2. The playground smoke test goes red against C1.16's re-centring bug (views fitted to the
+     Slides) and green on `main`.
+- **Files:** ~8: `playwright.config.ts`, `e2e/playground.e2e.ts`, root `package.json`, the lockfile,
+  `.github/workflows/ci.yml`, AGENTS (commands), PLAN, STATE.
+- **References:** CONVENTIONS §5, GOTCHAS.
+
+### C2.7 · Demo page
+- **Status:** waiting (C2.6)
+- **Goal:** a page mounts the vanilla engine over real cards.
+- **Depends on:** C2.6.
+- **In scope:** `demo/` (Vite, `npm run demo`): a Stage of cards with their own buttons and inputs,
+  a Preset selector, Previous and Next on `goTo`, the Active slide shown from `select`; an e2e test
+  that every Preset mounts and `destroy()` restores the cards.
+- **Out of scope:** input on the Stage (C2.8 onwards), the demo's final look (C2.11).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. Each Preset lays the cards out in the demo (e2e: the Active card centred, the others placed).
+  2. Switching Presets destroys and mounts again; the cards keep their typed input values.
+- **Files:** ~6: `demo/index.html`, `demo/main.ts`, `e2e/demo.e2e.ts`, root `package.json`, PLAN,
+  STATE.
+- **References:** DEC-07, PRODUCT "Headless, children keep their behaviour".
+
+### C2.8 · Drag
+- **Status:** waiting (C2.7)
+- **Goal:** the user drags the Carousel with mouse, touch or pen.
+- **Depends on:** C2.7, DEC-10.
+- **In scope:** `pointerdown` on the Stage with pointer capture (no listener on `window` or
+  `document`); `pointermove` only stores the delta, applied in the next frame; pixels divided by the
+  step on screen, along the Curve's direction on screen (vertical in `yz`, turned by the Tilt);
+  `touch-action` for that axis; release at the velocity of the last 100 ms (none if the pointer was
+  held still); one pointer at a time; `pointercancel` releases. The owner checks the Drag in the
+  demo.
+- **Out of scope:** the click guard (C2.9), wheel and keys (C2.10).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. A drag in Chrome moves the cards with the pointer, and a release Snaps (e2e).
+  2. Past an end the Rubber band resists; a held-still release Snaps where it is.
+  3. The Drag, Inertia and Snap feel right in the demo (seen in the browser, by the owner).
+- **Files:** ~6: `src/carousel.ts` (or `src/drag.ts`), its test, `e2e/drag.e2e.ts`, PLAN, STATE.
+- **References:** DEC-10, ARCHITECTURE "Request flow".
+
+### C2.9 · Click guard
+- **Status:** waiting (C2.8)
+- **Goal:** a tap reaches the card; a drag does not click it.
+- **Depends on:** C2.8, DEC-10.
+- **In scope:** `dragThreshold` (px, a default from Pointer Events practice); past it, the next
+  `click` is stopped in the capture phase on the Stage, and the guard is removed after that click
+  or at the next `pointerdown`.
+- **Out of scope:** wheel and keys.
+- **Contract:** none. **Public API:** additive, the `dragThreshold` option.
+- **Acceptance criteria:**
+  1. A tap on a card's button reaches it (e2e).
+  2. A drag that ends over a button does not click it, and the next tap does.
+- **Files:** ~5: `src/carousel.ts`, its test, `e2e/drag.e2e.ts`, PLAN, STATE.
+- **References:** DEC-10.
+
+### C2.10 · Wheel and keyboard
+- **Status:** waiting (C2.9)
+- **Goal:** a trackpad or wheel scrolls the Carousel, and arrow keys step it.
+- **Depends on:** C2.9, DEC-10, DEC-14.
+- **In scope:** `wheel` along the drag axis moves the Track like a Drag and Snaps after a short
+  pause, preventing the page scroll only when the Track moves; with the Stage focused, the arrow
+  keys of the drag axis call `next` and `previous`, Home and End go to the ends; `tabindex="0"` on
+  a Stage without one (DEC-14), removed by `destroy()`.
+- **Out of scope:** ARIA (M3).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. Wheel deltas move the Track and it Snaps after the pause; at an end the page scrolls instead.
+  2. Arrow keys, Home and End move the focused Carousel (e2e).
+  3. `destroy()` removes the `tabindex` it added and leaves the user's own.
+- **Files:** ~6: `src/carousel.ts`, its test, `e2e/keys.e2e.ts`, DECISIONS (DEC-14 only if
+  changed), PLAN, STATE.
+- **References:** DEC-10, DEC-14.
+
+### C2.11 · Demo with every Preset
+- **Status:** waiting (C2.10)
+- **Goal:** the demo shows every Preset, the arc of cards included, and the owner checks M2.
+- **Depends on:** C2.10.
+- **In scope:** the demo's styles, driven by `--cs-abs-offset` and `data-cs-active` (side cards
+  dimmed and smaller); the arc of cards as ARCHITECTURE "Design references" describes it (centre
+  below the screen, side cards tilted and dimmed); a wavy ribbon and the loop.
+- **Out of scope:** publishing the demo (M3).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. Every Preset looks as named and moves as in M1's playground (seen in the browser, by the
+     owner).
+  2. The demo's look lives in `demo/` only; the library writes nothing beyond DEC-07 and DEC-14.
+- **Files:** ~5: `demo/index.html`, `demo/main.ts`, `demo/style.css`, PLAN, STATE.
+- **References:** ARCHITECTURE "Design references", DEC-07.
+
+### C2.12 · Frame budget
+- **Status:** waiting (C2.11)
+- **Goal:** the cost of a frame is measured, not assumed.
+- **Depends on:** C2.11.
+- **In scope:** a trace of a drag in Chrome with 20 and 200 Slides, with and without a Wave
+  (`bench/`), its method and medians written down; a fix (PLAN "Later": one integration per
+  frame) is a slice of its own if a frame goes over budget.
+- **Out of scope:** the fix itself.
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The script reports the median and worst frame times of each case.
+  2. The numbers and the method are recorded in `docs/ARCHITECTURE.md` (or a decision, if they
+     change one).
+- **Files:** ~5: `bench/frame-trace.ts`, root `package.json`, ARCHITECTURE, PLAN, STATE.
+- **References:** PRODUCT "Measured, not assumed".
+
 ## Later
 Ideas not planned yet; a milestone's planning picks from here.
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the

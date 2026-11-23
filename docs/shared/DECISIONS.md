@@ -133,6 +133,15 @@ swings evenly around it.
 - **Consequences:** a wavy ribbon stays level on average and symmetric about the Active slide; the
   Curvature at the centre is `curvature + amplitude`.
 
+
+## DEC-14 · The engine makes the Stage focusable — Accepted (owner, 2026-11-23)
+Extends DEC-07's list: when the Stage has no `tabindex`, the engine sets `tabindex="0"` and removes
+it on `destroy()`; a `tabindex` the user set is left as it is.
+- **Why:** the arrow keys (DEC-10) need the Stage to have focus, and a headless library should not
+  ask every user to know that.
+- **Consequences:** the Stage joins the tab order; a user who wants otherwise sets their own
+  `tabindex`. The focus ring is the user's CSS.
+
 ---
 
 ## Proposed (waiting for the owner)
