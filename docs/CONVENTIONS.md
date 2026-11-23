@@ -37,6 +37,9 @@ packages/<name>/
 - Bad input at mount or in a public call (a missing Stage, an invalid option, an index out of
   range) throws an `Error` whose message starts with `curvesel:` and names the value.
 - Nothing is logged with `console` in library code.
+- A loop in library code that runs until a condition holds also has a count bound, as `step` bounds
+  its pieces: a loop that stops making progress then fails a test instead of hanging Vitest
+  (GOTCHAS).
 
 ## 5. Tests
 | Behaviour | Seam | Test |
