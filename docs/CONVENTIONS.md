@@ -50,7 +50,15 @@ packages/<name>/
 never with `toBe`.
 
 **Property tests** assert that they reached their interesting outcomes (a minimum count of each),
-so a weak generator fails instead of passing blind.
+so a weak generator fails instead of passing blind. A property earns trust by going red:
+- its tolerance is seen red against a small wrong variant of the formula it guards (a flipped sign,
+  a wrong coefficient);
+- its oracle compares raw values within the documented tolerance, computed independently of the
+  code's own rounding or bucketing;
+- a case the generator reaches rarely also gets a deterministic example test;
+- numeric generators are integer-mapped (`fc.integer(...).map`) for an even spread, unless the bias
+  towards 0 is the point (GOTCHAS "Property tests");
+- a floating-point boundary is probed ulp by ulp around it, as `slide-offset.test.ts` does.
 
 **Benchmarks** build their fixtures outside the timing, warm up each side, alternate which side runs
 first, and report a median; a decision record states the method next to the numbers.
