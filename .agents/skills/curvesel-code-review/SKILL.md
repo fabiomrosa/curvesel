@@ -57,7 +57,8 @@ reference. Any "no" is fixed before the pull request (or explicitly listed as a 
       new traps.
 
 ## Tests
-- [ ] Every acceptance criterion has a test that was seen red (test-first, or the rule broken once).
+- [ ] Every acceptance criterion has a test seen red against a break of the behaviour itself, not
+      only of the page, a fake or a layer that hides it; the pull request's "Seen red" names it.
 - [ ] Each test exercises what runs, not a declaration the runtime may ignore (break the code once if
       unsure).
 - [ ] A mistake this review keeps finding is proposed as a check in the retro.
