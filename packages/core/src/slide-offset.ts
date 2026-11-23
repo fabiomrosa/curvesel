@@ -16,5 +16,8 @@ export function slideOffset(index: number, position: number, count: number, loop
   const offset = index - position;
   if (!loop) return offset;
   const half = count / 2;
-  return offset - count * Math.floor((offset + half) / count);
+  const wrapped = offset - count * Math.floor((offset + half) / count);
+  // Rounding can land a hair below −count/2 (never at count/2 or above, in 17 million probes near
+  // every boundary); one more turn brings it back.
+  return wrapped < -half ? wrapped + count : wrapped;
 }

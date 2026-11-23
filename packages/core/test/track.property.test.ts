@@ -66,12 +66,13 @@ describe("Inertia and Snap invariants", () => {
         count,
         rubberBand,
         friction,
+        fc.boolean(),
         start,
         velocity,
         jitter,
-        (n, band, f, from, v, dts) => {
+        (n, band, f, loop, from, v, dts) => {
           const dragged = dragMove(
-            dragStart(createTrack({ count: n, rubberBand: band, friction: f })),
+            dragStart(createTrack({ count: n, rubberBand: band, friction: f, loop })),
             n * from - 0.5,
           );
           const released = release(dragged, v);
