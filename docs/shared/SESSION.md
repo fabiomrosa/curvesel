@@ -37,6 +37,9 @@ owner to confirm.
 - **References:** design screens, decisions, docs sections.
 ```
 
+A value the entry picks where a decision leaves it open is marked `(agent's reading of DEC-nn)`, so
+the review checks it against the decision and the owner sees it was a choice.
+
 ## 1. Start
 1. `git switch main && git pull` in every repository of the project.
 2. Read the repository's `AGENTS.md`, `docs/STATE.md`, `docs/PLAN.md` (in Claude Code, the
