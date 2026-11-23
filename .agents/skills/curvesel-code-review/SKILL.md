@@ -44,6 +44,9 @@ reference. Any "no" is fixed before the pull request (or explicitly listed as a 
       `requestAnimationFrame`; no layout read after a write in the same frame.
 - [ ] A click on a slide reaches it unless the drag passed the threshold.
 - [ ] Every listener added is removed by `destroy()`.
+- [ ] Every listener and callback survives a handler that re-enters the API (`on`, unsubscribe,
+      `goTo`, `destroy`) or throws, a Slide that stops the event, and another input in progress
+      (a Drag, a wheel gesture, a key).
 
 ## Public API
 - [ ] Changes to a package's `src/index.ts` are listed in the pull request, additive or breaking.
