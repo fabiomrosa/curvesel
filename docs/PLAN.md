@@ -312,7 +312,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, PRODUCT invariants.
 
 ### C1.15 · goTo
-- **Status:** waiting (C1.14)
+- **Status:** done (2026-11-23)
 - **Goal:** code can send the Track to any Slide with the same spring as Snap.
 - **Depends on:** C1.14.
 - **In scope:** `goTo(state, index)`: Snap towards `index`; when looping, the nearest whole

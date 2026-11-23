@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { createTrack, dragMove, dragStart, release, step, type TrackState } from "../src/index.ts";
+import {
+  createTrack,
+  dragMove,
+  dragStart,
+  goTo,
+  release,
+  step,
+  type TrackState,
+} from "../src/index.ts";
 
 function drag(state: TrackState, ...deltas: number[]): TrackState {
   return deltas.reduce(dragMove, dragStart(state));
@@ -289,5 +297,66 @@ describe("loop", () => {
     expect(
       settle(release(drag(createTrack({ count: 3, loop: true }), -1.7), 0)).position,
     ).toBeCloseTo(-2, 12);
+  });
+});
+
+describe("goTo", () => {
+  it("snaps to the index and rests on it, the same at 30, 60 and 120 fps", () => {
+    const sent = goTo(createTrack({ count: 9 }), 6);
+    expect(sent.phase).toBe("snap");
+    expect(sent.target).toBe(6);
+    for (const fps of [30, 60, 120]) {
+      let track = sent;
+      for (let i = 0; i < 600 && track.phase !== "rest"; i++) track = step(track, 1 / fps);
+      expect(track.phase).toBe("rest");
+      expect(track.position).toBeCloseTo(6, 12);
+    }
+  });
+
+  it("keeps the velocity towards the target, up to what the spring takes without passing it", () => {
+    const moving = release(drag(createTrack({ count: 9 }), 3), 5);
+    expect(goTo(moving, 6).velocity).toBeCloseTo(5, 12);
+    // 12 per second × 1 Position away.
+    expect(goTo(release(drag(createTrack({ count: 9 }), 5), 50), 6).velocity).toBeCloseTo(12, 12);
+  });
+
+  it("drops the velocity away from the target", () => {
+    const away = release(drag(createTrack({ count: 9 }), 3), -5);
+    const sent = goTo(away, 6);
+    expect(sent.velocity).toBeCloseTo(0, 12);
+    expect(settle(sent).position).toBeCloseTo(6, 12);
+  });
+
+  it("never passes the target, so a fling cannot leave the bounds", () => {
+    let track = goTo(release(drag(createTrack({ count: 9 }), 0.3), -50), 0);
+    let lowest = track.position;
+    for (let i = 0; i < 600 && track.phase !== "rest"; i++) {
+      track = step(track, 1 / 60);
+      lowest = Math.min(lowest, track.position);
+    }
+    expect(lowest).toBeGreaterThanOrEqual(0);
+    expect(track.position).toBeCloseTo(0, 12);
+  });
+
+  it("is ignored during a Drag", () => {
+    const dragging = drag(createTrack({ count: 9 }), 2);
+    expect(goTo(dragging, 5)).toEqual(dragging);
+  });
+
+  it("takes the short way round when looping", () => {
+    const nearEnd = release(drag(createTrack({ count: 5, loop: true }), 4.4), 0);
+    expect(goTo(nearEnd, 0).target).toBe(5);
+    expect(goTo(nearEnd, 2).target).toBe(2);
+    const turned = release(drag(createTrack({ count: 5, loop: true }), -7.2), 0);
+    expect(goTo(turned, 3).target).toBe(-7);
+    expect(settle(goTo(nearEnd, 0)).position).toBeCloseTo(5, 12);
+  });
+
+  it("throws a message naming the index when it is outside [0, count) or not whole", () => {
+    expect(() => goTo(createTrack({ count: 3 }), 3)).toThrow(
+      "curvesel: index must be a whole number in [0, 3), got 3",
+    );
+    expect(() => goTo(createTrack({ count: 3 }), -1)).toThrow("curvesel: index");
+    expect(() => goTo(createTrack({ count: 3, loop: true }), 1.5)).toThrow("curvesel: index");
   });
 });

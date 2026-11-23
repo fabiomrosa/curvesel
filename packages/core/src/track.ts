@@ -1,3 +1,5 @@
+import { slideOffset } from "./slide-offset.ts";
+
 /** The Track's motion state; every call returns a new one. */
 export interface TrackState {
   /** The Position, in Slides: 0 is the first, `count − 1` the last. */
@@ -85,6 +87,20 @@ export function release(state: TrackState, velocity: number): TrackState {
   }
   if (Math.abs(velocity) < REST_SPEED) return snapFrom(state, state.position, velocity);
   return { ...state, velocity, phase: "inertia" };
+}
+
+/**
+ * Sends the Track to Slide `index` with Snap's spring; when looping, to the nearest whole Position
+ * that shows that Slide. It keeps the velocity towards the target, up to `SNAP_RATE` times the
+ * distance, so the spring never passes it. Ignored during a Drag.
+ */
+export function goTo(state: TrackState, index: number): TrackState {
+  const offset = slideOffset(index, state.position, state.count, state.loop);
+  if (state.phase === "drag") return state;
+  const most = SNAP_RATE * Math.abs(offset);
+  const towards = Math.sign(offset) * state.velocity;
+  const velocity = Math.sign(offset) * Math.min(Math.max(towards, 0), most);
+  return { ...state, velocity, target: Math.round(state.position + offset), phase: "snap" };
 }
 
 /**

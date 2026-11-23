@@ -14,6 +14,7 @@ export {
   createTrack,
   dragMove,
   dragStart,
+  goTo,
   release,
   step,
   type TrackOptions,

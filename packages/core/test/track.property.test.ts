@@ -1,6 +1,14 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { createTrack, dragMove, dragStart, release, step, type TrackState } from "../src/index.ts";
+import {
+  createTrack,
+  dragMove,
+  dragStart,
+  goTo,
+  release,
+  step,
+  type TrackState,
+} from "../src/index.ts";
 
 /** A speed below any rest threshold: an upper bound for the time Inertia lasts. */
 const SLOW = 0.001;
@@ -135,5 +143,45 @@ describe("Inertia and Snap invariants", () => {
     );
     expect(interrupted).toBeGreaterThan(100);
     expect(outsideLooping).toBeGreaterThan(30);
+  });
+
+  it("comes to rest on the Slide `goTo` names, wherever it starts, at any frame rate", () => {
+    let fast = 0;
+    fc.assert(
+      fc.property(
+        count,
+        fc.boolean(),
+        start,
+        velocity,
+        fc.integer({ min: 0, max: 999 }),
+        jitter,
+        (n, loop, from, v, i, dts) => {
+          const index = i % n;
+          const moving = release(
+            dragMove(dragStart(createTrack({ count: n, loop })), n * from - 0.5),
+            v,
+          );
+          if (Math.abs(v) > 1) fast++;
+          const sent = goTo(moving, index);
+          const resting = goTo(dragMove(createTrack({ count: n, loop }), n * from - 0.5), index);
+          if (loop)
+            expect(Math.abs(resting.target - resting.position)).toBeLessThanOrEqual(n / 2 + 0.5);
+          const outcomes = [[1 / 30], [1 / 60], [1 / 120], dts].map((schedule) =>
+            run(sent, schedule),
+          );
+          for (const { smooth } of outcomes) expect(smooth).toBe(true);
+          const runs = outcomes.map(({ end }) => end);
+          for (const end of runs) {
+            expect(end.phase).toBe("rest");
+            expect(end.position).toBeCloseTo(runs[0]?.position as number, 12);
+            const shown = ((end.position % n) + n) % n;
+            expect(shown).toBeCloseTo(index, 9);
+            if (!loop) expect(end.position).toBeCloseTo(index, 12);
+          }
+        },
+      ),
+      { numRuns: 300 },
+    );
+    expect(fast).toBeGreaterThan(150);
   });
 });
