@@ -98,14 +98,20 @@ describe("createCarousel", () => {
   });
 
   it("centres each Slide from where it starts, after it becomes absolute", () => {
-    // A padded or flex-centred Stage starts an absolute Slide away from its top-left; and an
-    // auto-width Slide or auto-height Stage measures differently once the Slides are absolute.
+    // Padding or alignment moves where an absolute Slide starts; sizes change once out of the flow.
     const root = stage(3);
-    const absolute = (slide: Element) => (slide as HTMLElement).style.position === "absolute";
-    Object.defineProperty(root, "clientWidth", { get: () => 800 });
-    Object.defineProperty(root, "clientHeight", {
-      get: () => (slides(root).every(absolute) ? 400 : 900),
-    });
+    const out = () => slides(root).every((slide) => slide.style.position === "absolute");
+    const when = (absolute: number, inFlow: number) => ({ get: () => (out() ? absolute : inFlow) });
+    Object.defineProperties(root, { clientWidth: when(800, 800), clientHeight: when(400, 900) });
+    for (const slide of slides(root)) {
+      stub(slide, { offsetLeft: 80, offsetTop: 50 });
+      Object.defineProperty(slide, "offsetWidth", when(150, 800));
+    }
+    createCarousel(root, { layout: "ribbon" });
+    const second = slides(root)[1]?.style.transform ?? "";
+    expect(second.startsWith("translate(320px, 150px) translate(-50%, -50%) ")).toBe(true);
+    expectPose(second, curvePose(1, presets.ribbon, { size: 150 }));
+  });
     for (const slide of slides(root)) {
       stub(slide, { offsetLeft: 80, offsetTop: 50 });
       Object.defineProperty(slide, "offsetWidth", {
