@@ -38,19 +38,20 @@ Each package is created by the first slice that needs it.
   size. `gap` is in px; `size` is measured by the engine and passed in the Layout context.
 - `curvePose(offset, options, context) → Pose`: the arc length is `s = offset` steps; the heading
   `θ(s)` is the integral of `κ(s)`; the position is the integral of the unit tangent, in the chosen
-  Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near
-  `κ = 0`); with a Wave, the heading in closed form and the position by Simpson's rule, 32
-  intervals per step (default phase π/2, DEC-13). The Curve has two angles along its length: the
-  yaw in its Plane (the Curvature and a `z` Wave) and the pitch across it (a `y` Wave). The tangent
-  `(cos ψ cos φ, −cos ψ sin φ, sin ψ)` is integrated in the Curve's own axes (along, bend, across),
-  then each Plane maps those axes to the Stage's; the Slide pitches around its face normal. Twist rotates each
-  Slide around its tangent. Tilt rotates the whole Curve around the view axis through the centre,
-  and each Slide back by the same angle, so its content stays upright.
+  Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near `κ =
+  0`); with a Wave, the heading in closed form and the position by Simpson's rule, 32 intervals per
+  step (default phase π/2, DEC-13). The Curve has two angles along its length: the yaw in its Plane
+  (the Curvature and a `z` Wave) and the pitch across it (a `y` Wave). The tangent `(cos ψ cos φ,
+  −cos ψ sin φ, sin ψ)` is integrated in the Curve's own axes (along, bend, across), then each Plane
+  maps those axes to the Stage's; the Slide pitches around the Curve's in-Plane normal. Twist rotates each Slide
+  around its tangent. Tilt rotates the whole Curve around the view axis through the centre, and each
+  Slide back by the same angle, so its content stays upright.
 - A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine
   writes it as one `matrix3d()`. Rotations combine by multiplying matrices, never as Euler angles.
-  The Slide at Offset 0 is at the origin with the identity rotation. `zIndex` comes from the
-  Slide's own depth, in buckets of 1/100 of a step, each split by `|offset|` in 1/100 of an Offset
-  (up to 100) so that at equal depth the Slide nearer the centre is above; `visible` is `|offset| ≤ visibleRange`.
+  The Slide at Offset 0 is at the origin with the identity rotation. `zIndex` comes from the Slide's
+  own depth, in buckets of 1/100 of a step, each split by `|offset|` in 1/100 of an Offset (up to
+  100) so that at equal depth the Slide nearer the centre is above; `visible` is `|offset| ≤
+  visibleRange`.
 - Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`, with a
   helper that builds a rotation from angles.
 

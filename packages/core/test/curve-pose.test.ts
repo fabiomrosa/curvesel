@@ -239,6 +239,14 @@ describe("curvePose", () => {
         expectRotation(pose.rotation, [c, -s, 0, s, c, 0, 0, 0, 1]);
       });
 
+      it("pitches across the wheel (x) and across the arc (z, towards the viewer)", () => {
+        const [c, s] = [Math.cos(1 / Math.PI), Math.sin(1 / Math.PI)];
+        const wheel = curvePose(1, { curvature: 0, gap: 20, plane: "yz", wave: across }, context);
+        expectRotation(wheel.rotation, [c, s, 0, -s, c, 0, 0, 0, 1]);
+        const arc = curvePose(1, { curvature: 0, gap: 20, plane: "xy", wave: across }, context);
+        expectRotation(arc.rotation, [c, 0, -s, 0, 1, 0, s, 0, c]);
+      });
+
       it("waves a flat ribbon up and down in the screen, at no depth", () => {
         const at = (offset: number) =>
           curvePose(offset, { curvature: 0, gap: 20, wave: across }, context);

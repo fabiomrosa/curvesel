@@ -175,7 +175,8 @@ function integrate(s: number, yaw: (u: number) => number, pitch: (u: number) => 
 
 /**
  * The Slide's own axes in the Curve's axes, for a yaw `φ` in the Plane and a pitch `ψ` across it:
- * the tangent, the face (the in-Plane normal, which the pitch turns around) and the third axis.
+ * the tangent, the in-Plane normal (which the pitch turns around; the Slide's face in `xz` and
+ * `yz`) and the third axis.
  */
 function frame(yaw: number, pitch: number): [tangent: Vector, face: Vector, third: Vector] {
   const [cy, sy, cp, sp] = [Math.cos(yaw), Math.sin(yaw), Math.cos(pitch), Math.sin(pitch)];
