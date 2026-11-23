@@ -9,7 +9,7 @@ const active = byId<HTMLOutputElement>("active");
 const loop = byId<HTMLInputElement>("loop");
 /** The demo's own Curve beside the Presets: a flat ribbon undulating in depth. */
 const layouts: Record<string, CurveOptions> = {
-  "wavy ribbon": { curvature: 0, gap: 20, wave: { amplitude: 0.35, wavelength: 6 } },
+  "wavy ribbon": { curvature: 0, gap: 20, wave: { amplitude: 0.7, wavelength: 4 } },
 };
 
 // The user's own cards: the library adopts them, it never builds or changes their inside. Ten

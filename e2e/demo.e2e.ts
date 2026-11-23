@@ -76,6 +76,17 @@ test("switching Presets destroys the Carousel it replaces", async ({ page }) => 
   await expect(page.locator("#active")).toHaveText("1");
 });
 
+test("the wavy ribbon undulates: the third card out comes forward again", async ({ page }) => {
+  await page.selectOption("#preset", "wavy ribbon");
+  const depth = await page.evaluate(() =>
+    [...(document.getElementById("stage") as HTMLElement).children].map((card) =>
+      Number((card as HTMLElement).style.zIndex),
+    ),
+  );
+  // A plain bend goes deeper with each card; the Wave turns back after its trough.
+  expect(depth[3]).toBeGreaterThan(depth[2] as number);
+});
+
 test("the side cards are dimmed and smaller, by the demo's own CSS", async ({ page }) => {
   const look = (index: number) =>
     page
