@@ -5,14 +5,15 @@ it, and thin adapters on top of both. Behaviour is written and tested once, in t
 adapters only bind it to a UI layer (DEC-11, DEC-12).
 
 ## Stack
-Exact versions are pinned in the root `package.json` (the same toolchain as `../list-picker`).
+Exact versions are pinned in the root `package.json` (the same toolchain as `../list-picker`):
+TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, Biome 2.6.8.
 - **Language:** TypeScript 7, `strict` plus `noUncheckedIndexedAccess` and
   `exactOptionalPropertyTypes`, ES modules (`nodenext`), target ES2024. Node 26 (npm 11).
 - **Workspace:** npm workspaces, packages under `packages/`. The root `tsconfig.json` type-checks
   every package's `src` and `test`; each package's `tsconfig.json` extends it to build its `src`.
-- **Tests:** Vitest 5 with V8 coverage; `fast-check` 4 for property tests of the PRODUCT invariants.
-  Added when first needed: `happy-dom` for engine unit tests (M2), Playwright for real-browser tests
-  (M2).
+- **Tests:** Vitest 5 with V8 coverage. Added when first needed: `fast-check` 4 for property tests
+  of the PRODUCT invariants (M1), `happy-dom` for engine unit tests (M2), Playwright for
+  real-browser tests (M2).
 - **Format and lint:** Biome 2.
 - **Build:** `tsc` per package, to ESM plus type declarations in `dist/`.
 - **Playground:** Vite (dev server only), from C1.1.
