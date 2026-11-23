@@ -23,4 +23,7 @@ None.
 - **2026-11-23, C0.1:** the runnable skeleton: root `package.json`, `tsconfig.json` and
   `biome.json` copied from `../list-picker`'s working toolchain, `packages/core` building to ESM
   plus declarations, a smoke test, the coverage floor as CLI flags, and the `gate` job in CI.
-- **Next:** "plan M1" with the owner.
+- **2026-11-23, plan M1:** sixteen slices, C1.1 to C1.16 (`docs/PLAN.md`). Agreed with the owner:
+  Curve options in Slide steps, a Pose's rotation as a 3×3 matrix, and Tilt around the view axis
+  with the Slides kept upright (ARCHITECTURE "The math", PRODUCT terms).
+- **Next:** C1.1 (constant Curvature).

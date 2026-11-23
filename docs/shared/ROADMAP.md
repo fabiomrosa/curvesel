@@ -25,6 +25,16 @@ build, and the gate in CI.
 |---|---|
 | `curvesel` | C0.1 runnable skeleton |
 
+## M1 · Core
+The Curve layout and the physics in `packages/core`, with property tests of the PRODUCT invariants,
+and a local playground that draws the Curve and grows with every slice. Curve options count length
+in Slide steps; a Pose's rotation is a 3×3 matrix (ARCHITECTURE "The math"). The owner checks the
+Curve in the browser after C1.10 and the motion at the end (C1.16).
+
+| Repository | Slices |
+|---|---|
+| `curvesel` | **Curve:** C1.1 constant Curvature, C1.2 playground, C1.3 Planes, C1.4 visible range and depth order, C1.5 Wave in the Plane, C1.6 Wave anchored to the ribbon, C1.7 Wave across the Plane, C1.8 Twist, C1.9 Tilt, C1.10 Presets and custom Layouts. **Physics:** C1.11 Track and Drag, C1.12 Inertia, C1.13 Snap, C1.14 Loop, C1.15 goTo, C1.16 playground with motion |
+
 ## Prerequisites (only the owner can do these)
 - **P1** · The GitHub repository `curvesel`, `main` pushed, labels and squash settings
   (OWNER_PLAN §0). Needed by C0.1.
@@ -32,11 +42,6 @@ build, and the gate in CI.
   publish (M3).
 
 ## Later milestones (split when they start)
-- **M1 · Core.** The Curve layout: constant Curvature (cylinder ↔ flat ribbon), then Wave (planes Z
-  and Y, anchors `space` and `ribbon`), Twist, Tilt and the three Planes; the Presets; the custom
-  Layout function. The physics: Position, Drag input, Inertia, Snap, Rubber band, loop, `goTo`.
-  Property tests of the PRODUCT invariants. A local playground draws the Curve in 2D and grows with
-  every slice; the owner checks it in the browser at the end of M1.
 - **M2 · Vanilla engine and demo.** Mount over the Stage's children, measure with
   `ResizeObserver`, follow added and removed children, Pointer Events, wheel, keyboard, the click
   guard, culling, the CSS variables and attributes, `destroy()`, browser tests. A demo page with
@@ -47,7 +52,8 @@ build, and the gate in CI.
 - **M4 · React adapter.** **M5 · Angular adapter.**
 
 ## Recommended order (one session at a time)
-C0.1, then "plan M1" with the owner.
+C0.1 (done), then C1.1 to C1.16 in order; each depends on the one before. Then "close M1" and
+"plan M2" with the owner.
 
 ## Open decisions (see DECISIONS.md)
 | Id | Question | Status | Needed by |

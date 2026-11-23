@@ -31,13 +31,22 @@ TypeScript 7.0.2, Vitest 5.1.1 with `@vitest/coverage-v8` 5.1.1, Biome 2.6.8.
 Each package is created by the first slice that needs it.
 
 ### The math (`core`)
-- `curvePose(offset, options) → Pose`: `s = offset · (size + gap)`; the heading `θ(s)` is the
-  integral of `κ(s)`; the position is the integral of `(cos θ, sin θ)` in the chosen Plane. With no
-  Wave it is closed form (`x = sin(κs)/κ`, `z = (cos(κs) − 1)/κ`, a series near `κ = 0`); with a
-  Wave, a fixed number of Simpson steps. Twist rotates around the tangent; Tilt rotates the result.
-- A Pose is `{ x, y, z, rx, ry, rz, zIndex, visible }`; the engine turns it into one `transform`
-  string. The Slide at Offset 0 is at the origin with no rotation.
-- Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`.
+- **Units:** the Curve's options count length in Slide steps, `step = size + gap` (px): Curvature is
+  radians of bend per step (a closed cylinder of N Slides is `2π / N`), the Wave's wavelength is in
+  Slides, Twist is radians per step. The radius is `step / curvature`, so a Preset fits any slide
+  size. `gap` is in px; `size` is measured by the engine and passed in the Layout context.
+- `curvePose(offset, options, context) → Pose`: the arc length is `s = offset` steps; the heading
+  `θ(s)` is the integral of `κ(s)`; the position is the integral of the unit tangent, in the chosen
+  Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near
+  `κ = 0`); with a Wave, a fixed number of Simpson steps. A Wave across the Plane (`wave.plane:
+  'y'`, against `'z'` in it) integrates a rotation frame instead of an angle. Twist rotates each
+  Slide around its tangent. Tilt rotates the whole Curve around the view axis through the centre,
+  and each Slide back by the same angle, so its content stays upright.
+- A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine
+  writes it as one `matrix3d()`. Rotations combine by multiplying matrices, never as Euler angles.
+  The Slide at Offset 0 is at the origin with the identity rotation.
+- Presets are plain option objects; a custom Layout is any `(offset, context) → Pose`, with a
+  helper that builds a rotation from angles.
 
 ### The physics (`core`)
 - `TrackState`: `{ position, velocity, phase: 'rest' | 'drag' | 'inertia' | 'snap' }` plus bounds
