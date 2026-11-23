@@ -13,6 +13,12 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
   a command's exit code, run it without a pipe and read `$?`.
 
+## Property tests
+- `fc.double({ min, max })` favours values near 0 and the bounds: over `±2π`, under 10% of
+  draws exceed 1. Map `fc.integer` for an even spread (`n / 1000`).
+- `fc.double` also draws denormals (`5e-324`): a reference formula must divide before it multiplies
+  (`L · (sin(u) / u)`), or `L · sin(u)` underflows to 0.
+
 ## DOM and motion
 - Without `touch-action` set on the Stage, a touch drag scrolls the page and fires `pointercancel`.
 - `setPointerCapture` keeps `pointermove` coming when the pointer leaves the Stage; without it, a

@@ -45,7 +45,7 @@ Layout slice keeps the PRODUCT invariants in the shared property test
 owner checks the Curve in the browser after C1.10 and the motion at the end of M1 (C1.16).
 
 ### C1.1 · Curve: constant Curvature
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** Slides sit at equal steps along a Curve of constant Curvature in the `xz` Plane, from a
   flat ribbon to a closed cylinder.
 - **Depends on:** C0.1, DEC-06, DEC-08.
