@@ -49,11 +49,10 @@ Every slice's pull request updates it (SESSION §3).
   back to the new last one. `on('change' | 'select', handler)` returns an unsubscribe function:
   `change` hands the Position once per frame that moved it, `select` the Active slide's index when
   it changes (also after a child change); a handler's error is reported (`reportError`), not
-  thrown; `destroy()` drops every handler. A Drag with mouse, touch or pen (`drag.ts`: one pointer,
-  captured on its first move, no `window` or `document` listener) moves it along the Curve's
-  direction on screen (the Layout's tangent at the centre: any Plane, Tilt or custom Layout), the
-  moves applied in the next frame; a release carries the last 100 ms of velocity into Inertia, and
-  the Active slide is clamped past an end; `touch-action` follows the drag axis.
+  thrown; `destroy()` drops every handler. A Drag (`drag.ts`: one pointer, captured on its first
+  move, no `window` or `document` listener) moves it along the Layout's tangent on screen, applied
+  in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active slide
+  is clamped past an end; `touch-action` follows the drag axis.
 - The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
   switching Presets destroys and mounts again, and the cards keep their state.
