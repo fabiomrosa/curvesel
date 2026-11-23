@@ -31,7 +31,8 @@ Every slice's pull request updates it (SESSION §3).
   (ω = 12/s, solved exactly, spending the rest of the step), and it rests exactly on it.
   `createTrack({ count, loop: true })` turns forever: no ends, no Rubber band, Snap to any whole
   Position. `slideOffset(index, position, count, loop)` is `index − position`, wrapped into
-  `[−count/2, count/2)` when looping.
+  `[−count/2, count/2)` when looping. `goTo(state, index)` starts Snap's spring towards that Slide
+  (the nearest Position showing it when looping), keeping the velocity.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted
@@ -41,7 +42,7 @@ Every slice's pull request updates it (SESSION §3).
 - `packages/core` (`@curvesel/core`): `curve-pose.ts` (`curvePose`, `CurveOptions`,
   `LayoutContext`, `Plane`, `Wave`), `pose.ts` (`Pose`, `Rotation`, a row-major 3×3 matrix),
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
-  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `step`, `TrackState`,
+  `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
@@ -83,4 +84,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.13:** Snap; a property settles any sequence of gestures on a whole Slide, and
   the frame-rate property now ends on the same Slide.
 - **2026-11-23, C1.14:** Loop and `slideOffset`; the gestures property runs looping too.
-- **Next:** C1.15 (`goTo`).
+- **2026-11-23, C1.15:** `goTo`, with a property over any start, looping or not, at any frame rate.
+- **Next:** C1.16 (playground with motion); the owner checks M1 there.
