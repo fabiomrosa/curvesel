@@ -40,10 +40,13 @@ export function listenForDrag(
     unguard();
   };
   const unguard = () => stage.removeEventListener("click", swallow, true);
+  // In the capture phase, so a Slide that stops its own `pointerdown` still lifts it.
+  const press = () => {
+    if (active === undefined) unguard();
+  };
 
   const down = (event: PointerEvent) => {
     if (active !== undefined || (event.pointerType === "mouse" && event.button !== 0)) return;
-    unguard();
     active = event.pointerId;
     captured = false;
     origin = last = { x: event.clientX, y: event.clientY };
@@ -85,8 +88,10 @@ export function listenForDrag(
     ["pointercancel", up],
   ] as const;
   for (const [type, listener] of listeners) stage.addEventListener(type, listener);
+  stage.addEventListener("pointerdown", press, true);
   return () => {
     for (const [type, listener] of listeners) stage.removeEventListener(type, listener);
+    stage.removeEventListener("pointerdown", press, true);
     unguard();
   };
 }

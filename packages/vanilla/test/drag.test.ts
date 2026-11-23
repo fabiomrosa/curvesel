@@ -166,6 +166,26 @@ describe("Drag", () => {
     expect(heard).toHaveBeenCalledTimes(5);
   });
 
+  it("lifts the guard at a press a Slide stops from reaching the Stage", () => {
+    const card = slides(root)[1] as HTMLElement;
+    const heard = vi.fn();
+    card.addEventListener("click", heard);
+    card.addEventListener("pointerdown", (event) => event.stopPropagation());
+    drag(root, [[380, 300]], 300);
+    pointer(card, "pointerdown", 500, 300, 400);
+    pointer(card, "pointerup", 500, 300, 410);
+    const click = () => card.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+    // A second finger during a drag leaves that drag's guard on.
+    pointer(root, "pointerdown", 500, 300, 500);
+    pointer(root, "pointermove", 380, 300, 510);
+    pointer(root, "pointerdown", 500, 300, 520, 2);
+    pointer(root, "pointerup", 380, 300, 800);
+    click();
+    expect(heard).toHaveBeenCalledTimes(1);
+  });
+
   it("takes the drag threshold from `dragThreshold`", () => {
     carousel.destroy();
     const card = slides(root)[1] as HTMLElement;
