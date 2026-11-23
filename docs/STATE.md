@@ -95,4 +95,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C1.16:** the playground drives a Track (Drag, Inertia, Snap, Rubber band, loop,
   `goTo`). Checked in Chrome with a scratch Playwright script: flings, past both ends, Previous and
   Next, loop, a Preset; no frame requested at rest.
-- **Next:** the owner checks M1 in the playground (C1.16's criterion 1), then "close M1".
+- **2026-11-23, close M1:** the owner checked the motion in the playground; M1 is `done` in the
+  ROADMAP, and the close pull request ranks the open retro proposals.
+- **Next:** "plan M2" with the owner, then each accepted M1 proposal as its own pull request.
