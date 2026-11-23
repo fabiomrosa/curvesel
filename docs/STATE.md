@@ -36,7 +36,8 @@ Every slice's pull request updates it (SESSION §3).
   passes it; it is ignored during a Drag.
 - `createCarousel(stage, { layout, size, perspective, loop })` (`@curvesel/vanilla`) lays the
   Stage's children on the Curve at Position 0 (size: the largest Slide along the Curve, or given),
-  writing only DEC-07's properties; `destroy()` restores them exactly.
+  writing only DEC-07's properties, and lays them out again when the Stage or a Slide resizes (a
+  `ResizeObserver`; while they measure 0 the last layout stays); `destroy()` restores them exactly.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
@@ -106,4 +107,5 @@ Every slice's pull request updates it (SESSION §3).
   events through `carousel.on()`, the largest Slide as the size (overridable), and DEC-14 (the
   engine makes the Stage focusable); the arc demo follows ARCHITECTURE's description.
 - **2026-11-23, C2.1:** `packages/vanilla` with `createCarousel` and `destroy()`.
-- **Next:** C2.2 (follow the size).
+- **2026-11-23, C2.2:** the Carousel follows the size of the Stage and the Slides.
+- **Next:** C2.3 (follow the children).

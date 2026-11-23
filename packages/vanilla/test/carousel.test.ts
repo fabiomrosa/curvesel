@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { curvePose, type Layout, type Pose, presets, rotationFromAngles } from "@curvesel/core";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type CarouselOptions, createCarousel } from "../src/index.ts";
 
 /** A Stage of `count` Slides; happy-dom has no layout, so sizes are stubbed where they matter. */
@@ -65,7 +65,33 @@ function mounted(options: CarouselOptions, sizes: Record<string, number>[] = [])
   return slides(root)[1]?.style.transform ?? "";
 }
 
+/** A stand-in for `ResizeObserver`: it records what it watches, and `resize()` fires it. */
+class FakeResizeObserver {
+  static last: FakeResizeObserver | undefined;
+  readonly watched = new Set<Element>();
+  readonly boxes = new Set<string | undefined>();
+  constructor(private readonly callback: () => void) {
+    FakeResizeObserver.last = this;
+  }
+  observe(target: Element, options?: ResizeObserverOptions): void {
+    this.watched.add(target);
+    this.boxes.add(options?.box);
+  }
+  disconnect(): void {
+    this.watched.clear();
+  }
+  resize(): void {
+    if (this.watched.size > 0) this.callback();
+  }
+}
+const resize = () => FakeResizeObserver.last?.resize();
+
+beforeEach(() => {
+  vi.stubGlobal("ResizeObserver", FakeResizeObserver);
+});
+
 afterEach(() => {
+  vi.unstubAllGlobals();
   document.body.innerHTML = "";
 });
 
@@ -142,6 +168,62 @@ describe("createCarousel", () => {
       mounted({ layout: "ribbon", size: 120 }, widths),
       curvePose(1, presets.ribbon, { size: 120 }),
     );
+  });
+});
+
+describe("follow the size", () => {
+  it("lays the Slides out again when a Slide or the Stage changes size", () => {
+    const root = stage(3);
+    let width = 100;
+    let stageWidth = 800;
+    Object.defineProperty(root, "clientWidth", { get: () => stageWidth });
+    for (const slide of slides(root))
+      Object.defineProperty(slide, "offsetWidth", { get: () => width });
+    createCarousel(root, { layout: "ribbon" });
+    const second = slides(root)[1] as HTMLElement;
+    width = 250;
+    resize();
+    expectPose(second.style.transform, curvePose(1, presets.ribbon, { size: 250 }));
+    stageWidth = 600;
+    resize();
+    expect(second.style.transform.startsWith("translate(300px, ")).toBe(true);
+  });
+
+  it("keeps a given size, still re-centring a Slide that moved", () => {
+    const root = stage(3);
+    let left = 0;
+    for (const slide of slides(root)) {
+      stub(slide, { offsetWidth: 100 });
+      Object.defineProperty(slide, "offsetLeft", { get: () => left });
+    }
+    createCarousel(root, { layout: "ribbon", size: 120 });
+    const second = slides(root)[1] as HTMLElement;
+    left = 40;
+    resize();
+    expect(second.style.transform.startsWith("translate(-40px, ")).toBe(true);
+    expectPose(second.style.transform, curvePose(1, presets.ribbon, { size: 120 }));
+  });
+
+  it("keeps the last layout while the Slides measure 0, as when the Stage is hidden", () => {
+    const root = stage(3);
+    let width = 100;
+    for (const slide of slides(root))
+      Object.defineProperty(slide, "offsetWidth", { get: () => width });
+    createCarousel(root, { layout: "ribbon" });
+    const before = slides(root)[1]?.style.transform;
+    width = 0;
+    expect(() => resize()).not.toThrow();
+    expect(slides(root)[1]?.style.transform).toBe(before);
+  });
+
+  it("watches the Stage and every Slide, and stops on destroy", () => {
+    const root = stage(3);
+    const carousel = createCarousel(root, { size: 100 });
+    expect([...(FakeResizeObserver.last?.watched ?? [])]).toEqual([root, ...slides(root)]);
+    // The border box, as measured: a padding or border change alone must fire it too.
+    expect([...(FakeResizeObserver.last?.boxes ?? [])]).toEqual(["border-box"]);
+    carousel.destroy();
+    expect(FakeResizeObserver.last?.watched.size).toBe(0);
   });
 });
 

@@ -58,7 +58,14 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     save(stage, ["perspective"], []),
     ...slides.map((slide) => save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES)),
   ];
+  const measure = () => options.size ?? largest(slides, plane);
+  // A resize lays the Slides out again; while they measure 0 (a hidden Stage) the last layout stays.
+  const observer = new ResizeObserver(() => {
+    const size = measure();
+    if (size > 0) render(stage, slides, track, layout, size);
+  });
   const destroy = () => {
+    observer.disconnect();
     for (const restore of saved) restore();
   };
   try {
@@ -70,13 +77,14 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     stage.style.perspective = `${perspective}px`;
     // Measured once the Slides are out of the flow, as they will stay.
     for (const slide of slides) slide.style.position = "absolute";
-    const size = options.size ?? largest(slides, plane);
+    const size = measure();
     if (!(size > 0)) {
       throw new Error(
         "curvesel: the Slides measure 0 px along the Curve; give `size`, or mount once they are laid out",
       );
     }
     render(stage, slides, track, layout, size);
+    for (const element of [stage, ...slides]) observer.observe(element, { box: "border-box" });
   } catch (error) {
     destroy();
     throw error;
