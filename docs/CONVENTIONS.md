@@ -44,7 +44,7 @@ packages/<name>/
 ## 5. Tests
 | Behaviour | Seam | Test |
 |---|---|---|
-| A Layout or physics behaviour | the `core` public API | `packages/core/test/<thing>.test.ts`, `it('<does what> when <case>')` |
+| A Layout or physics behaviour | the `core` public API | `packages/core/test/<thing>.test.ts`; each `it` says what happens and in which case (`it('snaps to the nearest Slide when Inertia ends')`) |
 | A PRODUCT invariant | the `core` public API, random options and Offsets (or `dt` sequences) | property test beside the unit tests |
 | An engine behaviour | the engine with `happy-dom`, synthetic pointer events and a fake clock for `requestAnimationFrame` | `packages/vanilla/test/<thing>.test.ts` |
 | A real gesture | the demo page in Playwright | `e2e/<flow>.e2e.ts` (from M2) |
