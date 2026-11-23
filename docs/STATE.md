@@ -151,4 +151,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.11:** the demo with every Preset, a wavy ribbon and the loop.
 - **2026-11-23, C2.12:** `npm run bench`, a Chrome trace of a drag; 200 Slides with a Wave go over
   the frame budget (ARCHITECTURE "Frame budget").
-- **Next:** close M2.
+- **2026-11-23, close M2:** the owner checked the Drag (C2.8) and every Preset (C2.11) in the demo;
+  M2 is `done` in the ROADMAP, and the close pull request ranks the open retro proposals.
+- **Next:** the accepted M2 proposals, then "plan M3".
