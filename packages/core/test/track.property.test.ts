@@ -163,9 +163,14 @@ describe("Inertia and Snap invariants", () => {
           );
           if (Math.abs(v) > 1) fast++;
           const sent = goTo(moving, index);
-          const runs = [[1 / 30], [1 / 60], [1 / 120], dts].map(
-            (schedule) => run(sent, schedule).end,
+          const resting = goTo(dragMove(createTrack({ count: n, loop }), n * from - 0.5), index);
+          if (loop)
+            expect(Math.abs(resting.target - resting.position)).toBeLessThanOrEqual(n / 2 + 0.5);
+          const outcomes = [[1 / 30], [1 / 60], [1 / 120], dts].map((schedule) =>
+            run(sent, schedule),
           );
+          for (const { smooth } of outcomes) expect(smooth).toBe(true);
+          const runs = outcomes.map(({ end }) => end);
           for (const end of runs) {
             expect(end.phase).toBe("rest");
             expect(end.position).toBeCloseTo(runs[0]?.position as number, 12);

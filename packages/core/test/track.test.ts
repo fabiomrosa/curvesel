@@ -313,18 +313,41 @@ describe("goTo", () => {
     }
   });
 
-  it("keeps the velocity it had, so a moving Track turns smoothly", () => {
-    const moving = release(drag(createTrack({ count: 9 }), 3), -5);
-    const sent = goTo(moving, 6);
-    expect(sent.velocity).toBeCloseTo(-5, 12);
+  it("keeps the velocity towards the target, up to what the spring takes without passing it", () => {
+    const moving = release(drag(createTrack({ count: 9 }), 3), 5);
+    expect(goTo(moving, 6).velocity).toBeCloseTo(5, 12);
+    // 12 per second × 1 Position away.
+    expect(goTo(release(drag(createTrack({ count: 9 }), 5), 50), 6).velocity).toBeCloseTo(12, 12);
+  });
+
+  it("drops the velocity away from the target", () => {
+    const away = release(drag(createTrack({ count: 9 }), 3), -5);
+    const sent = goTo(away, 6);
+    expect(sent.velocity).toBeCloseTo(0, 12);
     expect(settle(sent).position).toBeCloseTo(6, 12);
   });
 
+  it("never passes the target, so a fling cannot leave the bounds", () => {
+    let track = goTo(release(drag(createTrack({ count: 9 }), 0.3), -50), 0);
+    let lowest = track.position;
+    for (let i = 0; i < 600 && track.phase !== "rest"; i++) {
+      track = step(track, 1 / 60);
+      lowest = Math.min(lowest, track.position);
+    }
+    expect(lowest).toBeGreaterThanOrEqual(0);
+    expect(track.position).toBeCloseTo(0, 12);
+  });
+
+  it("is ignored during a Drag", () => {
+    const dragging = drag(createTrack({ count: 9 }), 2);
+    expect(goTo(dragging, 5)).toEqual(dragging);
+  });
+
   it("takes the short way round when looping", () => {
-    const nearEnd = drag(createTrack({ count: 5, loop: true }), 4.4);
+    const nearEnd = release(drag(createTrack({ count: 5, loop: true }), 4.4), 0);
     expect(goTo(nearEnd, 0).target).toBe(5);
     expect(goTo(nearEnd, 2).target).toBe(2);
-    const turned = drag(createTrack({ count: 5, loop: true }), -7.2);
+    const turned = release(drag(createTrack({ count: 5, loop: true }), -7.2), 0);
     expect(goTo(turned, 3).target).toBe(-7);
     expect(settle(goTo(nearEnd, 0)).position).toBeCloseTo(5, 12);
   });

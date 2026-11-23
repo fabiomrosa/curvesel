@@ -32,7 +32,8 @@ Every slice's pull request updates it (SESSION §3).
   `createTrack({ count, loop: true })` turns forever: no ends, no Rubber band, Snap to any whole
   Position. `slideOffset(index, position, count, loop)` is `index − position`, wrapped into
   `[−count/2, count/2)` when looping. `goTo(state, index)` starts Snap's spring towards that Slide
-  (the nearest Position showing it when looping), keeping the velocity.
+  (the nearest Position showing it when looping), keeping the velocity towards it up to what never
+  passes it; it is ignored during a Drag.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position (Slides at `index − position`) and visible range (hidden Slides dashed, painted

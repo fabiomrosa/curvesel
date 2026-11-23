@@ -90,12 +90,17 @@ export function release(state: TrackState, velocity: number): TrackState {
 }
 
 /**
- * Sends the Track to Slide `index` with Snap's spring, keeping its velocity; when looping, to the
- * nearest whole Position that shows that Slide. During a fling the spring may pass the target.
+ * Sends the Track to Slide `index` with Snap's spring; when looping, to the nearest whole Position
+ * that shows that Slide. It keeps the velocity towards the target, up to `SNAP_RATE` times the
+ * distance, so the spring never passes it. Ignored during a Drag.
  */
 export function goTo(state: TrackState, index: number): TrackState {
   const offset = slideOffset(index, state.position, state.count, state.loop);
-  return { ...state, target: Math.round(state.position + offset), phase: "snap" };
+  if (state.phase === "drag") return state;
+  const most = SNAP_RATE * Math.abs(offset);
+  const towards = Math.sign(offset) * state.velocity;
+  const velocity = Math.sign(offset) * Math.min(Math.max(towards, 0), most);
+  return { ...state, velocity, target: Math.round(state.position + offset), phase: "snap" };
 }
 
 /**
