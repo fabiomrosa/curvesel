@@ -59,9 +59,11 @@ Every slice's pull request updates it (SESSION §3).
   150 ms without one, or at once for a Drag, a key or a call; on the focused Stage the arrows
   along the Curve step it, Home and End go to the ends (keys from inside a Slide stay the Slide's);
   a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14).
-- The demo (`npm run demo`): eight cards with their own counter buttons and inputs, mounted by the
-  vanilla engine, with a Preset selector, Previous and Next, and the Active card from `select`;
-  switching Presets destroys and mounts again, and the cards keep their state.
+- The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
+  vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
+  Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
+  their state. Its look (`demo/style.css`) reads `--cs-abs-offset` and `data-cs-active`: side cards
+  dimmer and smaller, the Active one outlined.
 - The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a Preset
   selector, a Plane selector and sliders for count, Curvature, gap, size, the Wave with its plane
   and anchor, Twist, Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex`
@@ -145,4 +147,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C2.8:** Drag in the engine; the owner checked it in the demo.
 - **2026-11-23, C2.9:** the click guard and `dragThreshold`, with C2.8's Drag e2e.
 - **2026-11-23, C2.10:** wheel and keyboard, and the Stage made focusable (DEC-14).
-- **Next:** C2.11 (demo with every Preset; the owner checks M2).
+- **2026-11-23, C2.11:** the demo with every Preset, a wavy ribbon and the loop.
+- **Next:** the owner checks M2 in the demo (C2.11 criterion 1), then C2.12 (frame budget).

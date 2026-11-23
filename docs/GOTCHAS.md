@@ -49,6 +49,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
   only: capture-phase ones on ancestors (React's `onClickCapture`) still hear a drag's click.
 - Reading layout (`getBoundingClientRect`, `offsetWidth`) right after a style write forces a
   synchronous layout; in the animation loop that costs more than all the math.
+- The CSS `scale` (and `translate`, `rotate`) property applies after the Slide's `transform`, so on
+  a Slide it scales its place on the Curve too, pulling it towards the centre: style an element
+  inside the Slide instead (the demo's `.face`).
 - `perspective` belongs on the Stage (the Slides' parent); `transform-style: preserve-3d` is only
   needed when a transformed element has 3D-transformed children, which DEC-07 avoids by giving every
   Slide its own full `transform`.

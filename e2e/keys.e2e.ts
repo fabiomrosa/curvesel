@@ -19,7 +19,7 @@ test("the arrow keys step the focused Carousel; Home and End go to the ends", as
     ["ArrowRight", "2"],
     ["ArrowRight", "3"],
     ["ArrowLeft", "2"],
-    ["End", "8"],
+    ["End", "10"],
     ["Home", "1"],
   ]) {
     await page.keyboard.press(key as string);
@@ -50,7 +50,7 @@ test("a wheel along the Curve moves the cards instead of the page, and they Snap
   // Past the last card, the page scrolls.
   await page.focus("#stage");
   await page.keyboard.press("End");
-  await expect(page.locator("#active")).toHaveText("8");
+  await expect(page.locator("#active")).toHaveText("10");
   await settled(page);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await page.mouse.wheel(0, 260);
