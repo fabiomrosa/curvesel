@@ -12,5 +12,12 @@
     "noEmit": true,
     "paths": { "@curvesel/core": ["./packages/core/src/index.ts"] }
   },
-  "include": ["packages/*/src", "packages/*/test", "playground", "e2e", "playwright.config.ts"]
+  "include": [
+    "packages/*/src",
+    "packages/*/test",
+    "playground",
+    "demo",
+    "e2e",
+    "playwright.config.ts"
+  ]
 }
