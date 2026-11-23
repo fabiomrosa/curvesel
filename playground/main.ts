@@ -91,6 +91,7 @@ function render(): void {
     gap: value("gap"),
     plane,
     visibleRange: value("visible-range"),
+    wave: { amplitude: value("amplitude"), wavelength: value("wavelength"), phase: value("phase") },
   };
   const context = { size: value("size") };
   try {

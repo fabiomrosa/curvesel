@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { curvePose, type Plane } from "../src/index.ts";
+import { curvePose, type Plane, type Wave } from "../src/index.ts";
 
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const context = { size: 200 };
@@ -141,5 +141,71 @@ describe("curvePose", () => {
     const nearer = curvePose(0.7, options, context);
     const farther = curvePose(-1.3, options, context);
     expect(nearer.zIndex).toBeGreaterThan(farther.zIndex);
+  });
+
+  describe("with a Wave", () => {
+    const wave = { amplitude: 0.5, wavelength: 4 };
+
+    it("keeps a wavy ribbon level by default: one wavelength on, at the same depth", () => {
+      const pose = curvePose(4, { curvature: 0, gap: 20, wave }, context);
+      expect(pose.z).toBeCloseTo(0, 6);
+      expect(pose.x).toBeGreaterThan(0);
+    });
+
+    it("matches the Curve without a Wave when the amplitude tends to 0", () => {
+      for (const curvature of [0, 0.3, -1, Math.PI / 2]) {
+        for (const offset of [-7.5, -1, 0.25, 3]) {
+          const plain = curvePose(offset, { curvature, gap: 20 }, context);
+          const flat = { amplitude: 0, wavelength: 3 };
+          const waved = curvePose(offset, { curvature, gap: 20, wave: flat }, context);
+          // Simpson's error, relative to the length: far below a pixel.
+          const tolerance = 1e-7 * Math.abs(offset) * 220 + 1e-12;
+          expect(Math.hypot(waved.x - plain.x, waved.z - plain.z)).toBeLessThan(tolerance);
+          expectRotation(waved.rotation, plain.rotation);
+        }
+      }
+    });
+
+    it("turns back to the centre's heading after one wavelength when the Curvature is 0", () => {
+      for (const phase of [0, 1, -2.5]) {
+        const pose = curvePose(4, { curvature: 0, gap: 20, wave: { ...wave, phase } }, context);
+        expectRotation(pose.rotation, IDENTITY);
+      }
+    });
+
+    it("keeps Offset 0 at the origin with no rotation", () => {
+      const pose = curvePose(0, { curvature: 0.4, gap: 20, wave: { ...wave, phase: 1 } }, context);
+      expect(Math.hypot(pose.x, pose.y, pose.z)).toBeCloseTo(0, 9);
+      expectRotation(pose.rotation, IDENTITY);
+    });
+
+    it("throws a message naming the Wave option when it is invalid", () => {
+      const at = (w: Wave) => () => curvePose(0, { curvature: 0, gap: 20, wave: w }, context);
+      expect(at({ amplitude: 0.5, wavelength: 0 })).toThrow(
+        "curvesel: wave.wavelength must be a finite number > 0, got 0",
+      );
+      expect(at({ amplitude: Number.NaN, wavelength: 4 })).toThrow(
+        "curvesel: wave.amplitude must be a finite number, got NaN",
+      );
+      expect(at({ amplitude: 0.5, wavelength: 4, phase: Number.POSITIVE_INFINITY })).toThrow(
+        "curvesel: wave.phase must be a finite number, got Infinity",
+      );
+    });
+
+    it("turns each Slide by the integral of the Curvature", () => {
+      // κ(s) = 0.5·sin(2πs/4): over [0, 1] the heading turns 0.5·(4/2π)·(1 − cos(π/2)) = 1/π.
+      const pose = curvePose(1, { curvature: 0, gap: 20, wave: { ...wave, phase: 0 } }, context);
+      expectRotation(pose.rotation, [
+        Math.cos(1 / Math.PI),
+        0,
+        Math.sin(1 / Math.PI),
+        0,
+        1,
+        0,
+        -Math.sin(1 / Math.PI),
+        0,
+        Math.cos(1 / Math.PI),
+      ]);
+    });
   });
 });

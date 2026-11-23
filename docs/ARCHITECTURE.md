@@ -39,8 +39,9 @@ Each package is created by the first slice that needs it.
 - `curvePose(offset, options, context) → Pose`: the arc length is `s = offset` steps; the heading
   `θ(s)` is the integral of `κ(s)`; the position is the integral of the unit tangent, in the chosen
   Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near
-  `κ = 0`); with a Wave, a fixed number of Simpson steps. A Wave across the Plane (`wave.plane:
-  'y'`, against `'z'` in it) integrates a rotation frame instead of an angle. Twist rotates each
+  `κ = 0`); with a Wave, the heading in closed form and the position by Simpson's rule, 32
+  intervals per step (default phase π/2, DEC-13). A Wave across the Plane (`wave.plane: 'y'`,
+  against `'z'` in it) integrates a rotation frame instead of an angle. Twist rotates each
   Slide around its tangent. Tilt rotates the whole Curve around the view axis through the centre,
   and each Slide back by the same angle, so its content stays upright.
 - A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine

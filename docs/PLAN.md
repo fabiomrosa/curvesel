@@ -128,11 +128,12 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-07 (`z-index`, `visibility`), PRODUCT "Visible range".
 
 ### C1.5 · Wave in the Plane
-- **Status:** waiting (C1.4)
+- **Status:** done (2026-11-23)
 - **Goal:** a ribbon undulates in its own Plane, its Slides still equally spaced.
 - **Depends on:** C1.4.
 - **In scope:** `wave: { amplitude, wavelength, phase }` (radians per step, Slides, radians; phase
-  0 by default, which keeps the Curvature at the Active slide equal to `curvature`):
+  π/2 by default, which puts the Active slide on a crest, flat, and keeps a wavy ribbon level on
+  average; phase 0 made it lean, seen in the playground):
   `κ(s) = curvature + amplitude · sin(2π·s / wavelength + phase)`, wave fixed relative to the
   centre (anchor `space`); the heading has a closed form, the position a fixed number of Simpson
   steps per step. The playground gets the Wave's sliders.
@@ -344,4 +345,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 Ideas not planned yet; a milestone's planning picks from here.
 - For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
   height in the `yz` Plane and the width otherwise (C1.3 review).
+- For M2: with a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: 0.05
+  ms a frame for 20 Slides, 6.7 ms for 200 (C1.5 review, a scratch benchmark). If the demo needs
+  more, integrate once over the sorted Offsets per frame, and skip Slides beyond the visible range.
 

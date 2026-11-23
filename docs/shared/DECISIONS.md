@@ -123,6 +123,16 @@ taken, `curvesel` (core and vanilla), `curvesel-react`, `curvesel-angular`.
 - **Consequences:** DEC-05's one-name-per-repository applies to the repository; the scope is
   confirmed before the first publish (P2).
 
+## DEC-13 · The Wave's default phase is π/2 — Accepted (owner, 2026-11-23)
+Clarifies DEC-08's "the phase that keeps the Active slide flat": with no `phase` given, the Wave
+is `amplitude · sin(2π·s / wavelength + π/2)`, so the Active slide sits on a crest and the heading
+swings evenly around it.
+- **Why:** the Slide at Offset 0 always faces the viewer, so "flat" did not pick a phase; with
+  phase 0 the heading never changes sign and a wavy ribbon leans across the screen (seen in the
+  playground, C1.5).
+- **Consequences:** a wavy ribbon stays level on average and symmetric about the Active slide; the
+  Curvature at the centre is `curvature + amplitude`.
+
 ---
 
 ## Proposed (waiting for the owner)
