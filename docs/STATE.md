@@ -46,7 +46,8 @@ Every slice's pull request updates it (SESSION §3).
   culled Slide is written once until it comes back. Removing the Slides past the Position Snaps it
   back to the new last one. `on('change' | 'select', handler)` returns an unsubscribe function:
   `change` hands the Position once per frame that moved it, `select` the Active slide's index when
-  it changes (also after a child change); `destroy()` drops every handler.
+  it changes (also after a child change); a handler's error is reported (`reportError`), not
+  thrown; `destroy()` drops every handler.
 - The playground (`npm run dev`): top, front and side views of N Slides, a Preset selector, a Plane
   selector and sliders for count, Curvature, gap, size, the Wave with its plane and anchor, Twist,
   Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a

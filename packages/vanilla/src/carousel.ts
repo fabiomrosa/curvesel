@@ -116,9 +116,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   const notify = () => {
     const { position, count } = track;
     const active = ((Math.round(position) % count) + count) % count;
-    if (position !== heard.position) for (const handler of handlers.change) handler(position);
-    if (active !== heard.active) for (const handler of handlers.select) handler(active);
+    const before = heard;
     heard = { position, active };
+    if (position !== before.position) emit(handlers.change, position);
+    if (active !== before.active) emit(handlers.select, active);
   };
   let frame = 0;
   let last: number | undefined;
@@ -132,9 +133,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     track = step(track, last === undefined ? 0 : Math.max(0, now - last) / 1000);
     last = now;
     paint();
-    notify();
     if (track.phase === "inertia" || track.phase === "snap") request();
     else last = undefined;
+    notify();
   };
   const move = (next: TrackState) => {
     track = next;
@@ -220,6 +221,21 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     },
     destroy,
   };
+}
+
+/**
+ * Calls each handler subscribed when the event began (one that subscribes again is not called again
+ * in the same event); a handler's error is reported, not thrown, so the motion and the others go on.
+ */
+function emit(handlers: Set<(value: number) => void>, value: number): void {
+  for (const handler of [...handlers]) {
+    if (!handlers.has(handler)) continue;
+    try {
+      handler(value);
+    } catch (error) {
+      reportError(error);
+    }
+  }
 }
 
 /** The Layout to call, and the Plane it bends in when it is a Curve. */

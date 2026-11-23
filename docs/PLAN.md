@@ -503,7 +503,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
   `touch-action` for that axis; release at the velocity of the last 100 ms (none if the pointer was
   held still); one pointer at a time; `pointercancel` releases. The owner checks the Drag in the
   demo. Test then the clamp on removed Slides during Inertia (C2.4 review: it uses the Position
-  unless the Track Snaps).
+  unless the Track Snaps), and clamp the Active slide past an end when not looping (C2.5 review:
+  `select` and `data-cs-active` wrap it today).
 - **Out of scope:** the click guard (C2.9), wheel and keys (C2.10).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
