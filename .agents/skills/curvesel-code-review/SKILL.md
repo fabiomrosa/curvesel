@@ -47,6 +47,8 @@ reference. Any "no" is fixed before the pull request (or explicitly listed as a 
 - [ ] Every listener and callback survives a handler that re-enters the API (`on`, unsubscribe,
       `goTo`, `destroy`) or throws, a Slide that stops the event, and another input in progress
       (a Drag, a wheel gesture, a key).
+- [ ] Each DOM behaviour the tests rely on acts in `happy-dom` (or a fake) as in Chrome; one that
+      may not has a browser test (GOTCHAS lists the known gaps).
 
 ## Public API
 - [ ] Changes to a package's `src/index.ts` are listed in the pull request, additive or breaking.
