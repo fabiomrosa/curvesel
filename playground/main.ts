@@ -1,10 +1,18 @@
 // A hand-test page for @curvesel/core (`npm run dev`). Not published, not covered.
 import {
+  createTrack,
   curvePose,
+  dragMove,
+  dragStart,
+  goTo,
   type Plane,
   type Pose,
   type PresetName,
   presets,
+  release,
+  slideOffset,
+  step,
+  type TrackState,
 } from "../packages/core/src/index.ts";
 
 const SVG = "http://www.w3.org/2000/svg";
@@ -24,9 +32,18 @@ function line(x1: number, y1: number, x2: number, y2: number, className: string)
   return element;
 }
 
-/** Offsets of N Slides at a Position: indexes split on both sides of 0, each `index − position`. */
-function offsets(count: number, position: number): number[] {
-  return Array.from({ length: count }, (_, i) => i - Math.floor(count / 2) - position);
+let track: TrackState = createTrack({ count: value("count") });
+
+/** A new Track for the count and loop controls, kept near its Position. */
+function retrack(): void {
+  const count = value("count");
+  const position = Math.min(Math.max(Math.round(track.position), 0), count - 1);
+  track = { ...createTrack({ count, loop: input("loop").checked }), position, target: position };
+}
+
+/** The Offset of every Slide from the Track's Position. */
+function offsets({ count, position, loop }: TrackState): number[] {
+  return Array.from({ length: count }, (_, i) => slideOffset(i, position, count, loop));
 }
 
 type Vector = readonly [number, number, number];
@@ -107,9 +124,12 @@ function render(): void {
       plane: byId<HTMLSelectElement>("wave-plane").value as "z" | "y",
     },
   };
-  const context = { size: value("size"), position: value("position") };
+  input("position").value = String(track.position);
+  byId<HTMLOutputElement>("phase").textContent = track.phase;
+  byId<HTMLOutputElement>("at").textContent = track.position.toFixed(3);
+  const context = { size: value("size"), position: track.position };
   try {
-    const poses = offsets(value("count"), context.position).map((offset) => ({
+    const poses = offsets(track).map((offset) => ({
       offset,
       pose: curvePose(offset, options, context),
     }));
@@ -139,11 +159,102 @@ presetSelect.addEventListener("change", () => {
   if (presetSelect.value === "cylinder" || presetSelect.value === "wheel")
     input("count").value = "10";
   for (const id of ["amplitude", "twist", "tilt"]) input(id).value = "0";
+  retrack();
   render();
 });
 // Changing a control by hand leaves the Preset.
 form.addEventListener("input", (event) => {
   if (event.target !== presetSelect) presetSelect.value = "";
+  if (event.target === input("count") || event.target === input("loop")) retrack();
+  if (event.target === input("position")) {
+    track = { ...track, position: value("position"), velocity: 0, phase: "rest" };
+  }
 });
+
+// One animation loop, running only while the Track moves on its own (Inertia or Snap).
+let frame = 0;
+let last = 0;
+let frames = 0;
+function animate(now: number): void {
+  // A frame's timestamp is when the frame began, which can be before `last` (GOTCHAS).
+  track = step(track, Math.max(0, now - last) / 1000);
+  last = now;
+  render();
+  frame = 0;
+  if (track.phase === "inertia" || track.phase === "snap") request();
+}
+function request(): void {
+  if (frame) return;
+  frames++;
+  byId<HTMLOutputElement>("frames").textContent = String(frames);
+  frame = requestAnimationFrame((now) => {
+    if (!last) last = now;
+    animate(now);
+  });
+}
+function moved(): void {
+  last = performance.now();
+  render();
+  if (track.phase === "inertia" || track.phase === "snap") request();
+}
+
+// A Drag on any view: pixels divided by the step on screen; released at the recent velocity.
+const samples: { time: number; position: number }[] = [];
+for (const { svg: view } of views) {
+  let start = 0;
+  let pixelsPerStep = 1;
+  view.addEventListener("pointerdown", (event) => {
+    view.setPointerCapture(event.pointerId);
+    const box = view.viewBox.baseVal;
+    pixelsPerStep = ((value("size") + value("gap")) * view.clientWidth) / box.width;
+    start = alongDrag(event);
+    track = dragStart(track);
+    samples.length = 0;
+    samples.push({ time: event.timeStamp, position: track.position });
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    render();
+  });
+  view.addEventListener("pointermove", (event) => {
+    if (track.phase !== "drag" || !view.hasPointerCapture(event.pointerId)) return;
+    const along = alongDrag(event);
+    track = dragMove(track, -(along - start) / pixelsPerStep);
+    start = along;
+    samples.push({ time: event.timeStamp, position: track.position });
+    while (samples.length > 2 && event.timeStamp - (samples[0]?.time ?? 0) > 100) samples.shift();
+    render();
+  });
+  const end = (event: PointerEvent) => {
+    if (track.phase !== "drag") return;
+    const first = samples[0];
+    const elapsed = first ? (event.timeStamp - first.time) / 1000 : 0;
+    const velocity = first && elapsed > 0 ? (track.position - first.position) / elapsed : 0;
+    track = release(track, velocity);
+    moved();
+  };
+  view.addEventListener("pointerup", end);
+  view.addEventListener("pointercancel", end);
+}
+/** The pointer's coordinate along the Curve: down the screen for the wheel, across otherwise. */
+function alongDrag(event: PointerEvent): number {
+  return byId<HTMLSelectElement>("plane").value === "yz" ? event.clientY : event.clientX;
+}
+
+/** The Slide the Track is on or heading to. */
+function current(): number {
+  const at = track.phase === "snap" ? track.target : Math.round(track.position);
+  return ((at % track.count) + track.count) % track.count;
+}
+for (const [id, by] of [
+  ["previous", -1],
+  ["next", 1],
+] as const) {
+  byId<HTMLButtonElement>(id).addEventListener("click", () => {
+    const index = current() + by;
+    const wrapped = track.loop ? (index + track.count) % track.count : index;
+    track = goTo(track, Math.min(Math.max(wrapped, 0), track.count - 1));
+    moved();
+  });
+}
 form.addEventListener("input", render);
 render();

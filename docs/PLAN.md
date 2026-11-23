@@ -327,7 +327,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** DEC-09, PRODUCT "Out" (the user builds pagination with `goTo`).
 
 ### C1.16 · Playground with motion
-- **Status:** waiting (C1.15)
+- **Status:** done (2026-11-23)
 - **Goal:** the owner drags the Curve in the browser and feels Inertia, Snap, the Rubber band and
   the loop.
 - **Depends on:** C1.15.

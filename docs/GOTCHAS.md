@@ -31,3 +31,6 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - A synchronous loop that never ends (a physics `step` that stops making progress) hangs Vitest:
   its timeout cannot interrupt the thread. Bound every loop in `core` by a count, as `step` bounds
   its pieces.
+- The `requestAnimationFrame` callback's timestamp is when the frame began, so it can be earlier
+  than a `performance.now()` read just before the request: `now − last` comes out slightly
+  negative, and `step` throws. Clamp the elapsed time at 0.
