@@ -53,10 +53,10 @@ down.
 | Active slide | The Slide nearest the Position, `round(Position)` |
 | Offset | A Slide's signed distance from the Position, `index − Position`; 0 is the centre |
 | Curve | The path the Slides sit on, defined by its curvature along its length |
-| Curvature | How much the Curve bends per unit of length, `κ = 1 / radius`; 0 is straight |
+| Curvature | How much the Curve bends per Slide step (slide size + gap), in radians; the radius is `step / κ`; 0 is straight |
 | Wave | A periodic part of the Curvature (amplitude, wavelength, plane, anchor) that makes a ribbon undulate |
 | Twist | A rotation of each Slide around the direction of the Curve, as a function of its length |
-| Tilt | A rotation of the whole Curve's axis |
+| Tilt | A rotation of the whole Curve around the view axis; the Slides stay upright |
 | Plane | Where the Curve bends: `xz` (horizontal, in depth), `yz` (vertical, in depth), `xy` (in the screen) |
 | Layout | A pure function from an Offset (and options) to a Pose |
 | Pose | Where a Slide is: its transform, z-index and whether it is visible |
