@@ -14,6 +14,9 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
   tests alias the source (`vitest.config.ts`), the type check maps it (`paths` in the root
   `tsconfig.json`), and each package's build keeps `paths: {}`, using the built `dist/`.
 - `happy-dom` returns an empty computed `position` for an unstyled element, not `static`.
+- `ResizeObserver` watches the content box by default: a padding or border change alone never
+  fires it. Observe `{ box: "border-box" }` when measuring `offsetWidth`. It never fires for an
+  element that only moves.
 - The agent's shell is zsh: `${PIPESTATUS[0]}` is empty there (zsh has `$pipestatus[1]`). To see
   a command's exit code, run it without a pipe and read `$?`.
 

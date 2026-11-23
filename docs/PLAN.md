@@ -391,14 +391,14 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Goal:** the Curve keeps fitting when the Stage or a Slide changes size.
 - **Depends on:** C2.1.
 - **In scope:** one `ResizeObserver` over the Stage and every Slide; a change re-measures and lays
-  out again (the size is re-measured unless given; a moved Slide is re-centred either way); while
+  out again (the size is re-measured unless given, every Slide re-centred either way); while
   the Slides measure 0 (a hidden Stage) the last layout stays; `destroy()` disconnects it.
 - **Out of scope:** added or removed children (C2.3).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**
   1. Resizing a Slide or the Stage lays the Slides out again with the new size (a stubbed
      `ResizeObserver` in `happy-dom`).
-  2. With `size` given, a Slide's resize keeps the size, and a Slide that moved is re-centred.
+  2. With `size` given, a resize keeps the size and re-centres every Slide.
   3. `destroy()` disconnects the observer.
 - **Files:** ~5: `src/carousel.ts`, its test, PLAN, STATE.
 - **References:** DEC-07.
@@ -462,7 +462,8 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Depends on:** C2.5.
 - **In scope:** Playwright, configured as in `../list-picker` (the installed Chrome, no download),
   `npm run e2e` in `verify` and in CI; a smoke test of the playground (the M1 close's proposal 4:
-  drag the ribbon, Rubber band, Snap, no frame at rest).
+  drag the ribbon, Rubber band, Snap, no frame at rest); the engine's resize in the browser (C2.2
+  review: a Slide's padding change, a hidden then shown Stage, no `ResizeObserver` loop error).
 - **Out of scope:** the demo (C2.7).
 - **Contract:** none. **Public API:** none.
 - **Acceptance criteria:**

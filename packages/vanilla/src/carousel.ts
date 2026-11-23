@@ -84,7 +84,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       );
     }
     render(stage, slides, track, layout, size);
-    for (const element of [stage, ...slides]) observer.observe(element);
+    for (const element of [stage, ...slides]) observer.observe(element, { box: "border-box" });
   } catch (error) {
     destroy();
     throw error;

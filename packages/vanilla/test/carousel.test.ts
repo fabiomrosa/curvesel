@@ -69,11 +69,13 @@ function mounted(options: CarouselOptions, sizes: Record<string, number>[] = [])
 class FakeResizeObserver {
   static last: FakeResizeObserver | undefined;
   readonly watched = new Set<Element>();
+  readonly boxes = new Set<string | undefined>();
   constructor(private readonly callback: () => void) {
     FakeResizeObserver.last = this;
   }
-  observe(target: Element): void {
+  observe(target: Element, options?: ResizeObserverOptions): void {
     this.watched.add(target);
+    this.boxes.add(options?.box);
   }
   disconnect(): void {
     this.watched.clear();
@@ -218,6 +220,8 @@ describe("follow the size", () => {
     const root = stage(3);
     const carousel = createCarousel(root, { size: 100 });
     expect([...(FakeResizeObserver.last?.watched ?? [])]).toEqual([root, ...slides(root)]);
+    // The border box, as measured: a padding or border change alone must fire it too.
+    expect([...(FakeResizeObserver.last?.boxes ?? [])]).toEqual(["border-box"]);
     carousel.destroy();
     expect(FakeResizeObserver.last?.watched.size).toBe(0);
   });
