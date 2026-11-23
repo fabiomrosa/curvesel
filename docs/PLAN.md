@@ -580,14 +580,172 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **Files:** ~5: `bench/frame-trace.ts`, root `package.json`, ARCHITECTURE, PLAN, STATE.
 - **References:** PRODUCT "Measured, not assumed".
 
+## M3 · v1 release
+The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessibility basics
+(DEC-15), reduced motion (DEC-16), the docs, the lab write-up and the demo online, released from CI
+(DEC-17). It opens with the Wave's frame cost (C2.12). The owner checks the docs and the write-up
+(C3.7), the demo online (C3.8) and the published packages (C3.10).
+
+### C3.1 · Wave once per frame
+- **Status:** next
+- **Goal:** a drag over 200 Slides with a Wave fits the 60 fps budget.
+- **Depends on:** C2.12, DEC-06.
+- **In scope:** `curvePose` reuses the Wave's integration across the calls of one frame (the same
+  options and context), so N Slides cost O(N), not O(N²); a Layout stays a pure function of the
+  Offset to its callers. Re-measure with `npm run bench`; update ARCHITECTURE "Frame budget", the
+  STATE known issue and PLAN "Later".
+- **Out of scope:** other Layouts; virtualisation (PRODUCT "Out").
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The property tests pass unchanged, and a new property gives the same Pose (within `EPS`) for
+     any order of calls and any Offsets in between.
+  2. `npm run bench`: 200 Slides with a Wave, median under 8 ms a frame.
+- **Files:** ~6: `core/src/curve-pose.ts`, its tests, ARCHITECTURE, PLAN, STATE.
+- **References:** ARCHITECTURE "The math" and "Frame budget".
+
+### C3.2 · ARIA on the Stage and the Slides
+- **Status:** waiting (C3.1)
+- **Goal:** a screen reader names the Carousel and each Slide's place in it.
+- **Depends on:** DEC-15.
+- **In scope:** on the Stage, `role="region"`, `aria-roledescription="carousel"` and `aria-label`
+  (option `label`, "Carousel" by default); on each Slide, `role="group"`,
+  `aria-roledescription="slide"` and `aria-label` (option `slideLabel(index, count)`, "3 of 10" by
+  default), kept current when children change. An attribute the user set is left as it is
+  (`aria-labelledby` counts as a label); `destroy()` restores the rest.
+- **Out of scope:** announcements (C3.3), focus (C3.4).
+- **Contract:** none. **Public API:** additive, the `label` and `slideLabel` options.
+- **Acceptance criteria:**
+  1. Chrome's accessibility tree shows the region and its groups with their labels (e2e,
+     `ariaSnapshot`).
+  2. The user's own role or label stays; `destroy()` leaves the rest as it was.
+- **Files:** ~6: `src/carousel.ts`, a test, `e2e/aria.e2e.ts`, ARCHITECTURE, PLAN, STATE.
+- **References:** DEC-07, DEC-15; the WAI-ARIA carousel pattern.
+
+### C3.3 · Announcer
+- **Status:** waiting (C3.2)
+- **Goal:** a screen reader hears the new Slide once the Carousel settles.
+- **Depends on:** C3.2, DEC-15.
+- **In scope:** option `announcer`: the user's own live-region element; when the Track comes to rest
+  on a new Active slide, the library writes that Slide's label as its text, and nothing else. No
+  announcement on mount or during a Drag; `destroy()` puts its earlier text back.
+- **Out of scope:** creating the element (DEC-15).
+- **Contract:** none. **Public API:** additive, the `announcer` option.
+- **Acceptance criteria:**
+  1. After Next, a Drag or a key, the announcer holds the new Slide's label once, at rest (unit).
+  2. In Chrome, a polite live region in the demo carries it (e2e).
+- **Files:** ~6: `src/carousel.ts`, a test, `e2e/aria.e2e.ts`, `demo/`, PLAN, STATE.
+- **References:** DEC-15.
+
+### C3.4 · Focus brings the Slide to the centre
+- **Status:** waiting (C3.3)
+- **Goal:** keyboard focus never sits on a card off to the side.
+- **Depends on:** C3.2, DEC-15.
+- **In scope:** keyboard focus (`:focus-visible`) entering a Slide sends the Track to that Slide;
+  a pointer's focus (a tap) does not move it; ignored during a Drag.
+- **Out of scope:** focus management beyond this (roving `tabindex`).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. Tab onto a side card's button brings that card to the centre (e2e).
+  2. A tap on a side card's button clicks it without moving the Carousel (e2e).
+- **Files:** ~5: `src/carousel.ts`, a test, an e2e, PLAN, STATE.
+- **References:** DEC-15.
+
+### C3.5 · Reduced motion
+- **Status:** waiting (C3.4)
+- **Goal:** with reduced motion, nothing animates that the user did not drag.
+- **Depends on:** DEC-16.
+- **In scope:** option `reducedMotion` (by default it follows `prefers-reduced-motion`, live,
+  through the `MediaQueryList`); while on, a release, `goTo`, `next`, `previous`, the keys and the
+  end of a wheel gesture land on the target at once, with no Inertia or spring; a Drag still
+  follows the pointer. A pure function in `core` if the Track needs one.
+- **Out of scope:** the user's own CSS transitions.
+- **Contract:** none. **Public API:** additive, the `reducedMotion` option (and the `core` function,
+  if any).
+- **Acceptance criteria:**
+  1. With the media query on, Next lands in the next frame (e2e, `emulateMedia`); off, it animates.
+  2. The option overrides the media query both ways; the listener goes with `destroy()`.
+- **Files:** ~6: `src/carousel.ts`, a test, an e2e, maybe `core/src/track.ts`, PLAN, STATE.
+- **References:** DEC-16.
+
+### C3.6 · Ready to publish
+- **Status:** waiting (C3.5)
+- **Goal:** `npm pack` gives two packages a project can install and use.
+- **Depends on:** DEC-12, DEC-17.
+- **In scope:** each `package.json`: `private` removed, version `1.0.0` in lockstep, description,
+  license, repository, keywords, `sideEffects: false`, `@curvesel/vanilla` depending on
+  `@curvesel/core` `^1.0.0`; `LICENSE` (MIT, unless the owner says otherwise). A check in the gate
+  packs both, installs the tarballs into a scratch project, type-checks and bundles a usage sample.
+- **Out of scope:** the publish (C3.10).
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The tarballs hold only `dist`, `README.md`, `LICENSE` and `package.json`.
+  2. The scratch project type-checks and builds against them (in the gate).
+- **Files:** ~7: both `package.json`, `LICENSE`, a check script, root `package.json`, PLAN, STATE.
+- **References:** DEC-12, DEC-17.
+
+### C3.7 · Docs and the lab write-up
+- **Status:** waiting (C3.6)
+- **Goal:** a stranger can use the library from its README, and the lab's question has an answer.
+- **Depends on:** C3.6.
+- **In scope:** each package's `README.md` (install, a quick start, options, methods, events, the
+  CSS variables and attributes, styling inside a Slide, accessibility, reduced motion, browser
+  support); the root README (what and why, links); `docs/WRITEUP.md`, the lab's answer (does one
+  Curve cover every variant, smoothly?) with the evidence: the Presets, the property tests, the
+  frame budget, what changed from 2012.
+- **Out of scope:** a docs site.
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The vanilla README's quick start runs as written (e2e page built from it).
+  2. The owner reads the READMEs and the write-up.
+- **Files:** ~7: three READMEs, `docs/WRITEUP.md`, an e2e, PLAN, STATE.
+- **References:** PRODUCT, ROADMAP "The end goal".
+
+### C3.8 · Demo online
+- **Status:** waiting (C3.7)
+- **Goal:** the demo is one link away.
+- **Depends on:** DEC-17, P4.
+- **In scope:** `.github/workflows/pages.yml`: on a push to `main`, build the demo (Vite, the
+  repository's base path) and deploy it to GitHub Pages; the same build runs (without deploying) on
+  pull requests. The READMEs link it.
+- **Out of scope:** a custom domain.
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The build job is green on the pull request.
+  2. After the merge, the owner opens the demo at its Pages URL.
+- **Files:** ~5: `pages.yml`, root `package.json`, READMEs, PLAN, STATE.
+- **References:** DEC-17.
+
+### C3.9 · Release workflow
+- **Status:** waiting (C3.8)
+- **Goal:** pushing a version tag publishes both packages, with provenance.
+- **Depends on:** C3.6, DEC-17, P2, P3.
+- **In scope:** `.github/workflows/release.yml`: on a `v*` tag, `npm ci`, `npm run verify`, a check
+  that the tag matches both versions, then `npm publish --workspaces --access public --provenance`;
+  a dry run on pull requests that touch it. SESSION gains the release steps.
+- **Out of scope:** changelogs and automated versioning.
+- **Contract:** none. **Public API:** none.
+- **Acceptance criteria:**
+  1. The dry run is green on the pull request.
+  2. A tag that does not match the versions fails before publishing (seen once).
+- **Files:** ~4: `release.yml`, SESSION, PLAN, STATE.
+- **References:** DEC-17.
+
+### C3.10 · First publish
+- **Status:** waiting (C3.9)
+- **Goal:** `npm install @curvesel/vanilla` works.
+- **Depends on:** C3.9, P2, P3.
+- **In scope:** the owner pushes `v1.0.0`; the workflow publishes; the agent installs both from npm
+  into a scratch project and runs the README's quick start; ROADMAP's end goal is checked.
+- **Out of scope:** anything after v1.
+- **Contract:** none. **Public API:** v1.0.0.
+- **Acceptance criteria:**
+  1. Both packages are on npm at 1.0.0 with provenance.
+  2. A scratch project installs them from npm and the quick start runs (seen by the owner).
+- **Files:** ~2: PLAN, STATE.
+- **References:** DEC-17, ROADMAP "The end goal".
+
 ## Later
 Ideas not planned yet; a milestone's planning picks from here.
 - A wheel over a scrollable area inside a Slide moves the Carousel, not the area; skip a wheel
   that an inner scroller can still take (C2.10 review).
-- For M2: `LayoutContext.size` is the Slide's length along the Curve, so the engine measures the
-  height in the `yz` Plane and the width otherwise (C1.3 review).
-- With a Wave each Pose integrates from the centre, so N Slides cost O(N²·32) samples: a frame of
-  a drag over 200 Slides takes about 23 ms in Chrome, over the 16.7 ms budget (C2.12, ARCHITECTURE
-  "Frame budget"); 20 Slides take about 1 ms. The fix, a slice of its own: integrate once over the
-  sorted Offsets per frame, and skip Slides beyond the visible range.
 

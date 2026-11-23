@@ -45,20 +45,31 @@ focusable (DEC-14). The owner checks the Drag in the demo (C2.8) and every Prese
 |---|---|
 | `curvesel` | **Engine:** C2.1 mount and destroy, C2.2 follow the size, C2.3 follow the children, C2.4 animation loop and goTo, C2.5 events. **Browser:** C2.6 browser tests, C2.7 demo page. **Input:** C2.8 Drag, C2.9 click guard, C2.10 wheel and keyboard. **Finish:** C2.11 demo with every Preset, C2.12 frame budget |
 
+## M3 · v1 release
+The first npm publish of `@curvesel/core` and `@curvesel/vanilla`: the Wave's frame cost first,
+then ARIA, announcements and focus (DEC-15), reduced motion (DEC-16), the packages, docs and lab
+write-up, the demo online and the release from CI (DEC-17). The owner checks the docs and the
+write-up (C3.7), the demo online (C3.8) and the published packages (C3.10).
+
+| Repository | Slices |
+|---|---|
+| `curvesel` | **Performance:** C3.1 Wave once per frame. **Accessibility:** C3.2 ARIA on the Stage and the Slides, C3.3 announcer, C3.4 focus brings the Slide to the centre, C3.5 reduced motion. **Release:** C3.6 ready to publish, C3.7 docs and the lab write-up, C3.8 demo online, C3.9 release workflow, C3.10 first publish |
+
 ## Prerequisites (only the owner can do these)
 - **P1** · The GitHub repository `curvesel`, `main` pushed, labels and squash settings
   (OWNER_PLAN §0). Needed by C0.1.
 - **P2** · The npm scope `@curvesel` (or the unscoped fallback names, DEC-12). Needed by the first
-  publish (M3).
+  publish (M3), C3.9.
+- **P3** · npm publishing from CI: trusted publishing for both packages, or an `NPM_TOKEN` secret
+  (a granular token that can publish `@curvesel/*`) for the first publish. Needed by C3.9.
+- **P4** · GitHub Pages enabled with "GitHub Actions" as the source. Needed by C3.8.
 
 ## Later milestones (split when they start)
-- **M3 · v1 release.** ARIA (`aria-roledescription="carousel"`, a live region, `inert` on culled
-  Slides), `prefers-reduced-motion`, the docs, the lab write-up, the first npm publish.
 - **M4 · React adapter.** **M5 · Angular adapter.**
 
 ## Recommended order (one session at a time)
-C0.1 and C1.1 to C1.16 (done; M1 closed), C2.0 to C2.12 (done; M2 closed). Then "plan M3" with
-the owner.
+C0.1 and C1.1 to C1.16 (done; M1 closed), C2.0 to C2.12 (done; M2 closed), then C3.1 to C3.10 in
+order; each depends on the one before.
 
 ## Open decisions (see DECISIONS.md)
 | Id | Question | Status | Needed by |

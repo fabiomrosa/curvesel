@@ -153,4 +153,7 @@ Every slice's pull request updates it (SESSION §3).
   the frame budget (ARCHITECTURE "Frame budget").
 - **2026-11-23, close M2:** the owner checked the Drag (C2.8) and every Preset (C2.11) in the demo;
   M2 is `done` in the ROADMAP, and the close pull request ranks the open retro proposals.
-- **Next:** the accepted M2 proposals, then "plan M3".
+- **2026-11-23, plan M3:** ten slices, C3.1 to C3.10 (`docs/PLAN.md`). Agreed with the owner: ARIA
+  with announcements through the user's element and focus to the centre (DEC-15), reduced motion
+  lands at once (DEC-16), released from CI on a tag with the demo on Pages (DEC-17).
+- **Next:** C3.1 (Wave once per frame).
