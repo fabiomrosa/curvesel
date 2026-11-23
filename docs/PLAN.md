@@ -92,7 +92,7 @@ owner checks the Curve in the browser after C1.10 and the motion at the end of M
 - **References:** ARCHITECTURE "Modules" (playground).
 
 ### C1.3 · Planes
-- **Status:** waiting (C1.2)
+- **Status:** done (2026-11-23)
 - **Goal:** the same Curve bends vertically in depth (a wheel) or in the screen (an arc).
 - **Depends on:** C1.2.
 - **In scope:** `plane: 'xz' | 'yz' | 'xy'`, `xz` by default: `yz` puts the bend in `y` and `z`,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { curvePose } from "../src/index.ts";
+import { curvePose, type Plane } from "../src/index.ts";
 
 const IDENTITY = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const context = { size: 200 };
@@ -69,6 +69,45 @@ describe("curvePose", () => {
     );
     expect(() => curvePose(0, { curvature: 0, gap }, { size: Number.NaN })).toThrow(
       "curvesel: size",
+    );
+  });
+
+  describe("in each Plane, a quarter turn", () => {
+    // Curvature π/4 per step: Offset 2 is a quarter of the way round, R = 2·220/(π/2).
+    const radius = 880 / Math.PI;
+    const at = (plane: Plane) => curvePose(2, { curvature: Math.PI / 4, gap: 20, plane }, context);
+
+    it("puts Offset 2 at the side, facing sideways, in xz by default", () => {
+      const pose = curvePose(2, { curvature: Math.PI / 4, gap: 20 }, context);
+      expect(pose).toEqual(at("xz"));
+      expect(pose.x).toBeCloseTo(radius, 9);
+      expect(pose.z).toBeCloseTo(-radius, 9);
+      expectRotation(pose.rotation, [0, 0, 1, 0, 1, 0, -1, 0, 0]);
+    });
+
+    it("puts Offset 2 below, facing down, in yz (the wheel)", () => {
+      const pose = at("yz");
+      expect(pose.x).toBeCloseTo(0, 9);
+      expect(pose.y).toBeCloseTo(radius, 9);
+      expect(pose.z).toBeCloseTo(-radius, 9);
+      // Its own y axis points away from the viewer; its face (z axis) points down.
+      expectRotation(pose.rotation, [1, 0, 0, 0, 0, 1, 0, -1, 0]);
+    });
+
+    it("puts Offset 2 to the side and down, turned a quarter in the screen, in xy (the arc)", () => {
+      const pose = at("xy");
+      expect(pose.x).toBeCloseTo(radius, 9);
+      expect(pose.y).toBeCloseTo(radius, 9);
+      expect(pose.z).toBeCloseTo(0, 9);
+      // Its own x axis points down the screen; it still faces the viewer.
+      expectRotation(pose.rotation, [0, -1, 0, 1, 0, 0, 0, 0, 1]);
+    });
+  });
+
+  it("throws a message naming the Plane when it is unknown", () => {
+    const plane = "zz" as Plane;
+    expect(() => curvePose(0, { curvature: 0, gap: 20, plane }, context)).toThrow(
+      `curvesel: plane must be "xz", "yz" or "xy", got "zz"`,
     );
   });
 });
