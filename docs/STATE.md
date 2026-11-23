@@ -54,8 +54,7 @@ Every slice's pull request updates it (SESSION §3).
   `layout.ts` (`Layout`, `rotationFromAngles`), `presets.ts` (`presets`, `PresetName`),
   `track.ts` (`createTrack`, `dragStart`, `dragMove`, `release`, `goTo`, `step`, `TrackState`,
   `TrackOptions`), `slide-offset.ts` (`slideOffset`).
-- `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`); `happy-dom`
-  tests reach `core`'s source through `vitest.config.ts`.
+- `packages/vanilla`: `carousel.ts` (`createCarousel`, `CarouselOptions`, `Carousel`).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
