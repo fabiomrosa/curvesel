@@ -51,22 +51,46 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   if (options.size !== undefined && !(Number.isFinite(options.size) && options.size > 0)) {
     throw new Error(`curvesel: size must be a finite number > 0, got ${options.size}`);
   }
-  const slides = [...stage.children].filter((child) => child instanceof HTMLElement);
-  const track = createTrack({ count: Math.max(slides.length, 1), loop: options.loop ?? false });
-
-  const saved = [
-    save(stage, ["perspective"], []),
-    ...slides.map((slide) => save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES)),
-  ];
+  const loop = options.loop ?? false;
+  let slides: HTMLElement[] = [];
+  let track: TrackState = createTrack({ count: 1, loop });
+  const restores = new Map<HTMLElement, () => void>();
+  const saved = [save(stage, ["perspective"], [])];
   const measure = () => options.size ?? largest(slides, plane);
-  // A resize lays the Slides out again; while they measure 0 (a hidden Stage) the last layout stays.
-  const observer = new ResizeObserver(() => {
+  const draw = () => {
     const size = measure();
-    if (size > 0) render(stage, slides, track, layout, size);
+    // While the Slides measure 0 (a hidden Stage) the last layout stays.
+    if (size > 0 && slides.length > 0) render(stage, slides, track, layout, size);
+  };
+  const resizes = new ResizeObserver(draw);
+  /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
+  const adopt = () => {
+    const children = [...stage.children].filter((child) => child instanceof HTMLElement);
+    for (const [slide, restore] of restores) {
+      if (children.includes(slide)) continue;
+      resizes.unobserve(slide);
+      restore();
+      restores.delete(slide);
+    }
+    for (const slide of children) {
+      if (restores.has(slide)) continue;
+      restores.set(slide, save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES));
+      // Measured once out of the flow, as it will stay.
+      slide.style.position = "absolute";
+      resizes.observe(slide, { box: "border-box" });
+    }
+    slides = children;
+    track = { ...track, count: Math.max(slides.length, 1) };
+  };
+  const mutations = new MutationObserver(() => {
+    adopt();
+    draw();
   });
   const destroy = () => {
-    observer.disconnect();
-    for (const restore of saved) restore();
+    mutations.disconnect();
+    resizes.disconnect();
+    for (const restore of [...saved, ...restores.values()]) restore();
+    restores.clear();
   };
   try {
     // A positioned Stage keeps its own position; a static one becomes the Slides' containing block.
@@ -75,16 +99,15 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       stage.style.position = "relative";
     }
     stage.style.perspective = `${perspective}px`;
-    // Measured once the Slides are out of the flow, as they will stay.
-    for (const slide of slides) slide.style.position = "absolute";
-    const size = measure();
-    if (!(size > 0)) {
+    resizes.observe(stage, { box: "border-box" });
+    adopt();
+    if (slides.length > 0 && !(measure() > 0)) {
       throw new Error(
         "curvesel: the Slides measure 0 px along the Curve; give `size`, or mount once they are laid out",
       );
     }
-    render(stage, slides, track, layout, size);
-    for (const element of [stage, ...slides]) observer.observe(element, { box: "border-box" });
+    draw();
+    mutations.observe(stage, { childList: true });
   } catch (error) {
     destroy();
     throw error;
@@ -157,6 +180,7 @@ function save(element: HTMLElement, properties: string[], attributes: string[]):
     priority: element.style.getPropertyPriority(name),
   }));
   const marks = attributes.map((name) => ({ name, value: element.getAttribute(name) }));
+  const styled = element.hasAttribute("style");
   return () => {
     for (const { name, value, priority } of values) {
       if (value === "") element.style.removeProperty(name);
@@ -166,5 +190,7 @@ function save(element: HTMLElement, properties: string[], attributes: string[]):
       if (value === null) element.removeAttribute(name);
       else element.setAttribute(name, value);
     }
+    // Browsers keep an emptied `style=""`; an element that had none gets none back.
+    if (!styled && element.getAttribute("style") === "") element.removeAttribute("style");
   };
 }
