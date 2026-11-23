@@ -55,8 +55,8 @@ Every slice's pull request updates it (SESSION §3).
   switching Presets destroys and mounts again, and the cards keep their state.
 - The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a
   Preset selector, a Plane selector and sliders for count, Curvature, gap, size, the Wave with its
-  plane and anchor, Twist, Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex` order), and a
-  button that closes the ring; errors show on the page. It runs a Track: dragging any view moves it
+  plane and anchor, Twist, Tilt, the Position and visible range (hidden Slides dashed, painted in
+  `zIndex` order), and a button that closes the ring; errors show on the page. It runs a Track: dragging any view moves it
   (pixels divided by the step on screen), a release carries the velocity of the last 100 ms into
   Inertia and Snap, one `requestAnimationFrame` loop runs only while the Track moves, Previous and
   Next call `goTo`, a checkbox loops it, and the page shows the Position, the phase and the frames
