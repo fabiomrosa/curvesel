@@ -195,6 +195,7 @@ let grid: { key: string; ahead: Vector[]; behind: Vector[] } | undefined;
 
 /** The point `s` steps along the Curve: the integral of its unit tangent, by Simpson's rule. */
 function integrate(s: number, key: string, yaw: Turn, pitch: Turn): Vector {
+  if (!Number.isFinite(s)) return [Number.NaN, Number.NaN, Number.NaN];
   if (grid?.key !== key) grid = { key, ahead: [[0, 0, 0]], behind: [[0, 0, 0]] };
   const points = s < 0 ? grid.behind : grid.ahead;
   const at = (j: number) => (Math.sign(s) * j) / GRID_PER_STEP;

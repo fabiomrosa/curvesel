@@ -43,13 +43,14 @@ Each package is created by the first slice that needs it.
   Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near `κ =
   0`); with a Wave, the heading in closed form and the position by Simpson's rule, 32 intervals per
   step (default phase π/2, DEC-13), kept at every sixteenth of a step for the last Curve laid out
-  (up to 1024 steps each way), so the Slides of a frame cost O(N), not O(N²) (C3.1). The Curve has two angles along its length: the yaw in its Plane
-  (the Curvature and a `z` Wave) and the pitch across it (a `y` Wave). The tangent `(cos ψ cos φ,
-  −cos ψ sin φ, sin ψ)` is integrated in the Curve's own axes (along, bend, across), then each Plane
-  maps those axes to the Stage's; the Slide pitches around the Curve's in-Plane normal. Twist turns
-  each Slide by `twist · offset` around its tangent (the rotation times a local turn about its along
-  axis). Tilt rotates the whole Curve around the view axis through the centre, and each Slide back
-  by the same angle, so its rotation is the untilted one and its content stays upright.
+  (up to 1024 steps each way), so the Slides of a frame cost O(N), not O(N²) (C3.1). The Curve has
+  two angles along its length: the yaw in its Plane (the Curvature and a `z` Wave) and the pitch
+  across it (a `y` Wave). The tangent `(cos ψ cos φ, −cos ψ sin φ, sin ψ)` is integrated in the
+  Curve's own axes (along, bend, across), then each Plane maps those axes to the Stage's; the Slide
+  pitches around the Curve's in-Plane normal. Twist turns each Slide by `twist · offset` around its
+  tangent (the rotation times a local turn about its along axis). Tilt rotates the whole Curve
+  around the view axis through the centre, and each Slide back by the same angle, so its rotation is
+  the untilted one and its content stays upright.
 - A Pose is `{ x, y, z, rotation, zIndex, visible }`, `rotation` a row-major 3×3 matrix; the engine
   writes it as one `matrix3d()`. Rotations combine by multiplying matrices, never as Euler angles.
   The Slide at Offset 0 is at the origin with the identity rotation. `zIndex` comes from the Slide's
@@ -93,13 +94,13 @@ One gesture through the engine (M2):
 5. `destroy()`: stop the loop, remove the listeners, restore what DEC-07 lists.
 
 ## Frame budget
-`npm run bench` (`bench/frame-trace.ts`) drags a Carousel of 200 px Slides on the browser tests' page
-in the installed Chrome, 120 pointer moves (one every other frame: the script waits a frame after
-each), and traces it. A frame's cost is the main thread's top-level work in the frames the engine
-wrote in: its animation frame callback, style, layout, pre-paint, paint and layerize (input
+`npm run bench` (`bench/frame-trace.ts`) drags a Carousel of 200 px Slides on the browser tests'
+page in the installed Chrome, 120 pointer moves (one every other frame: the script waits a frame
+after each), and traces it. A frame's cost is the main thread's top-level work in the frames the
+engine wrote in: its animation frame callback, style, layout, pre-paint, paint and layerize (input
 dispatch adds under 0.3 ms; compositing and raster run off the main thread and are not counted).
-Measured 2026-11-23 (after C3.1) on an Apple M4 Pro, Chrome 157, six runs (the range of each run's median and
-worst frame):
+Measured 2026-11-23 (after C3.1) on an Apple M4 Pro, Chrome 157, six runs (the range of each run's
+median and worst frame):
 
 | Case | Median ms | Worst ms |
 |---|---|---|
@@ -117,8 +118,8 @@ None. The library emits `change` (Position) and `select` (Active slide) through
 
 ## Configuration
 Options passed to `createCarousel` or the adapter (a Preset name or Curve options, physics options,
-`loop`, `perspective`); no environment. An invalid option (a missing Stage, a negative gap) throws an
-`Error` with a plain message at mount, never fails silently.
+`loop`, `perspective`); no environment. An invalid option (a missing Stage, a negative gap) throws
+an `Error` with a plain message at mount, never fails silently.
 
 ## Security
 The library never reads or writes the Slides' content and never uses `innerHTML`. No network access.
