@@ -172,6 +172,16 @@ the demo to GitHub Pages.
 - **Consequences:** the owner sets up npm publishing for CI (P3) and Pages (P4) once; releasing is
   pushing a tag.
 
+## DEC-18 · DEC-15's ARIA goes on generic elements only — Accepted (owner, 2026-11-24)
+Reads DEC-15's "unless the user set them" for native semantics: an element's native role counts as
+set. The library names only generic elements (`div`, `span`, `section`, custom elements) with no
+`role`; an `img`, a link, a button or a list keeps its own semantics. A description or label the
+user set, before mount or after, stays; `destroy()` puts back what was there.
+- **Why:** `role="group"` on an `<img alt>` hid its alt text in Chrome, and on a link or button its
+  role (C3.2 review); a list already says "3 of 10".
+- **Consequences:** a carousel of images, links or list items gets no group names from the library;
+  the user names them, or wraps each in a `div`.
+
 ---
 
 ## Proposed (waiting for the owner)
