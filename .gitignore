@@ -15,4 +15,3 @@ dist/
 coverage/
 test-results/
 playwright-report/
-e2e/.quickstart.html
