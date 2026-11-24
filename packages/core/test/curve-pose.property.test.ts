@@ -146,6 +146,66 @@ describe("curvePose invariants", () => {
     // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
     const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
 
+    it("gives the same Pose whatever Curve was laid out before (a reused integral)", () => {
+      // The other Curve differs from this one in one thing the integral depends on.
+      const change = fc.constantFrom(
+        "curvature",
+        "amplitude",
+        "wavelength",
+        "phase",
+        "plane",
+        "position",
+      );
+      fc.assert(
+        fc.property(
+          base,
+          wave,
+          fc.array(offset, { minLength: 1, maxLength: 8 }),
+          position,
+          change,
+          (c, w, offsets, t, what) => {
+            const options: CurveOptions = { curvature: c, gap: 20, wave: w };
+            const other: CurveOptions = {
+              ...options,
+              curvature: what === "curvature" ? c + 0.5 : c,
+              wave: {
+                ...w,
+                amplitude: what === "amplitude" ? w.amplitude + 0.5 : w.amplitude,
+                wavelength: what === "wavelength" ? w.wavelength + 1 : w.wavelength,
+                phase: what === "phase" ? w.phase + 1 : w.phase,
+                plane: what === "plane" ? (w.plane === "y" ? "z" : "y") : w.plane,
+                anchor: what === "position" ? "ribbon" : w.anchor,
+              },
+            };
+            const context = { size: 100, position: t };
+            const otherContext = { size: 100, position: what === "position" ? t + 1 : t };
+            // A Curve unlike both, so the next call starts afresh.
+            const reset = () =>
+              curvePose(
+                0,
+                { curvature: 3, gap: 0, wave: { amplitude: 2, wavelength: 0.5 } },
+                context,
+              );
+            const layOut = () => offsets.map((o) => curvePose(o, options, context));
+            reset();
+            const alone = layOut();
+            // The other Curve first, as far out as any Offset each way.
+            reset();
+            for (const o of [-25, 25]) curvePose(o, other, otherContext);
+            const after = layOut();
+            alone.forEach((pose, i) => {
+              const again = after[i] as Pose;
+              expect(distance(pose, again)).toBeLessThanOrEqual(EPS * 120);
+              pose.rotation.forEach((value, j) => {
+                expect(Math.abs(value - (again.rotation[j] as number))).toBeLessThanOrEqual(EPS);
+              });
+            });
+          },
+        ),
+        { numRuns: 300 },
+      );
+    });
+
     it("keeps the Slides on the Curve, one step apart, turned with it, with any Twist and Tilt", () => {
       fc.assert(
         fc.property(

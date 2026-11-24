@@ -42,7 +42,8 @@ Each package is created by the first slice that needs it.
   `θ(s)` is the integral of `κ(s)`; the position is the integral of the unit tangent, in the chosen
   Plane. With no Wave it is closed form (`x = R·sin(κs)`, `z = R·(cos(κs) − 1)`, a series near `κ =
   0`); with a Wave, the heading in closed form and the position by Simpson's rule, 32 intervals per
-  step (default phase π/2, DEC-13). The Curve has two angles along its length: the yaw in its Plane
+  step (default phase π/2, DEC-13), kept at every sixteenth of a step for the last Curve laid out
+  (up to 1024 steps each way), so the Slides of a frame cost O(N), not O(N²) (C3.1). The Curve has two angles along its length: the yaw in its Plane
   (the Curvature and a `z` Wave) and the pitch across it (a `y` Wave). The tangent `(cos ψ cos φ,
   −cos ψ sin φ, sin ψ)` is integrated in the Curve's own axes (along, bend, across), then each Plane
   maps those axes to the Stage's; the Slide pitches around the Curve's in-Plane normal. Twist turns
@@ -97,19 +98,18 @@ in the installed Chrome, 120 pointer moves (one every other frame: the script wa
 each), and traces it. A frame's cost is the main thread's top-level work in the frames the engine
 wrote in: its animation frame callback, style, layout, pre-paint, paint and layerize (input
 dispatch adds under 0.3 ms; compositing and raster run off the main thread and are not counted).
-Measured 2026-11-23 on an Apple M4 Pro, Chrome 157, five runs (the range of each run's median and
+Measured 2026-11-23 (after C3.1) on an Apple M4 Pro, Chrome 157, six runs (the range of each run's median and
 worst frame):
 
 | Case | Median ms | Worst ms |
 |---|---|---|
-| 20 Slides, ribbon | 0.3 – 0.8 | 1.2 – 1.5 |
-| 20 Slides, wavy ribbon | 0.5 – 1.3 | 1.7 – 3.1 |
-| 200 Slides, ribbon | 2.0 – 3.3 | 4.7 – 6.3 |
-| 200 Slides, wavy ribbon | 22.5 – 22.9 | 23.4 – 24.7 |
+| 20 Slides, ribbon | 0.8 – 0.9 | 1.4 – 1.9 |
+| 20 Slides, wavy ribbon | 1.0 – 1.1 | 1.6 – 1.7 |
+| 200 Slides, ribbon | 2.8 – 3.7 | 5.3 – 6.5 |
+| 200 Slides, wavy ribbon | 3.1 – 4.4 | 5.6 – 7.0 |
 
-The 60 fps budget is 16.7 ms. Every case fits but 200 Slides with a Wave, almost all of it in the
-engine's callback: each Pose integrates its Wave from the centre, O(N²) for N Slides (PLAN
-"Later").
+The 60 fps budget is 16.7 ms: every case fits. Before C3.1, 200 Slides with a Wave took 22.5 – 23.1
+ms (median), each Pose integrating its Wave from the centre, O(N²) for N Slides.
 
 ## Persistence
 None. The library emits `change` (Position) and `select` (Active slide) through
