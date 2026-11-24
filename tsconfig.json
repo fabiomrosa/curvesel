@@ -21,5 +21,7 @@
     "bench",
     "scripts",
     "playwright.config.ts"
-  ]
+  ],
+  // Type-checked against the packed packages by `check:pack`, after the build.
+  "exclude": ["scripts/check-pack.sample.ts"]
 }
