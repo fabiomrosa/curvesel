@@ -39,9 +39,41 @@ afterEach(() => {
 describe("Announcer (DEC-15)", () => {
   it("says the new Active slide's label once the Track rests, not on mount", () => {
     expect(announcer.textContent).toBe("Ready");
-    carousel.next();
-    vi.advanceTimersByTime(17);
+    carousel.goTo(3);
+    // Mid-flight, already past the next Slide: still nothing.
+    vi.advanceTimersByTime(150);
+    expect(carousel.position).toBeGreaterThan(1.2);
     expect(announcer.textContent).toBe("Ready");
+    settle();
+    expect(announcer.textContent).toBe("4 of 5");
+    carousel.next();
+    expect(announcer.textContent).toBe("4 of 5");
+    settle();
+    expect(announcer.textContent).toBe("5 of 5");
+  });
+
+  it("says the Slide a key settles on", () => {
+    root.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", cancelable: true }));
+    settle();
+    expect(announcer.textContent).toBe("2 of 5");
+  });
+
+  it("says the new Active slide when children change at rest", async () => {
+    carousel.destroy();
+    carousel = createCarousel(root, { layout: "ribbon", size: 100, announcer, loop: true });
+    carousel.goTo(4);
+    settle();
+    root.lastElementChild?.remove();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    settle();
+    expect(announcer.textContent).toBe("4 of 4");
+    // Another Slide comes to the centre without the index changing.
+    carousel.destroy();
+    carousel = createCarousel(root, { layout: "ribbon", size: 100, announcer });
+    carousel.goTo(1);
+    settle();
+    root.prepend(document.createElement("div"));
+    await new Promise((resolve) => setTimeout(resolve, 0));
     settle();
     expect(announcer.textContent).toBe("2 of 5");
   });
@@ -83,6 +115,23 @@ describe("Announcer (DEC-15)", () => {
     expect(announcer.textContent).toBe("Ready");
   });
 
+  it("puts back the announcer's own nodes, unless the user changed its text", () => {
+    carousel.destroy();
+    announcer.innerHTML = '<span class="mine">Ready</span>';
+    const mine = announcer.firstElementChild;
+    carousel = createCarousel(root, { layout: "ribbon", size: 100, announcer });
+    carousel.next();
+    settle();
+    carousel.destroy();
+    expect(announcer.firstElementChild).toBe(mine);
+    carousel = createCarousel(root, { layout: "ribbon", size: 100, announcer });
+    carousel.next();
+    settle();
+    announcer.textContent = "Theirs";
+    carousel.destroy();
+    expect(announcer.textContent).toBe("Theirs");
+  });
+
   it("reports a `slideLabel` that throws, and keeps moving", () => {
     const report = vi.fn();
     vi.stubGlobal("reportError", report);
@@ -102,10 +151,17 @@ describe("Announcer (DEC-15)", () => {
     expect(carousel.position).toBe(1);
   });
 
-  it("throws for an announcer that is not an element", () => {
+  it("throws for an announcer that is not an element, or is the Stage, around it or in it", () => {
+    carousel.destroy();
     const options = { size: 100, announcer: "#announcer" as unknown as HTMLElement };
     expect(() => createCarousel(root, options)).toThrow(
       "curvesel: announcer must be an HTMLElement",
     );
+    for (const element of [root, document.body, root.firstElementChild as HTMLElement]) {
+      expect(() => createCarousel(root, { size: 100, announcer: element })).toThrow(
+        "curvesel: announcer must be outside the Stage",
+      );
+    }
+    expect(root.children).toHaveLength(5);
   });
 });

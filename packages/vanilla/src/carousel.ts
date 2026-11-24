@@ -136,9 +136,13 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   if (announcer !== undefined && !(announcer instanceof HTMLElement)) {
     throw new Error(`curvesel: announcer must be an HTMLElement, got ${String(announcer)}`);
   }
-  /** What the announcer said before the Carousel, and the Active slide it said last. */
-  const quiet = announcer?.textContent ?? "";
-  let said: { index: number; text?: string } = { index: 0 };
+  // Its text would replace the Slides, or the Carousel itself.
+  if (announcer && (announcer.contains(stage) || stage.contains(announcer))) {
+    throw new Error("curvesel: announcer must be outside the Stage");
+  }
+  /** The announcer's own nodes, and the Active slide it said last with the text it wrote. */
+  const quiet = announcer ? [...announcer.childNodes] : [];
+  let said: { slide: HTMLElement | undefined; text?: string } = { slide: undefined };
   /** The ARIA the library wrote on each element, attribute by attribute (DEC-15). */
   const voiced: Voiced = new Map();
   const saved = [save(stage, ["perspective", "touch-action"], [])];
@@ -172,10 +176,12 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
   /** At rest on a new Active slide, the announcer says its label. */
   const announce = () => {
     const index = activeIndex(track);
-    if (!announcer || track.phase !== "rest" || index === said.index) return;
+    const slide = slides[index];
+    if (!announcer || track.phase !== "rest" || slide === said.slide) return;
     try {
-      said = { index, text: slideLabel(index, slides.length) };
-      announcer.textContent = said.text ?? "";
+      const text = slideLabel(index, slides.length);
+      announcer.textContent = text;
+      said = { slide, text };
     } catch (error) {
       reportError(error);
     }
@@ -323,6 +329,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     adopt();
     draw();
     notify();
+    announce();
   });
   const destroy = () => {
     destroyed = true;
@@ -337,7 +344,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     for (const slide of owned) owners.get(slide)?.();
     for (const restore of saved) restore();
     if (announcer && said.text !== undefined && announcer.textContent === said.text) {
-      announcer.textContent = quiet;
+      announcer.replaceChildren(...quiet);
     }
     unvoice(voiced, stage);
   };
@@ -367,6 +374,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       );
     }
     draw();
+    // The Active slide at mount is not said.
+    said = { slide: slides[activeIndex(track)] };
     mutations.observe(stage, { childList: true });
   } catch (error) {
     destroy();

@@ -63,8 +63,9 @@ Every slice's pull request updates it (SESSION §3).
   Slide a `group` with `aria-roledescription="slide"` and `slideLabel` ("3 of 10"), kept current
   as children change; an element with a role of its own (set or native) and a label the user set
   stay theirs; a throwing `slideLabel` is reported. The `announcer` option takes the user's own
-  live region: at rest on a new Active slide its text becomes that Slide's label (not on mount,
-  not during a Drag), and `destroy()` puts the earlier text back.
+  live region, outside the Stage: at rest on a new Active slide (another element, after a move or a
+  child change) its text becomes that Slide's label, never on mount or during a Drag, and
+  `destroy()` puts its own nodes back unless the user changed its text.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
