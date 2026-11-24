@@ -16,6 +16,7 @@ export {
   dragStart,
   goBy,
   goTo,
+  land,
   release,
   step,
   type TrackOptions,

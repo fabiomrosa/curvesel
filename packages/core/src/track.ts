@@ -112,6 +112,12 @@ export function goBy(state: TrackState, delta: number): TrackState {
   return snapTo(state, state.loop ? aim : Math.min(Math.max(aim, 0), state.count - 1));
 }
 
+/** A Snap that lands at once, for reduced motion (DEC-16): the Track rests on its target. */
+export function land(state: TrackState): TrackState {
+  if (state.phase !== "snap") return state;
+  return { ...state, position: state.target, velocity: 0, phase: "rest" };
+}
+
 /** Snap's spring towards a whole Position, keeping the velocity towards it that never passes it. */
 function snapTo(state: TrackState, target: number): TrackState {
   if (state.phase === "drag") return state;

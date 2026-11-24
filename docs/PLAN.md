@@ -651,24 +651,26 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-15.
 
 ### C3.5 · Reduced motion
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** with reduced motion, nothing animates that the user did not drag.
 - **Depends on:** DEC-16.
-- **In scope:** option `reducedMotion` (by default it follows `prefers-reduced-motion`, live,
-  through the `MediaQueryList`); while on, a release, `goTo`, `next`, `previous`, the keys and the
-  end of a wheel gesture land on the target at once, with no Inertia or spring; a Drag still
-  follows the pointer. A pure function in `core` if the Track needs one.
+- **In scope:** option `reducedMotion` (by default it follows `prefers-reduced-motion`, live: its
+  `matches` read at each move and each moving frame, with no listener); while on, a release, `goTo`,
+  `next`, `previous`, the keys and the end of a wheel gesture land on the target at once, with no
+  Inertia or spring; a Drag still follows the pointer. A pure function in `core` if the Track needs
+  one.
 - **Out of scope:** the user's own CSS transitions.
 - **Contract:** none. **Public API:** additive, the `reducedMotion` option (and the `core` function,
   if any).
 - **Acceptance criteria:**
   1. With the media query on, Next lands in the next frame (e2e, `emulateMedia`); off, it animates.
-  2. The option overrides the media query both ways; the listener goes with `destroy()`.
+  2. The option overrides the media query both ways, and a motion already running lands when the
+     preference turns on.
 - **Files:** ~6: `src/carousel.ts`, a test, an e2e, maybe `core/src/track.ts`, PLAN, STATE.
 - **References:** DEC-16.
 
 ### C3.6 · Ready to publish
-- **Status:** waiting (C3.5)
+- **Status:** next
 - **Goal:** `npm pack` gives two packages a project can install and use.
 - **Depends on:** DEC-12, DEC-17.
 - **In scope:** each `package.json`: `private` removed, version `1.0.0` in lockstep, description,
