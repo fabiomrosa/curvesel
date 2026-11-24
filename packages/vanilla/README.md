@@ -11,6 +11,8 @@ npm install @curvesel/vanilla
 
 ## Quick start
 
+With a bundler (Vite, webpack, esbuild) or an import map for the bare import:
+
 ```html
 <div id="stage" style="width: 800px; height: 400px; overflow: clip">
   <div class="card">One</div>
@@ -29,8 +31,10 @@ npm install @curvesel/vanilla
 </script>
 ```
 
-Drag, flick or use the wheel along the Curve; focus the Stage and use the arrow keys, Home and End.
-Call `carousel.destroy()` to put every element back as it was.
+Give the Stage a size (its Slides are taken out of the flow) and the Slides a size when you mount,
+or pass `size`. Drag or flick; scroll along the Curve (a horizontal swipe on a horizontal Curve; a
+wheel across it scrolls the page); focus the Stage and use the arrow keys, Home and End. Call
+`carousel.destroy()` to put every element back as it was.
 
 ## Options
 
@@ -39,18 +43,19 @@ Call `carousel.destroy()` to put every element back as it was.
 | Option | Default | |
 |---|---|---|
 | `layout` | `"cylinder"` | A Preset name (`cylinder`, `ribbon`, `wheel`, `arc`), Curve options, or a Layout function (`@curvesel/core`). |
-| `size` | the largest Slide | The Slide length along the Curve, in px (its width; its height for a vertical Curve). |
+| `size` | the largest Slide | The Slide length along the Curve, in px: its width, or its height in the `wheel` (`yz`) Plane. |
 | `perspective` | `1000` | The Stage's CSS `perspective`, in px. |
 | `loop` | `false` | Turn forever, with no ends. |
-| `rubberBand` | `0.1` | The fraction of a drag that counts past the first or last Slide. |
-| `friction` | `0.84³⁰` | The fraction of the velocity kept after a second of inertia. |
+| `rubberBand` | `0.1` | The fraction of a drag that counts past the first or last Slide, in (0, 1]. |
+| `friction` | `0.84 ** 30` (≈ 0.0053) | The fraction of the velocity kept after a second of inertia, in (0, 1). |
 | `dragThreshold` | `10` | Px a pointer moves before it is a drag; a drag's click is stopped, a tap's is not. |
 | `label` | `"Carousel"` | The Stage's accessible name. |
 | `slideLabel` | `"3 of 10"` | `(index, count) => string`: each Slide's accessible name. |
-| `announcer` | none | Your own live-region element; it is told the new Slide when the carousel settles. |
+| `announcer` | none | Your own live-region element, outside the Stage; it is told the new Slide when the carousel settles. |
 | `reducedMotion` | the media query | Land on the target at once, with no animation (`prefers-reduced-motion` by default). |
 
-An invalid option throws an `Error` starting with `curvesel:` at mount, and nothing is written.
+An invalid Stage, number, layout, `label` or `announcer` throws an `Error` starting with `curvesel:`
+at mount, leaving nothing written. A `slideLabel` that throws is reported (`reportError`) instead.
 
 ## The Carousel
 
@@ -75,7 +80,8 @@ The library writes only these, and puts them back on `destroy()`:
   `--cs-offset` (signed distance from the centre, in Slides) and `--cs-abs-offset`, the attributes
   `data-cs-active` and `data-cs-visible`, and ARIA.
 
-Everything else is your CSS, driven by those. For example, dim and shrink the side Slides:
+Everything else is your CSS, driven by those. For example, dim and shrink the side Slides, each with
+a `.face` child:
 
 ```css
 .card { --away: min(var(--cs-abs-offset, 0), 3); }
@@ -83,8 +89,8 @@ Everything else is your CSS, driven by those. For example, dim and shrink the si
 .card[data-cs-active] > .face { outline: 2px solid orange; }
 ```
 
-- **Style inside the Slide**, not the Slide itself: the CSS `scale`, `rotate` and `translate`
-  properties apply after the Slide's `transform` and would move it off the Curve.
+- **Animate and transform inside the Slide:** on the Slide itself, the CSS `scale`, `rotate` and
+  `translate` properties apply after its `transform` and move it off the Curve.
 - **Give the Stage `overflow: clip`, not `hidden`:** a `hidden` Stage still scrolls to show a
   focused element, which pushes every Slide off the centre.
 
@@ -93,17 +99,19 @@ Everything else is your CSS, driven by those. For example, dim and shrink the si
 - A `div`, `span`, `section` or custom-element Stage becomes a `region` with
   `aria-roledescription="carousel"` and `label`; each such Slide a `group` with
   `aria-roledescription="slide"` and `slideLabel`. An element with a role of its own (an `img`, a
-  link, a button, a list) keeps it, and a label you set always wins.
+  link, a button, a list) keeps it and gets no label from the library: name it yourself, or wrap it
+  in a `div`. A label you set always wins.
 - The Stage is focusable; the arrow keys along the Curve step it, Home and End go to the ends.
   Keyboard focus moving into a Slide brings that Slide to the centre.
-- Pass a visually hidden `<p aria-live="polite">` as `announcer` to have screen readers told the
+- Pass a visually hidden `<p aria-live="polite">`, outside the Stage, as `announcer` to have screen readers told the
   new Slide once the carousel settles.
 - With `prefers-reduced-motion: reduce`, nothing animates that the user did not drag.
 
 ## Requirements
 
-ES modules only (`import`); Node's `require` of ES modules also works. TypeScript types are
-included. Any browser with Pointer Events, `ResizeObserver` and CSS 3D transforms.
+ES modules only (`import`); Node's `require` of ES modules also works (Node 20.19 or 22.12 and
+later). TypeScript types are included. Browsers with Pointer Events, `ResizeObserver`, CSS 3D
+transforms and `reportError` (Safari 15.4 and later; `overflow: clip` needs Safari 16).
 
 ## License
 
