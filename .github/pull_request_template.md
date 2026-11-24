@@ -21,8 +21,8 @@
 <!-- Anything that differs from the entry; design gaps filled; decisions proposed. "None" if none. -->
 
 ## Retro
-<!-- The retro skill's proposals, most severe first, each with the file it would change. Nothing here
-     is applied until the owner agrees. -->
+<!-- Every slice runs the retro skill: its proposals, most severe first, each with the file it would
+     change, or "None". Nothing here is applied until the owner agrees. -->
 
 ## Next
 <!-- The slices this unblocks. -->
