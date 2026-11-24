@@ -9,13 +9,10 @@ class InertResizeObserver {
 }
 
 /** `prefers-reduced-motion`, switched by the test. */
-class FakeQuery extends EventTarget {
-  constructor(public matches: boolean) {
-    super();
-  }
+class FakeQuery {
+  constructor(public matches: boolean) {}
   set(matches: boolean): void {
     this.matches = matches;
-    this.dispatchEvent(new Event("change"));
   }
 }
 
@@ -104,6 +101,45 @@ describe("Reduced motion (DEC-16)", () => {
     still.destroy();
     query.set(true);
     const moving = mount({ reducedMotion: false });
+    moving.next();
+    frame();
+    frame();
+    expect(Number.isInteger(moving.position)).toBe(false);
+  });
+
+  it("lands a motion already running when the preference turns on", () => {
+    query.set(false);
+    const carousel = mount();
+    carousel.next();
+    frame();
+    frame();
+    query.set(true);
+    frame();
+    expect(carousel.position).toBe(1);
+    // A flick's Inertia too: it stops on the Slide nearest where it is.
+    query.set(false);
+    pointer(root, "pointerdown", 500, 100);
+    pointer(root, "pointermove", 440, 110);
+    pointer(root, "pointermove", 380, 120);
+    pointer(root, "pointerup", 380, 130);
+    frame();
+    frame();
+    query.set(true);
+    frame();
+    expect(Number.isInteger(carousel.position)).toBe(true);
+  });
+
+  it("tells a jump once, and animates where there is no matchMedia", () => {
+    const heard: number[] = [];
+    const carousel = mount();
+    carousel.on("change", (position) => heard.push(position));
+    carousel.next();
+    frame();
+    frame();
+    expect(heard).toEqual([1]);
+    carousel.destroy();
+    vi.stubGlobal("matchMedia", undefined);
+    const moving = mount();
     moving.next();
     frame();
     frame();

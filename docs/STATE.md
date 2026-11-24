@@ -55,22 +55,22 @@ Every slice's pull request updates it (SESSION §3).
   applied in the next frame; a release carries the last 100 ms of velocity into Inertia; the Active
   slide is clamped past an end; `touch-action` follows the drag axis. Past the threshold, the next
   pointer `click` is stopped on the Stage in the capture phase (keyboard clicks pass); the next
-  `pointerdown` or `destroy()` lifts the guard. A wheel mostly along the Curve moves it like a
-  Drag within the ends (at an end, across the Curve or a pinch, the page takes it) and Snaps after
-  150 ms without one, or at once for a Drag, a key or a call; on the focused Stage the arrows
-  along the Curve step it, Home and End go to the ends (keys from inside a Slide stay the Slide's);
-  a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14). ARIA (DEC-15): a
-  generic Stage is a `region` with `aria-roledescription="carousel"` and `label`, each generic
-  Slide a `group` with `aria-roledescription="slide"` and `slideLabel` ("3 of 10"), kept current
-  as children change; an element with a role of its own (set or native) and a label the user set
-  stay theirs; a throwing `slideLabel` is reported. The `announcer` option takes the user's own
-  live region, outside the Stage: at rest on a new Active slide (another element, after a move or a
-  child change) its text becomes that Slide's label, never on mount or during a Drag, and
-  `destroy()` puts its own nodes back unless the user changed its text. Keyboard focus
-  entering a Slide sends the Track to it; after a press on the Stage, focus is the pointer's and
-  moves nothing until a key or until focus leaves the Carousel. Reduced motion (DEC-16, option
-  `reducedMotion`, else `prefers-reduced-motion` read at each move): a release, `goTo`, a key and
-  a wheel gesture's end land at once (`core`'s `land`), with no Inertia; a Drag still follows.
+  `pointerdown` or `destroy()` lifts the guard. A wheel mostly along the Curve moves it like a Drag
+  within the ends (at an end, across the Curve or a pinch, the page takes it) and Snaps after 150 ms
+  without one, or at once for a Drag, a key or a call; on the focused Stage the arrows along the
+  Curve step it, Home and End go to the ends (keys from inside a Slide stay the Slide's); a Stage
+  without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14). ARIA (DEC-15): a generic Stage
+  is a `region` with `aria-roledescription="carousel"` and `label`, each generic Slide a `group`
+  with `aria-roledescription="slide"` and `slideLabel` ("3 of 10"), kept current as children change;
+  an element with a role of its own (set or native) and a label the user set stay theirs; a throwing
+  `slideLabel` is reported. The `announcer` option takes the user's own live region, outside the
+  Stage: at rest on a new Active slide (another element, after a move or a child change) its text
+  becomes that Slide's label, never on mount or during a Drag, and `destroy()` puts its own nodes
+  back unless the user changed its text. Keyboard focus entering a Slide sends the Track to it;
+  after a press on the Stage, focus is the pointer's and moves nothing until a key or until focus
+  leaves the Carousel. Reduced motion (DEC-16, option `reducedMotion`, else `prefers-reduced-motion`
+  read at each move and moving frame): a release, `goTo`, a key and a wheel gesture's end land at
+  once (`core`'s `land`), with no Inertia; a Drag still follows.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep

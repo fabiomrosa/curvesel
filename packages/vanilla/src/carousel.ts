@@ -205,6 +205,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       track = dragMove(track, toPositions(dragging, pending));
       pending = { x: 0, y: 0 };
     }
+    // A preference that turned on mid-flight lands the motion already running.
+    if (still() && track.phase === "inertia") track = release(track, 0);
+    if (still()) track = land(track);
     track = step(track, last === undefined ? 0 : Math.max(0, now - last) / 1000);
     last = now;
     paint();
