@@ -90,7 +90,6 @@ Every slice's pull request updates it (SESSION §3).
 - A ring with a `y` Wave closes only for a whole number of wavelengths at the default phase with
   `anchor: 'space'`; with another phase, or `ribbon` while the Track moves, it opens (C1.7 review).
   Closing it would need the Slide count in the Layout context.
-- A drag over 200 Slides with a Wave takes about 23 ms a frame, over the 60 fps budget (C2.12).
 
 ## Last session
 - **2026-11-23, bootstrap:** the repository starts from the AI-flow boilerplate: `AGENTS.md`
@@ -156,4 +155,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, plan M3:** ten slices, C3.1 to C3.10 (`docs/PLAN.md`). Agreed with the owner: ARIA
   with announcements through the user's element and focus to the centre (DEC-15), reduced motion
   lands at once (DEC-16), released from CI on a tag with the demo on Pages (DEC-17).
-- **Next:** C3.1 (Wave once per frame).
+- **2026-11-23, C3.1:** the Wave's integral kept for the Curve being laid out: 200 Slides with a
+  Wave take about 4 ms a frame, down from 23.
+- **Next:** C3.2 (ARIA on the Stage and the Slides).

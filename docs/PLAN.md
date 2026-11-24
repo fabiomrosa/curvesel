@@ -587,7 +587,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 (C3.7), the demo online (C3.8) and the published packages (C3.10).
 
 ### C3.1 · Wave once per frame
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a drag over 200 Slides with a Wave fits the 60 fps budget.
 - **Depends on:** C2.12, DEC-06.
 - **In scope:** `curvePose` reuses the Wave's integration across the calls of one frame (the same
@@ -604,7 +604,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** ARCHITECTURE "The math" and "Frame budget".
 
 ### C3.2 · ARIA on the Stage and the Slides
-- **Status:** waiting (C3.1)
+- **Status:** next
 - **Goal:** a screen reader names the Carousel and each Slide's place in it.
 - **Depends on:** DEC-15.
 - **In scope:** on the Stage, `role="region"`, `aria-roledescription="carousel"` and `aria-label`

@@ -179,6 +179,25 @@ describe("curvePose", () => {
       expectRotation(pose.rotation, IDENTITY);
     });
 
+    it("gives a NaN Pose for an Offset that is not finite, as without a Wave", () => {
+      const wavy = { curvature: 0, gap: 0, wave: { amplitude: 1, wavelength: 2 } };
+      for (const offset of [Number.NaN, Number.POSITIVE_INFINITY]) {
+        expect(curvePose(offset, wavy, { size: 100 }).x).toBeNaN();
+      }
+    });
+
+    it("lies on the circle far out, beyond the integral it keeps (1024 steps)", () => {
+      const options = { curvature: 0.3, gap: 20 };
+      const flat = { ...options, wave: { amplitude: 0, wavelength: 3 } };
+      for (const offset of [1500.25, -2000.5]) {
+        const [wavy, plain] = [
+          curvePose(offset, flat, { size: 100 }),
+          curvePose(offset, options, { size: 100 }),
+        ];
+        expect(Math.hypot(wavy.x - plain.x, wavy.y - plain.y, wavy.z - plain.z)).toBeLessThan(1e-6);
+      }
+    });
+
     describe("anchored to the ribbon", () => {
       const ribbon = { ...wave, phase: 0.4, anchor: "ribbon" as const };
       const options = (w: Wave) => ({ curvature: 0.2, gap: 20, wave: w });

@@ -103,8 +103,9 @@ export function curvePose(offset: number, options: CurveOptions, context: Layout
   const pitching = wave?.plane === "y";
   const yaw = (u: number) => curvature * u + (pitching ? 0 : waveTurns(u));
   const pitch = (u: number) => (pitching ? waveTurns(u) : 0);
-  const point = wave
-    ? scale(integrate(offset, yaw, pitch), step)
+  const key = wave && [curvature, wave.amplitude, wave.wavelength, wave.phase, wave.plane].join();
+  const point = key
+    ? scale(integrate(offset, key, yaw, pitch), step)
     : circle(offset * step, curvature * offset);
   const curved = place(plane, point, yaw(offset), pitch(offset));
   // The Slide's own axis along the Curve: y in the wheel, x otherwise.
@@ -180,14 +181,43 @@ const DEFAULT_PHASE = Math.PI / 2;
  */
 const SIMPSON_PER_STEP = 32;
 
+/** Grid points per Slide step where the integral is kept: one Simpson pair (two intervals) apart. */
+const GRID_PER_STEP = SIMPSON_PER_STEP / 2;
+/** Grid points kept each way: past them (1024 steps), a Pose integrates the rest itself. */
+const GRID_LIMIT = 1024 * GRID_PER_STEP;
+
+/**
+ * The integral at each grid point, each way from the centre, for one Curve (`key`: everything the
+ * yaw and the pitch depend on). The Slides of a frame share one Curve, so each costs O(1), not
+ * O(its Offset); a Pose is the same whatever was laid out before.
+ */
+let grid: { key: string; ahead: Vector[]; behind: Vector[] } | undefined;
+
 /** The point `s` steps along the Curve: the integral of its unit tangent, by Simpson's rule. */
-function integrate(s: number, yaw: (u: number) => number, pitch: (u: number) => number): Vector {
-  const n = 2 * Math.ceil((Math.abs(s) * SIMPSON_PER_STEP) / 2) || 2;
-  const h = s / n;
+function integrate(s: number, key: string, yaw: Turn, pitch: Turn): Vector {
+  if (!Number.isFinite(s)) return [Number.NaN, Number.NaN, Number.NaN];
+  if (grid?.key !== key) grid = { key, ahead: [[0, 0, 0]], behind: [[0, 0, 0]] };
+  const points = s < 0 ? grid.behind : grid.ahead;
+  const at = (j: number) => (Math.sign(s) * j) / GRID_PER_STEP;
+  const j = Math.min(Math.floor(Math.abs(s) * GRID_PER_STEP), GRID_LIMIT);
+  for (let k = points.length; k <= j; k++) {
+    points.push(add(points[k - 1] as Vector, simpson(at(k - 1), at(k), yaw, pitch)));
+  }
+  return add(points[j] as Vector, simpson(at(j), s, yaw, pitch));
+}
+
+type Turn = (u: number) => number;
+
+const add = (a: Vector, b: Vector): Vector => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+
+/** The integral of the unit tangent from `a` to `b`, at `SIMPSON_PER_STEP` intervals per step. */
+function simpson(a: number, b: number, yaw: Turn, pitch: Turn): Vector {
+  const n = 2 * Math.ceil((Math.abs(b - a) * SIMPSON_PER_STEP) / 2) || 2;
+  const h = (b - a) / n;
   let [along, bend, across] = [0, 0, 0];
   for (let i = 0; i <= n; i++) {
     const weight = i === 0 || i === n ? 1 : i % 2 === 1 ? 4 : 2;
-    const [t] = frame(yaw(i * h), pitch(i * h));
+    const [t] = frame(yaw(a + i * h), pitch(a + i * h));
     along += weight * t[0];
     bend += weight * t[1];
     across += weight * t[2];

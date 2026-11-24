@@ -146,6 +146,66 @@ describe("curvePose invariants", () => {
     // Spread over the range: `fc.double` would favour Positions near 0, where the ribbon barely moves.
     const position = fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100);
 
+    it("gives the same Pose whatever Curve was laid out before (a reused integral)", () => {
+      // Each other Curve differs from this one in one thing the integral depends on.
+      const changes = ["curvature", "amplitude", "wavelength", "phase", "plane", "position"];
+      // Spread over the range: past 1/16 of a step a Pose reads the kept integral.
+      const offsets = fc.array(
+        fc.integer({ min: -2000, max: 2000 }).map((n) => n / 100),
+        { minLength: 1, maxLength: 8 },
+      );
+      let readsTheGrid = 0;
+      fc.assert(
+        fc.property(base, wave, offsets, position, (c, w, list, t) => {
+          if (w.amplitude !== 0 && list.some((o) => Math.abs(o) >= 1 / 16)) readsTheGrid++;
+          const options: CurveOptions = { curvature: c, gap: 20, wave: w };
+          const context = { size: 100, position: t };
+          // A Curve unlike every other, so the next call starts afresh.
+          const reset = () =>
+            curvePose(
+              0,
+              { curvature: 3, gap: 0, wave: { amplitude: 2, wavelength: 0.5 } },
+              context,
+            );
+          reset();
+          const alone = list.map((o) => curvePose(o, options, context));
+          for (const what of changes) {
+            const other: CurveOptions = {
+              ...options,
+              curvature: what === "curvature" ? c + 0.5 : c,
+              wave: {
+                ...w,
+                amplitude: what === "amplitude" ? w.amplitude + 0.5 : w.amplitude,
+                wavelength: what === "wavelength" ? w.wavelength + 1 : w.wavelength,
+                phase: what === "phase" ? w.phase + 1 : w.phase,
+                plane: what === "plane" ? (w.plane === "y" ? "z" : "y") : w.plane,
+                anchor: what === "position" ? "ribbon" : w.anchor,
+              },
+            };
+            const otherContext = { size: 100, position: what === "position" ? t + 1 : t };
+            // The other Curve first, as far out as any Offset each way; then in the other order.
+            reset();
+            for (const o of [-25, 25]) curvePose(o, other, otherContext);
+            const after = [...list]
+              .reverse()
+              .map((o) => curvePose(o, options, context))
+              .reverse();
+            alone.forEach((pose, i) => {
+              const again = after[i] as Pose;
+              expect(distance(pose, again), what).toBeLessThanOrEqual(EPS * 120);
+              pose.rotation.forEach((value, j) => {
+                expect(Math.abs(value - (again.rotation[j] as number)), what).toBeLessThanOrEqual(
+                  EPS,
+                );
+              });
+            });
+          }
+        }),
+        { numRuns: 300 },
+      );
+      expect(readsTheGrid).toBeGreaterThan(200);
+    });
+
     it("keeps the Slides on the Curve, one step apart, turned with it, with any Twist and Tilt", () => {
       fc.assert(
         fc.property(
