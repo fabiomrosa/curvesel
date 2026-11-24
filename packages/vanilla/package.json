@@ -1,8 +1,26 @@
 {
   "name": "@curvesel/vanilla",
-  "version": "0.0.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "A headless 3D carousel over your own elements: a configurable Curve, drag, inertia and snap.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabiomrosa/curvesel.git",
+    "directory": "packages/vanilla"
+  },
+  "homepage": "https://github.com/fabiomrosa/curvesel#readme",
+  "keywords": [
+    "carousel",
+    "3d",
+    "slider",
+    "headless",
+    "drag",
+    "accessibility"
+  ],
   "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -16,6 +34,6 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@curvesel/core": "0.0.0"
+    "@curvesel/core": "^1.0.0"
   }
 }

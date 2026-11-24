@@ -4,7 +4,8 @@ What exists in this repository now. The code wins over this file: if they disagr
 Every slice's pull request updates it (SESSION §3).
 
 ## Capabilities
-- The npm workspace builds, formats, lints, type-checks, tests and runs the browser tests
+- The npm workspace builds, formats, lints, type-checks, tests, checks the packed packages
+  (`check:pack`) and runs the browser tests
   (Playwright in Chrome: the playground's Drag, Rubber band and idle loop, the engine's resize,
   hidden Stage, removed and moved Slides, and the demo's Drag, click guard, keys and wheel) with one
   command, `npm run verify`, which CI runs in the `gate` job (plus the title, size, frozen-files and
@@ -174,4 +175,7 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-24, C3.3:** the announcer; the demo has a polite live region.
 - **2026-11-24, C3.4:** keyboard focus brings its Slide to the centre.
 - **2026-11-24, C3.5:** reduced motion lands at once (DEC-16).
-- **Next:** C3.6 (ready to publish).
+- **2026-11-24, C3.6:** both packages at 1.0.0 with their metadata and `LICENSE` (MIT); `npm run
+  check:pack` in the gate installs the tarballs into a scratch project, type-checks and bundles a
+  sample.
+- **Next:** C3.7 (docs and the lab write-up; the owner reads them).

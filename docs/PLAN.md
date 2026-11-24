@@ -670,7 +670,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-16.
 
 ### C3.6 · Ready to publish
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** `npm pack` gives two packages a project can install and use.
 - **Depends on:** DEC-12, DEC-17.
 - **In scope:** each `package.json`: `private` removed, version `1.0.0` in lockstep, description,
@@ -686,7 +686,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-12, DEC-17.
 
 ### C3.7 · Docs and the lab write-up
-- **Status:** waiting (C3.6)
+- **Status:** next
 - **Goal:** a stranger can use the library from its README, and the lab's question has an answer.
 - **Depends on:** C3.6.
 - **In scope:** each package's `README.md` (install, a quick start, options, methods, events, the

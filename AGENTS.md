@@ -63,9 +63,9 @@ Follow YAGNI and KISS strictly, in code and in communication.
 - Generated and frozen files are listed in `.agents/protected.json`; regenerate them, never edit them.
 
 ## Commands
-- **Gate:** `npm run verify`: one command that runs everything CI runs here (format, lint, types, tests
-  with the coverage floor, build). CI runs it, plus the title, size, frozen-files and secret
-  (gitleaks) checks.
+- **Gate:** `npm run verify`: one command that runs everything CI runs here (format, lint, types,
+  tests with the coverage floor, build, the packed packages installed and used). CI runs it, plus
+  the title, size, frozen-files and secret (gitleaks) checks.
 - **Pull requests:** push the slice branch, open the pull request with `gh`, and squash-merge it
   yourself once every check is green (SESSION §4). Nothing reaches `main` any other way (DEC-04).
 - **Install:** `npm ci`. **Test:** `npm test`. **Format and fix lint:** `npm run format`.
