@@ -622,7 +622,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-07, DEC-15; the WAI-ARIA carousel pattern.
 
 ### C3.3 · Announcer
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** a screen reader hears the new Slide once the Carousel settles.
 - **Depends on:** C3.2, DEC-15.
 - **In scope:** option `announcer`: the user's own live-region element; when the Track comes to rest
@@ -637,7 +637,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-15.
 
 ### C3.4 · Focus brings the Slide to the centre
-- **Status:** waiting (C3.3)
+- **Status:** next
 - **Goal:** keyboard focus never sits on a card off to the side.
 - **Depends on:** C3.2, DEC-15.
 - **In scope:** keyboard focus (`:focus-visible`) entering a Slide sends the Track to that Slide;

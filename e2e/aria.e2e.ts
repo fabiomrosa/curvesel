@@ -23,3 +23,12 @@ test("a card hidden on the cylinder leaves the tree", async ({ page }) => {
   await expect(page.getByRole("group", { name: "5 of 10" })).toHaveCount(0);
   await expect(page.getByRole("group", { name: "2 of 10" })).toHaveCount(1);
 });
+
+test("the demo's live region says the new card once the Carousel settles", async ({ page }) => {
+  const announcer = page.locator("#announcer");
+  await expect(announcer).toHaveAttribute("aria-live", "polite");
+  await expect(announcer).toHaveText("");
+  await page.click("#next");
+  await expect(page.locator("#active")).toHaveText("2");
+  await expect(announcer).toHaveText("2 of 10");
+});

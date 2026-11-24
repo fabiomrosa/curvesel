@@ -36,6 +36,11 @@ export interface CarouselOptions {
   label?: string;
   /** Each Slide's accessible name, unless it has one; "3 of 10" by default (DEC-15). */
   slideLabel?: (index: number, count: number) => string;
+  /**
+   * The user's own live-region element: when the Track comes to rest on a new Active slide, the
+   * library writes that Slide's label as its text, and nothing else (DEC-15).
+   */
+  announcer?: HTMLElement;
 }
 
 /** What each event hands its handlers. */
@@ -127,6 +132,17 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       `curvesel: label must be a non-empty string, got ${JSON.stringify(options.label)}`,
     );
   }
+  const { announcer } = options;
+  if (announcer !== undefined && !(announcer instanceof HTMLElement)) {
+    throw new Error(`curvesel: announcer must be an HTMLElement, got ${String(announcer)}`);
+  }
+  // Its text would replace the Slides, or the Carousel itself.
+  if (announcer && (announcer.contains(stage) || stage.contains(announcer))) {
+    throw new Error("curvesel: announcer must be outside the Stage");
+  }
+  /** The announcer's own nodes, and the Active slide it said last with the text it wrote. */
+  const quiet = announcer ? [...announcer.childNodes] : [];
+  let said: { slide: HTMLElement | undefined; text?: string } = { slide: undefined };
   /** The ARIA the library wrote on each element, attribute by attribute (DEC-15). */
   const voiced: Voiced = new Map();
   const saved = [save(stage, ["perspective", "touch-action"], [])];
@@ -157,6 +173,19 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     if (position !== before.position) emit(handlers.change, position);
     if (active !== before.active) emit(handlers.select, active);
   };
+  /** At rest on a new Active slide, the announcer says its label. */
+  const announce = () => {
+    const index = activeIndex(track);
+    const slide = slides[index];
+    if (!announcer || track.phase !== "rest" || slide === said.slide) return;
+    try {
+      const text = slideLabel(index, slides.length);
+      announcer.textContent = text;
+      said = { slide, text };
+    } catch (error) {
+      reportError(error);
+    }
+  };
   let frame = 0;
   let last: number | undefined;
   let destroyed = false;
@@ -176,6 +205,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     if (track.phase === "inertia" || track.phase === "snap") request();
     else last = undefined;
     notify();
+    announce();
   };
   const move = (next: TrackState) => {
     track = next;
@@ -299,6 +329,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     adopt();
     draw();
     notify();
+    announce();
   });
   const destroy = () => {
     destroyed = true;
@@ -312,6 +343,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     resizes.disconnect();
     for (const slide of owned) owners.get(slide)?.();
     for (const restore of saved) restore();
+    if (announcer && said.text !== undefined && announcer.textContent === said.text) {
+      announcer.replaceChildren(...quiet);
+    }
     unvoice(voiced, stage);
   };
   try {
@@ -340,6 +374,8 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       );
     }
     draw();
+    // The Active slide at mount is not said.
+    said = { slide: slides[activeIndex(track)] };
     mutations.observe(stage, { childList: true });
   } catch (error) {
     destroy();
