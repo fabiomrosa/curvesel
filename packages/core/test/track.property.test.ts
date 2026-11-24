@@ -4,6 +4,7 @@ import {
   createTrack,
   dragMove,
   dragStart,
+  goBy,
   goTo,
   release,
   step,
@@ -183,5 +184,47 @@ describe("Inertia and Snap invariants", () => {
       { numRuns: 300 },
     );
     expect(fast).toBeGreaterThan(150);
+  });
+
+  it("keeps stepping one way with `goBy`, past the ends when looping, at any frame rate", () => {
+    let pastAnEnd = 0;
+    let clamped = 0;
+    fc.assert(
+      fc.property(
+        count,
+        fc.boolean(),
+        start,
+        velocity,
+        fc.constantFrom(-1, 1),
+        fc.array(
+          fc.integer({ min: 0, max: 40 }).map((ms) => ms / 1000),
+          {
+            minLength: 1,
+            maxLength: 8,
+          },
+        ),
+        (n, loop, from, v, by, pauses) => {
+          let track = release(
+            dragMove(dragStart(createTrack({ count: n, loop })), n * from - 0.5),
+            v,
+          );
+          // Each step starts from where the last one aimed, however far its Snap has got.
+          let aim = track.phase === "snap" ? track.target : Math.round(track.position);
+          for (const pause of pauses) {
+            track = step(goBy(track, by), pause);
+            aim = loop ? aim + by : Math.min(Math.max(aim + by, 0), n - 1);
+            expect(track.phase === "rest" ? track.position : track.target).toBe(aim);
+          }
+          if (loop && (aim < 0 || aim > n - 1)) pastAnEnd++;
+          if (!loop && (aim === 0 || aim === n - 1)) clamped++;
+          const { end, smooth } = run(track, [1 / 60]);
+          expect(smooth).toBe(true);
+          expect(end.position).toBe(aim);
+        },
+      ),
+      { numRuns: 300 },
+    );
+    expect(pastAnEnd).toBeGreaterThan(30);
+    expect(clamped).toBeGreaterThan(30);
   });
 });
