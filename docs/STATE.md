@@ -66,7 +66,8 @@ Every slice's pull request updates it (SESSION §3).
   live region, outside the Stage: at rest on a new Active slide (another element, after a move or a
   child change) its text becomes that Slide's label, never on mount or during a Drag, and
   `destroy()` puts its own nodes back unless the user changed its text. Keyboard focus
-  (`:focus-visible`) entering a Slide sends the Track to it; a tap's focus does not.
+  entering a Slide sends the Track to it; after a press on the Stage, focus is the pointer's and
+  moves nothing until a key or until focus leaves the Carousel.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep

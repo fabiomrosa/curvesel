@@ -289,13 +289,28 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     } else return;
     event.preventDefault();
   };
-  // Keyboard focus entering a Slide brings it to the centre; a tap's focus does not (and focus
-  // during a press finds the Track in its Drag, which ignores `goTo`).
-  const focus = (event: FocusEvent) => {
-    const target = event.target as Element;
-    const index = slides.findIndex((slide) => slide.contains(target));
-    if (index >= 0 && target.matches(":focus-visible")) goTo(index);
+  // Keyboard focus entering a Slide brings it to the centre. After a press on the Stage, focus is
+  // the pointer's (a tap's focus comes after the release) until a key, or until focus leaves.
+  let pressed = false;
+  const press = () => {
+    pressed = true;
   };
+  const unpress = () => {
+    pressed = false;
+  };
+  const focus = (event: Event) => {
+    const index = slides.findIndex((slide) => slide.contains(event.target as Node));
+    if (index >= 0 && !pressed) goTo(index);
+  };
+  const leave = (event: Event) => {
+    if (!stage.contains((event as FocusEvent).relatedTarget as Node | null)) unpress();
+  };
+  const focusListeners = [
+    ["pointerdown", press],
+    ["keydown", unpress],
+    ["focusin", focus],
+    ["focusout", leave],
+  ] as const;
   const resizes = new ResizeObserver(draw);
   /** Adopts the Stage's children as they are now: new ones taken in, removed ones given back. */
   const adopt = () => {
@@ -344,7 +359,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     clearTimeout(wheeling);
     stage.removeEventListener("wheel", wheel);
     stage.removeEventListener("keydown", key);
-    stage.removeEventListener("focusin", focus);
+    for (const [type, listener] of focusListeners) stage.removeEventListener(type, listener, true);
     for (const set of Object.values(handlers)) set.clear();
     if (frame !== 0) cancelAnimationFrame(frame);
     mutations.disconnect();
@@ -371,7 +386,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     }
     stage.addEventListener("wheel", wheel, { passive: false });
     stage.addEventListener("keydown", key);
-    stage.addEventListener("focusin", focus);
+    for (const [type, listener] of focusListeners) stage.addEventListener(type, listener, true);
     // A touch drag along the Curve; the page still scrolls across it (GOTCHAS).
     const axis = screenStep(layout, options.size ?? 1, 0)?.axis ?? { x: 1, y: 0 };
     stage.style.touchAction = Math.abs(axis.y) > Math.abs(axis.x) ? "pan-x" : "pan-y";

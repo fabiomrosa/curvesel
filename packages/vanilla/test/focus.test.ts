@@ -47,21 +47,34 @@ describe("Focus (DEC-15)", () => {
     expect(carousel.position).toBe(-1);
   });
 
-  it("leaves a pointer's focus, and focus during a press, where it is", () => {
-    // A tap's focus does not match :focus-visible.
-    const tapped = button(3);
-    Object.defineProperty(tapped, "matches", {
-      value: (selector: string) => selector !== ":focus-visible",
-    });
-    tapped.focus();
+  it("leaves focus after a press where it is, until a key or focus leaving the Carousel", () => {
+    const press = () =>
+      root.dispatchEvent(
+        new PointerEvent("pointerdown", { bubbles: true, clientX: 500, clientY: 300, buttons: 1 }),
+      );
+    const release = () =>
+      root.dispatchEvent(
+        new PointerEvent("pointerup", { bubbles: true, clientX: 500, clientY: 300, buttons: 0 }),
+      );
+    // A tap: its focus comes after the release.
+    press();
+    release();
+    button(3).focus();
     settle();
     expect(carousel.position).toBe(0);
-    root.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true, clientX: 500, clientY: 300, buttons: 1 }),
-    );
-    button(2).focus();
+    // A key (Tab) on the way to the next element: keyboard focus again.
+    button(3).dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "Tab" }));
+    button(4).focus();
     settle();
-    expect(carousel.position).toBe(0);
+    expect(carousel.position).toBe(4);
+    // Focus that left the Carousel and comes back by keyboard moves it too.
+    press();
+    release();
+    document.body.insertAdjacentHTML("beforeend", "<button id='outside'>Out</button>");
+    (document.getElementById("outside") as HTMLElement).focus();
+    button(1).focus();
+    settle();
+    expect(carousel.position).toBe(1);
   });
 
   it("stops following focus on destroy", () => {
