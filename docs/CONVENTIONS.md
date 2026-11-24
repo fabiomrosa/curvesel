@@ -49,6 +49,9 @@ packages/<name>/
 | An engine behaviour | the engine with `happy-dom`, synthetic pointer events and a fake clock for `requestAnimationFrame` | `packages/vanilla/test/<thing>.test.ts` |
 | A real gesture | the demo page in Playwright | `e2e/<flow>.e2e.ts` (from M2) |
 
+**One test per case** (a Preset, an option, an input) asserts what sets that case apart, so it fails
+when the case behaves like its neighbours (a wavy ribbon's check fails for a plain bend).
+
 **Numbers** are compared with a tolerance (`toBeCloseTo`, or a shared `EPS` for property tests),
 never with `toBe`.
 
