@@ -1,8 +1,24 @@
 {
   "name": "@curvesel/core",
-  "version": "0.0.0",
-  "private": true,
+  "version": "1.0.0",
+  "description": "The Curve layouts and the physics of curvesel, a headless 3D carousel: pure functions, no DOM.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fabiomrosa/curvesel.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/fabiomrosa/curvesel#readme",
+  "keywords": [
+    "carousel",
+    "3d",
+    "curve",
+    "layout",
+    "physics",
+    "headless"
+  ],
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
