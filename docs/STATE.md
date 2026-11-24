@@ -62,12 +62,15 @@ Every slice's pull request updates it (SESSION §3).
   generic Stage is a `region` with `aria-roledescription="carousel"` and `label`, each generic
   Slide a `group` with `aria-roledescription="slide"` and `slideLabel` ("3 of 10"), kept current
   as children change; an element with a role of its own (set or native) and a label the user set
-  stay theirs; a throwing `slideLabel` is reported.
+  stay theirs; a throwing `slideLabel` is reported. The `announcer` option takes the user's own
+  live region: at rest on a new Active slide its text becomes that Slide's label (not on mount,
+  not during a Drag), and `destroy()` puts the earlier text back.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
-  their state. Its look (`demo/style.css`) reads `--cs-abs-offset` and `data-cs-active`: side cards
-  dimmer and smaller, the Active one outlined.
+  their state; a visually hidden polite live region is its announcer. Its look (`demo/style.css`)
+  reads `--cs-abs-offset` and `data-cs-active`: side cards dimmer and smaller, the Active one
+  outlined.
 - The playground (`npm run dev`): top, front and side views of N Slides drawn as squares, a Preset
   selector, a Plane selector and sliders for count, Curvature, gap, size, the Wave with its plane
   and anchor, Twist, Tilt, the Position and visible range (hidden Slides dashed, painted in `zIndex`
@@ -162,4 +165,5 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-23, C3.1:** the Wave's integral kept for the Curve being laid out: 200 Slides with a
   Wave take about 4 ms a frame, down from 23.
 - **2026-11-23, C3.2:** ARIA on the Stage and the Slides (DEC-15).
-- **Next:** C3.3 (announcer).
+- **2026-11-24, C3.3:** the announcer; the demo has a polite live region.
+- **Next:** C3.4 (focus brings the Slide to the centre).

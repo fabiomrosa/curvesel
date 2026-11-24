@@ -42,6 +42,7 @@ function mount(): void {
   carousel = createCarousel(stage, {
     layout: layouts[preset.value] ?? (preset.value as PresetName),
     loop: loop.checked,
+    announcer: byId<HTMLParagraphElement>("announcer"),
   });
   // Exposed for the browser tests (`e2e/demo.e2e.ts`).
   Object.assign(window, { carousel });
