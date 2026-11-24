@@ -637,7 +637,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-15.
 
 ### C3.4 · Focus brings the Slide to the centre
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** keyboard focus never sits on a card off to the side.
 - **Depends on:** C3.2, DEC-15.
 - **In scope:** keyboard focus (`:focus-visible`) entering a Slide sends the Track to that Slide;
@@ -651,7 +651,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-15.
 
 ### C3.5 · Reduced motion
-- **Status:** waiting (C3.4)
+- **Status:** next
 - **Goal:** with reduced motion, nothing animates that the user did not drag.
 - **Depends on:** DEC-16.
 - **In scope:** option `reducedMotion` (by default it follows `prefers-reduced-motion`, live,
