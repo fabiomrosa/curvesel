@@ -32,6 +32,10 @@ export interface CarouselOptions {
   friction?: number;
   /** How far a pointer moves, in px, before it is a drag and its click is stopped; 10 by default. */
   dragThreshold?: number;
+  /** The Stage's accessible name, unless it has one; "Carousel" by default (DEC-15). */
+  label?: string;
+  /** Each Slide's accessible name, unless it has one; "3 of 10" by default (DEC-15). */
+  slideLabel?: (index: number, count: number) => string;
 }
 
 /** What each event hands its handlers. */
@@ -87,6 +91,8 @@ const SLIDE_PROPERTIES = [
   "--cs-abs-offset",
 ];
 const SLIDE_ATTRIBUTES = ["data-cs-active", "data-cs-visible"];
+/** Elements with no role of their own, which DEC-15's ARIA may name (custom elements too). */
+const GENERIC = ["div", "span", "section"];
 
 /** Lays the Stage's children out on the Curve; they stay the user's nodes, in place (DEC-07). */
 export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}): Carousel {
@@ -115,6 +121,14 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     ...(friction === undefined ? {} : { friction }),
   });
   const owned = new Set<HTMLElement>();
+  const slideLabel = options.slideLabel ?? ((index, count) => `${index + 1} of ${count}`);
+  if (options.label !== undefined && !(typeof options.label === "string" && options.label.trim())) {
+    throw new Error(
+      `curvesel: label must be a non-empty string, got ${JSON.stringify(options.label)}`,
+    );
+  }
+  /** The ARIA the library wrote on each element, attribute by attribute (DEC-15). */
+  const voiced: Voiced = new Map();
   const saved = [save(stage, ["perspective", "touch-action"], [])];
   const measure = () => options.size ?? largest(slides, plane);
   // Geometry is read on mount, resize and child changes only; a frame computes and writes.
@@ -258,6 +272,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       owners.set(slide, () => {
         resizes.unobserve(slide);
         restore();
+        unvoice(voiced, slide);
         owned.delete(slide);
         owners.delete(slide);
       });
@@ -267,6 +282,15 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     }
     slides = children;
     track = { ...track, count: Math.max(slides.length, 1) };
+    let labels: string[] | undefined;
+    try {
+      labels = slides.map((_, index) => slideLabel(index, slides.length));
+    } catch (error) {
+      reportError(error);
+    }
+    slides.forEach((slide, index) => {
+      voice(voiced, slide, ["group", "slide"], labels?.[index]);
+    });
     // Past the new last Slide (it was removed), Snap back to it.
     const at = track.phase === "snap" ? track.target : track.position;
     if (!loop && at > track.count - 1) goTo(track.count - 1);
@@ -288,6 +312,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     resizes.disconnect();
     for (const slide of owned) owners.get(slide)?.();
     for (const restore of saved) restore();
+    unvoice(voiced, stage);
   };
   try {
     // A positioned Stage keeps its own position; a static one becomes the Slides' containing block.
@@ -296,6 +321,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       stage.style.position = "relative";
     }
     stage.style.perspective = `${perspective}px`;
+    voice(voiced, stage, ["region", "carousel"], options.label ?? "Carousel");
     // Focusable for the keys (DEC-14); a `tabindex` the user set stays theirs.
     if (!stage.hasAttribute("tabindex")) {
       saved.push(save(stage, [], ["tabindex"]));
@@ -437,6 +463,60 @@ function render(
     slide.toggleAttribute("data-cs-active", index === active);
     slide.toggleAttribute("data-cs-visible", pose.visible);
   });
+}
+
+/** Per element, each ARIA attribute the library wrote: its value, and what was there before. */
+type Voiced = Map<HTMLElement, Map<string, { value: string; was: string | null }>>;
+
+/**
+ * DEC-15's ARIA on a generic element with no `role`: on first sight the role, and the description
+ * unless it has one; a label while it has none (a blank one counts as none), until the user sets one.
+ */
+function voice(
+  voiced: Voiced,
+  element: HTMLElement,
+  [role, description]: [string, string],
+  label?: string,
+): void {
+  let written = voiced.get(element);
+  const write = (name: string, value: string) => {
+    const prior = written?.get(name);
+    const was = prior ? prior.was : element.getAttribute(name);
+    element.setAttribute(name, value);
+    written?.set(name, { value, was });
+  };
+  if (!written) {
+    written = new Map();
+    voiced.set(element, written);
+    const name = element.localName;
+    const generic = GENERIC.includes(name) || name.includes("-");
+    if (!generic || element.hasAttribute("role")) return;
+    write("role", role);
+    if (!element.hasAttribute("aria-roledescription")) write("aria-roledescription", description);
+  }
+  if (!written.has("role") || label === undefined) return;
+  const ours = written.get("aria-label")?.value;
+  const current = element.getAttribute("aria-label");
+  // A label the user set (before or since) is theirs.
+  if (
+    ours === undefined
+      ? current?.trim() || element.hasAttribute("aria-labelledby")
+      : current !== ours
+  ) {
+    written.delete("aria-label");
+    return;
+  }
+  write("aria-label", label);
+}
+
+/** Puts back what was there before each ARIA attribute the library wrote that still holds its value. */
+function unvoice(voiced: Voiced, element: HTMLElement): void {
+  for (const [name, { value, was }] of voiced.get(element) ?? []) {
+    if (element.getAttribute(name) !== value) continue;
+    if (was === null) element.removeAttribute(name);
+    else element.setAttribute(name, was);
+  }
+  voiced.delete(element);
 }
 
 /** CSS `matrix3d`, column-major: column j is where the Slide's own axis j points, then the place. */

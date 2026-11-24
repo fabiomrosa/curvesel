@@ -108,7 +108,7 @@ test("the loop goes round from the first card to the last", async ({ page }) => 
   await expect(page.locator("#active")).toHaveText("10");
 });
 
-test("the library writes on the cards and the Stage only what DEC-07 and DEC-14 list", async ({
+test("the library writes on the cards and the Stage only what DEC-07, DEC-14 and DEC-15 list", async ({
   page,
 }) => {
   const slide = [
@@ -137,12 +137,10 @@ test("the library writes on the cards and the Stage only what DEC-07 and DEC-14 
     });
     for (const name of written.slide) expect(slide, option).toContain(name);
     for (const name of written.stage) expect(stage, option).toContain(name);
-    expect(written.marks.sort(), option).toEqual([
-      "class",
-      "data-cs-active",
-      "data-cs-visible",
-      "style",
-    ]);
-    expect(written.stageMarks.sort(), option).toEqual(["id", "style", "tabindex"]);
+    const aria = ["aria-label", "aria-roledescription", "role"];
+    expect(written.marks.sort(), option).toEqual(
+      [...aria, "class", "data-cs-active", "data-cs-visible", "style"].sort(),
+    );
+    expect(written.stageMarks.sort(), option).toEqual([...aria, "id", "style", "tabindex"].sort());
   }
 });

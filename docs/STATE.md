@@ -58,7 +58,11 @@ Every slice's pull request updates it (SESSION §3).
   Drag within the ends (at an end, across the Curve or a pinch, the page takes it) and Snaps after
   150 ms without one, or at once for a Drag, a key or a call; on the focused Stage the arrows
   along the Curve step it, Home and End go to the ends (keys from inside a Slide stay the Slide's);
-  a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14).
+  a Stage without `tabindex` gets `tabindex="0"` until `destroy()` (DEC-14). ARIA (DEC-15): a
+  generic Stage is a `region` with `aria-roledescription="carousel"` and `label`, each generic
+  Slide a `group` with `aria-roledescription="slide"` and `slideLabel` ("3 of 10"), kept current
+  as children change; an element with a role of its own (set or native) and a label the user set
+  stay theirs; a throwing `slideLabel` is reported.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
@@ -157,4 +161,5 @@ Every slice's pull request updates it (SESSION §3).
   lands at once (DEC-16), released from CI on a tag with the demo on Pages (DEC-17).
 - **2026-11-23, C3.1:** the Wave's integral kept for the Curve being laid out: 200 Slides with a
   Wave take about 4 ms a frame, down from 23.
-- **Next:** C3.2 (ARIA on the Stage and the Slides).
+- **2026-11-23, C3.2:** ARIA on the Stage and the Slides (DEC-15).
+- **Next:** C3.3 (announcer).

@@ -15,7 +15,7 @@ const layouts: Record<string, CurveOptions> = {
 // The user's own cards: the library adopts them, it never builds or changes their inside. Ten
 // close the cylinder's ring.
 for (let i = 1; i <= 10; i++) {
-  const card = document.createElement("article");
+  const card = document.createElement("div");
   card.className = "card";
   const title = document.createElement("h2");
   title.textContent = `Card ${i}`;
