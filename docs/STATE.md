@@ -178,4 +178,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-24, C3.6:** both packages at 1.0.0 with their metadata and `LICENSE` (MIT); `npm run
   check:pack` in the gate installs the tarballs into a scratch project, type-checks and bundles a
   sample.
-- **Next:** C3.7 (docs and the lab write-up; the owner reads them).
+- **2026-11-24, C3.7:** each package's README (its quick start run as written by an e2e) and the
+  lab write-up, `docs/WRITEUP.md`.
+- **Next:** C3.8 (demo online); it needs P4, GitHub Pages.

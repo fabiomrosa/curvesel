@@ -8,8 +8,8 @@ import { build } from "vite";
 
 const root = resolve(import.meta.dirname, "..");
 const packages = ["packages/core", "packages/vanilla"];
-/** What a tarball may hold; the first four it must. */
-const REQUIRED = ["package.json", "LICENSE", "dist/index.js", "dist/index.d.ts"];
+/** What a tarball must hold, and what it may. */
+const REQUIRED = ["package.json", "LICENSE", "README.md", "dist/index.js", "dist/index.d.ts"];
 const ALLOWED = /^(package\.json|LICENSE|README\.md|dist\/[\w-]+\.(js|d\.ts))$/;
 
 const run = (command: string, args: string[], cwd: string) =>
