@@ -122,13 +122,19 @@ describe("ARIA (DEC-15)", () => {
   });
 
   it("names generic containers: sections, spans and custom elements too", () => {
-    const root = stage("<section></section><span></span><x-card></x-card>");
-    createCarousel(root, { size: 100 });
+    const root = stage(
+      '<section></section><span></span><x-card aria-roledescription="card"></x-card>',
+    );
+    const carousel = createCarousel(root, { size: 100 });
     expect([...root.children].map((slide) => slide.getAttribute("role"))).toEqual([
       "group",
       "group",
       "group",
     ]);
+    // A description of the user's own stays, through destroy.
+    expect(root.children[2]?.getAttribute("aria-roledescription")).toBe("card");
+    carousel.destroy();
+    expect(root.children[2]?.getAttribute("aria-roledescription")).toBe("card");
   });
 
   it("stops writing a label the user set after mount, and leaves it on destroy", async () => {
@@ -149,9 +155,12 @@ describe("ARIA (DEC-15)", () => {
   it("treats an empty aria-label as none, and rejects an empty `label`", () => {
     const root = stage('<div aria-label=""></div>');
     root.setAttribute("aria-label", " ");
-    createCarousel(root, { size: 100 });
+    const carousel = createCarousel(root, { size: 100 });
     expect(root.getAttribute("aria-label")).toBe("Carousel");
     expect(root.firstElementChild?.getAttribute("aria-label")).toBe("1 of 1");
+    carousel.destroy();
+    expect(root.getAttribute("aria-label")).toBe(" ");
+    expect(root.firstElementChild?.getAttribute("aria-label")).toBe("");
     expect(() => createCarousel(stage("<div></div>"), { size: 100, label: "" })).toThrow(
       "curvesel: label must be a non-empty string",
     );

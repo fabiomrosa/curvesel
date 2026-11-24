@@ -92,7 +92,7 @@ const SLIDE_PROPERTIES = [
 ];
 const SLIDE_ATTRIBUTES = ["data-cs-active", "data-cs-visible"];
 /** Elements with no role of their own, which DEC-15's ARIA may name (custom elements too). */
-const GENERIC = ["DIV", "SPAN", "SECTION"];
+const GENERIC = ["div", "span", "section"];
 
 /** Lays the Stage's children out on the Curve; they stay the user's nodes, in place (DEC-07). */
 export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}): Carousel {
@@ -128,7 +128,7 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     );
   }
   /** The ARIA the library wrote on each element, attribute by attribute (DEC-15). */
-  const voiced = new Map<HTMLElement, Map<string, string>>();
+  const voiced: Voiced = new Map();
   const saved = [save(stage, ["perspective", "touch-action"], [])];
   const measure = () => options.size ?? largest(slides, plane);
   // Geometry is read on mount, resize and child changes only; a frame computes and writes.
@@ -465,32 +465,37 @@ function render(
   });
 }
 
+/** Per element, each ARIA attribute the library wrote: its value, and what was there before. */
+type Voiced = Map<HTMLElement, Map<string, { value: string; was: string | null }>>;
+
 /**
- * DEC-15's ARIA on a generic element: on first sight a role and its description, unless it has a
- * role of its own (set or native); a label while it has none, until the user sets one.
+ * DEC-15's ARIA on a generic element with no `role`: on first sight the role, and the description
+ * unless it has one; a label while it has none (a blank one counts as none), until the user sets one.
  */
 function voice(
-  voiced: Map<HTMLElement, Map<string, string>>,
+  voiced: Voiced,
   element: HTMLElement,
   [role, description]: [string, string],
-  label: string | undefined,
+  label?: string,
 ): void {
   let written = voiced.get(element);
+  const write = (name: string, value: string) => {
+    const prior = written?.get(name);
+    const was = prior ? prior.was : element.getAttribute(name);
+    element.setAttribute(name, value);
+    written?.set(name, { value, was });
+  };
   if (!written) {
     written = new Map();
     voiced.set(element, written);
-    const generic = GENERIC.includes(element.tagName) || element.tagName.includes("-");
+    const name = element.localName;
+    const generic = GENERIC.includes(name) || name.includes("-");
     if (!generic || element.hasAttribute("role")) return;
-    for (const [name, value] of [
-      ["role", role],
-      ["aria-roledescription", description],
-    ] as const) {
-      element.setAttribute(name, value);
-      written.set(name, value);
-    }
+    write("role", role);
+    if (!element.hasAttribute("aria-roledescription")) write("aria-roledescription", description);
   }
   if (!written.has("role") || label === undefined) return;
-  const ours = written.get("aria-label");
+  const ours = written.get("aria-label")?.value;
   const current = element.getAttribute("aria-label");
   // A label the user set (before or since) is theirs.
   if (
@@ -501,14 +506,15 @@ function voice(
     written.delete("aria-label");
     return;
   }
-  element.setAttribute("aria-label", label);
-  written.set("aria-label", label);
+  write("aria-label", label);
 }
 
-/** Removes the ARIA the library wrote that still holds its value. */
-function unvoice(voiced: Map<HTMLElement, Map<string, string>>, element: HTMLElement): void {
-  for (const [name, value] of voiced.get(element) ?? []) {
-    if (element.getAttribute(name) === value) element.removeAttribute(name);
+/** Puts back what was there before each ARIA attribute the library wrote that still holds its value. */
+function unvoice(voiced: Voiced, element: HTMLElement): void {
+  for (const [name, { value, was }] of voiced.get(element) ?? []) {
+    if (element.getAttribute(name) !== value) continue;
+    if (was === null) element.removeAttribute(name);
+    else element.setAttribute(name, was);
   }
   voiced.delete(element);
 }
