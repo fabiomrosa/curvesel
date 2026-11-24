@@ -72,6 +72,8 @@ Every slice's pull request updates it (SESSION §3).
   leaves the Carousel. Reduced motion (DEC-16, option `reducedMotion`, else `prefers-reduced-motion`
   read at each move and moving frame): a release, `goTo`, a key and a wheel gesture's end land at
   once (`core`'s `land`), with no Inertia; a Drag still follows.
+- Docs for users: each package's `README.md` (its quick start run as written by
+  `e2e/quickstart.e2e.ts`, on the build) and the lab's answer, `docs/WRITEUP.md`.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
@@ -101,9 +103,10 @@ Every slice's pull request updates it (SESSION §3).
 - `playground/` (`index.html`, `main.ts`): the hand-test page; not a package, never published.
 
 ## Known issues
-- A ring with a `y` Wave closes only for a whole number of wavelengths at the default phase with
-  `anchor: 'space'`; with another phase, or `ribbon` while the Track moves, it opens (C1.7 review).
-  Closing it would need the Slide count in the Layout context.
+- A ring with a Wave closes only for a whole number of wavelengths at the default phase with
+  `anchor: 'space'` (a `z` Wave also needs at least two per ring); with another phase, or `ribbon`
+  while the Track moves, it opens (C1.7 review). Closing it would need the Slide count in the Layout
+  context.
 
 ## Last session
 - **2026-11-23, bootstrap:** the repository starts from the AI-flow boilerplate: `AGENTS.md`
@@ -178,4 +181,6 @@ Every slice's pull request updates it (SESSION §3).
 - **2026-11-24, C3.6:** both packages at 1.0.0 with their metadata and `LICENSE` (MIT); `npm run
   check:pack` in the gate installs the tarballs into a scratch project, type-checks and bundles a
   sample.
-- **Next:** C3.7 (docs and the lab write-up; the owner reads them).
+- **2026-11-24, C3.7:** each package's README (its quick start run as written by an e2e) and the
+  lab write-up, `docs/WRITEUP.md`.
+- **Next:** C3.8 (demo online); it needs P4, GitHub Pages.

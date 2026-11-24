@@ -9,6 +9,10 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
 - Biome 2.6 formats Markdown too: exclude `**/*.md` in `biome.json`, or it rewraps every doc.
 - TypeScript 7 is the native (Go) compiler; the binary is still `tsc`. Source imports use the `.ts`
   extension (`rewriteRelativeImportExtensions` turns them into `.js` in `dist/`).
+- CI runs the root `typecheck` before `build`, on a clean clone: a file that imports a package by
+  name finds no `dist` types there, though it passes locally over a stale `dist`.
+- Writing a file under the repository during the browser tests makes Vite reload every open page
+  and breaks the tests running beside it: serve generated pages with `page.route`.
 - Vitest's default include also matches `*.spec.ts`: name Playwright files `e2e/*.e2e.ts`.
 - `vanilla` imports `core` at runtime, through its exports, to `dist/`, which a clean clone lacks:
   tests alias the source (`vitest.config.ts`), the type check maps it (`paths` in the root

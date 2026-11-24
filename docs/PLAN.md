@@ -686,7 +686,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-12, DEC-17.
 
 ### C3.7 · Docs and the lab write-up
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** a stranger can use the library from its README, and the lab's question has an answer.
 - **Depends on:** C3.6.
 - **In scope:** each package's `README.md` (install, a quick start, options, methods, events, the
@@ -703,7 +703,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** PRODUCT, ROADMAP "The end goal".
 
 ### C3.8 · Demo online
-- **Status:** waiting (C3.7)
+- **Status:** next
 - **Goal:** the demo is one link away.
 - **Depends on:** DEC-17, P4.
 - **In scope:** `.github/workflows/pages.yml`: on a push to `main`, build the demo (Vite, the

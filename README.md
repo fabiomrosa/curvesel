@@ -18,6 +18,10 @@ flat or wavy ribbon, tilted wheel, arc) and moved with drag, inertia and snap. Y
 behaviour of every slide; it brings the container and the motion. Vanilla TypeScript first, then
 React and Angular. A lab rewriting a 2012 jQuery carousel.
 
+- **[`@curvesel/vanilla`](packages/vanilla/README.md):** the carousel over your own elements.
+- **[`@curvesel/core`](packages/core/README.md):** the Curve layouts and the physics, no DOM.
+- **[The lab's answer](docs/WRITEUP.md):** does one curve cover every variant?
+
 Agents: start with `AGENTS.md`.
 
 ## Tech references
