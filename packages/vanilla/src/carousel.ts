@@ -32,6 +32,10 @@ export interface CarouselOptions {
   friction?: number;
   /** How far a pointer moves, in px, before it is a drag and its click is stopped; 10 by default. */
   dragThreshold?: number;
+  /** The Stage's accessible name, unless it has one; "Carousel" by default (DEC-15). */
+  label?: string;
+  /** Each Slide's accessible name, unless it has one; "3 of 10" by default (DEC-15). */
+  slideLabel?: (index: number, count: number) => string;
 }
 
 /** What each event hands its handlers. */
@@ -86,7 +90,9 @@ const SLIDE_PROPERTIES = [
   "--cs-offset",
   "--cs-abs-offset",
 ];
-const SLIDE_ATTRIBUTES = ["data-cs-active", "data-cs-visible"];
+/** The ARIA a Stage and a Slide get, each unless the user gave it (DEC-15). */
+const ARIA = ["role", "aria-roledescription", "aria-label"];
+const SLIDE_ATTRIBUTES = ["data-cs-active", "data-cs-visible", ...ARIA];
 
 /** Lays the Stage's children out on the Curve; they stay the user's nodes, in place (DEC-07). */
 export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}): Carousel {
@@ -115,6 +121,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     ...(friction === undefined ? {} : { friction }),
   });
   const owned = new Set<HTMLElement>();
+  const slideLabel = options.slideLabel ?? ((index, count) => `${index + 1} of ${count}`);
+  /** The ARIA attributes the library writes on each Slide: those the user left unset. */
+  const voiced = new Map<HTMLElement, string[]>();
   const saved = [save(stage, ["perspective", "touch-action"], [])];
   const measure = () => options.size ?? largest(slides, plane);
   // Geometry is read on mount, resize and child changes only; a frame computes and writes.
@@ -255,9 +264,11 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       owners.get(slide)?.();
       const restore = save(slide, SLIDE_PROPERTIES, SLIDE_ATTRIBUTES);
       owned.add(slide);
+      voiced.set(slide, unvoiced(slide));
       owners.set(slide, () => {
         resizes.unobserve(slide);
         restore();
+        voiced.delete(slide);
         owned.delete(slide);
         owners.delete(slide);
       });
@@ -267,6 +278,10 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     }
     slides = children;
     track = { ...track, count: Math.max(slides.length, 1) };
+    slides.forEach((slide, index) => {
+      const values = ["group", "slide", slideLabel(index, slides.length)];
+      voice(slide, voiced.get(slide) ?? [], values);
+    });
     // Past the new last Slide (it was removed), Snap back to it.
     const at = track.phase === "snap" ? track.target : track.position;
     if (!loop && at > track.count - 1) goTo(track.count - 1);
@@ -296,6 +311,9 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
       stage.style.position = "relative";
     }
     stage.style.perspective = `${perspective}px`;
+    const stageVoiced = unvoiced(stage);
+    saved.push(save(stage, [], stageVoiced));
+    voice(stage, stageVoiced, ["region", "carousel", options.label ?? "Carousel"]);
     // Focusable for the keys (DEC-14); a `tabindex` the user set stays theirs.
     if (!stage.hasAttribute("tabindex")) {
       saved.push(save(stage, [], ["tabindex"]));
@@ -436,6 +454,19 @@ function render(
     slide.style.setProperty("--cs-abs-offset", String(Math.abs(offset)));
     slide.toggleAttribute("data-cs-active", index === active);
     slide.toggleAttribute("data-cs-visible", pose.visible);
+  });
+}
+
+/** The ARIA attributes an element has no value for (`aria-labelledby` counts as a label). */
+function unvoiced(element: HTMLElement): string[] {
+  const labelled = element.hasAttribute("aria-labelledby");
+  return ARIA.filter((name) => !element.hasAttribute(name) && !(name === "aria-label" && labelled));
+}
+
+/** Writes `values` (role, description, label, in ARIA's order) for the attributes in `names`. */
+function voice(element: HTMLElement, names: string[], values: string[]): void {
+  ARIA.forEach((name, i) => {
+    if (names.includes(name)) element.setAttribute(name, values[i] as string);
   });
 }
 

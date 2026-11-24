@@ -79,7 +79,9 @@ Each package is created by the first slice that needs it.
 ## Writing a Pose (`vanilla`)
 `transform: translate(W/2 − left, H/2 − top) translate(-50%, -50%) matrix3d(…)`: DEC-07 writes no
 `left`/`top`, so it starts from where the absolute Slide sits (`offsetLeft`, `offsetTop`). These
-and the size are read on mount, resize and child changes only; a frame computes and writes.
+and the size are read on mount, resize and child changes only; a frame computes and writes. The
+ARIA of DEC-15 is written on mount and child changes, never per frame: only the attributes the
+user left unset, so theirs win and `destroy()` restores the rest.
 
 ## Request flow
 One gesture through the engine (M2):

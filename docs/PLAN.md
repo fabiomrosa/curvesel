@@ -604,7 +604,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** ARCHITECTURE "The math" and "Frame budget".
 
 ### C3.2 · ARIA on the Stage and the Slides
-- **Status:** next
+- **Status:** done (2026-11-23)
 - **Goal:** a screen reader names the Carousel and each Slide's place in it.
 - **Depends on:** DEC-15.
 - **In scope:** on the Stage, `role="region"`, `aria-roledescription="carousel"` and `aria-label`
@@ -622,7 +622,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-07, DEC-15; the WAI-ARIA carousel pattern.
 
 ### C3.3 · Announcer
-- **Status:** waiting (C3.2)
+- **Status:** next
 - **Goal:** a screen reader hears the new Slide once the Carousel settles.
 - **Depends on:** C3.2, DEC-15.
 - **In scope:** option `announcer`: the user's own live-region element; when the Track comes to rest
