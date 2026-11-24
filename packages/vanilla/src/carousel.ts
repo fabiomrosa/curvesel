@@ -6,6 +6,7 @@ import {
   dragStart,
   goBy,
   type Layout,
+  land,
   type Plane,
   type Pose,
   type PresetName,
@@ -41,6 +42,11 @@ export interface CarouselOptions {
    * library writes that Slide's label as its text, and nothing else (DEC-15).
    */
   announcer?: HTMLElement;
+  /**
+   * Lands on the target at once after a release, `goTo`, a key or a wheel gesture, with no Inertia
+   * or spring; a Drag still follows the pointer. Follows `prefers-reduced-motion` by default (DEC-16).
+   */
+  reducedMotion?: boolean;
 }
 
 /** What each event hands its handlers. */
@@ -207,8 +213,12 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     notify();
     announce();
   };
+  // Read at each move, so a change of the media query applies to the next one (DEC-16).
+  const query =
+    typeof matchMedia === "function" ? matchMedia("(prefers-reduced-motion: reduce)") : undefined;
+  const still = () => options.reducedMotion ?? query?.matches ?? false;
   const move = (next: TrackState) => {
-    track = next;
+    track = still() ? land(next) : next;
     request();
   };
   let wheeling: ReturnType<typeof setTimeout> | undefined;
@@ -244,13 +254,11 @@ export function createCarousel(stage: HTMLElement, options: CarouselOptions = {}
     },
     end(velocity) {
       if (!dragging) return;
-      track = release(
-        dragMove(track, toPositions(dragging, pending)),
-        toPositions(dragging, velocity),
-      );
+      const moved = dragMove(track, toPositions(dragging, pending));
+      const released = release(moved, still() ? 0 : toPositions(dragging, velocity));
       pending = { x: 0, y: 0 };
       dragging = undefined;
-      request();
+      move(released);
     },
   });
   // A wheel along the Curve moves the Track like a Drag, within the ends, and Snaps after a pause;

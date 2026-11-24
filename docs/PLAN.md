@@ -651,7 +651,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-15.
 
 ### C3.5 · Reduced motion
-- **Status:** next
+- **Status:** done (2026-11-24)
 - **Goal:** with reduced motion, nothing animates that the user did not drag.
 - **Depends on:** DEC-16.
 - **In scope:** option `reducedMotion` (by default it follows `prefers-reduced-motion`, live,
@@ -668,7 +668,7 @@ The first npm publish of `@curvesel/core` and `@curvesel/vanilla`, with accessib
 - **References:** DEC-16.
 
 ### C3.6 · Ready to publish
-- **Status:** waiting (C3.5)
+- **Status:** next
 - **Goal:** `npm pack` gives two packages a project can install and use.
 - **Depends on:** DEC-12, DEC-17.
 - **In scope:** each `package.json`: `private` removed, version `1.0.0` in lockstep, description,

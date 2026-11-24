@@ -5,6 +5,7 @@ import {
   dragStart,
   goBy,
   goTo,
+  land,
   release,
   step,
   type TrackState,
@@ -387,5 +388,19 @@ describe("goBy", () => {
     expect(() => goBy(createTrack({ count: 3 }), 0.5)).toThrow(
       "curvesel: delta must be a whole number, got 0.5",
     );
+  });
+});
+
+describe("land", () => {
+  it("puts a Snapping Track on its target at once, at rest", () => {
+    const sent = goTo(createTrack({ count: 5 }), 3);
+    expect(land(sent)).toEqual({ ...sent, position: 3, velocity: 0, phase: "rest" });
+  });
+
+  it("leaves a Track at rest, in a Drag or in Inertia as it is", () => {
+    const resting = createTrack({ count: 5 });
+    const dragging = dragMove(dragStart(resting), 0.4);
+    const coasting = release(dragging, 5);
+    for (const state of [resting, dragging, coasting]) expect(land(state)).toBe(state);
   });
 });
