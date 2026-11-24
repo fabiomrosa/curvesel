@@ -65,7 +65,9 @@ Every slice's pull request updates it (SESSION §3).
   stay theirs; a throwing `slideLabel` is reported. The `announcer` option takes the user's own
   live region, outside the Stage: at rest on a new Active slide (another element, after a move or a
   child change) its text becomes that Slide's label, never on mount or during a Drag, and
-  `destroy()` puts its own nodes back unless the user changed its text.
+  `destroy()` puts its own nodes back unless the user changed its text. Keyboard focus
+  entering a Slide sends the Track to it; after a press on the Stage, focus is the pointer's and
+  moves nothing until a key or until focus leaves the Carousel.
 - The demo (`npm run demo`): ten cards with their own counter buttons and inputs, mounted by the
   vanilla engine, with a selector for every Preset and a wavy ribbon, a Loop checkbox, Previous and
   Next, and the Active card from `select`; switching destroys and mounts again, and the cards keep
@@ -167,4 +169,5 @@ Every slice's pull request updates it (SESSION §3).
   Wave take about 4 ms a frame, down from 23.
 - **2026-11-23, C3.2:** ARIA on the Stage and the Slides (DEC-15).
 - **2026-11-24, C3.3:** the announcer; the demo has a polite live region.
-- **Next:** C3.4 (focus brings the Slide to the centre).
+- **2026-11-24, C3.4:** keyboard focus brings its Slide to the centre.
+- **Next:** C3.5 (reduced motion).

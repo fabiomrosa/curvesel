@@ -54,6 +54,10 @@ Node 26 and npm 11 locally (pnpm is installed too, but the workspace uses npm). 
   inside the Slide instead (the demo's `.face`).
 - An element's native role counts as the user's: `role="group"` on an `<img alt>` hides its alt
   text, and on a link or button its role. DEC-15's ARIA goes on generic elements only.
+- An `overflow: hidden` Stage still scrolls to show a focused element, shifting every Slide off
+  the centre for good; `overflow: clip` does not scroll (the demo uses it).
+- Touch focus arrives after `pointerup`, when the Drag is over, and an input always matches
+  `:focus-visible`: telling a tap's focus from the keyboard's needs the press itself.
 - `perspective` belongs on the Stage (the Slides' parent); `transform-style: preserve-3d` is only
   needed when a transformed element has 3D-transformed children, which DEC-07 avoids by giving every
   Slide its own full `transform`.
